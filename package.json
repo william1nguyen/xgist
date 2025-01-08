@@ -1,0 +1,25 @@
+{
+  "name": "kimono",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:whisper": "turbo dev --filter whisper",
+    "dev:brain-space": "turbo dev --filter brain-space",
+    "dev:phantom": "turbo dev --filter phantom",
+    "db:studio": "turbo db:studio --filter phantom",
+    "db:generate": "turbo db:generate --filter phantom",
+    "db:migrate": "turbo db:migrate --filter phantom",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^2.3.3",
+    "typescript": "5.5.4"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

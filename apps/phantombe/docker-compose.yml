@@ -1,0 +1,77 @@
+version: "3.8"
+
+x-common: &common
+  networks:
+    - default
+  restart: unless-stopped
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  postgres:
+    image: postgres:11
+    container_name: postgres
+    hostname: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-phantom}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-phantom}
+      POSTGRES_DB: ${POSTGRES_DB:-phantom}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-phantom}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    <<: *common
+
+  minio:
+    image: docker.io/bitnami/minio:2024
+    container_name: minio
+    hostname: minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-miniophantom}
+    volumes:
+      - minio_data:/bitnami/minio
+    <<: *common
+
+  whisper:
+    build:
+      context: ./src/whisper
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    <<: *common
+
+  phantombe:
+    build:
+      context: .
+    container_name: phantombe
+    hostname: phantombe
+    ports:
+      - 8080:8080
+    env_file:
+      - .env.dev
+    depends_on:
+      - postgres
+      - minio
+    <<: *common
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
