@@ -1,62 +1,61 @@
 import { NextResponse } from "next/server";
-import type { Video } from "@/types/video";
+import { getSession } from "@auth0/nextjs-auth0";
+import prisma from "@/lib/db";
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const video: Video = {
-    id: params.id,
-    title: "Giới thiệu về Machine Learning",
-    description: `Machine Learning là một lĩnh vực của trí tuệ nhân tạo (AI) và khoa học máy tính...
-    
-Trong khóa học này, chúng ta sẽ tìm hiểu về:
-- Các khái niệm cơ bản về Machine Learning
-- Các thuật toán học máy phổ biến
-- Ứng dụng thực tế của Machine Learning
-- Cách xây dựng mô hình ML đầu tiên`,
-    thumbnailUrl: "/api/placeholder/400/225",
-    videoUrl: "/path/to/video.mp4",
-    likes: 1200,
-    comments: 88,
-    views: 5000,
-    category: "programming",
-    createdAt: new Date().toISOString(),
-    summary: `Machine Learning (ML) là một nhánh của trí tuệ nhân tạo tập trung vào việc phát triển các hệ thống có khả năng học hỏi từ dữ liệu.
+  try {
+    const session = await getSession();
 
-Các khái niệm chính:
-1. Supervised Learning (Học có giám sát):
-   - Classification (Phân loại)
-   - Regression (Hồi quy)
+    const video = await prisma.video.findUnique({
+      where: { id: params.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+        likes: session?.user
+          ? {
+              where: { userId: session.user.sub },
+              select: { id: true },
+            }
+          : false,
+      },
+    });
 
-2. Unsupervised Learning (Học không giám sát):
-   - Clustering (Phân cụm)
-   - Dimensionality Reduction (Giảm chiều dữ liệu)
+    if (!video) {
+      return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    }
 
-3. Reinforcement Learning (Học tăng cường):
-   - Q-Learning
-   - Policy Gradient
+    await prisma.video.update({
+      where: { id: params.id },
+      data: { views: { increment: 1 } },
+    });
 
-Ứng dụng thực tế:
-- Nhận dạng hình ảnh
-- Xử lý ngôn ngữ tự nhiên
-- Dự đoán xu hướng thị trường
-- Hệ thống gợi ý
+    const responseVideo: Partial<typeof video> & { isLiked: boolean } = {
+      ...video,
+      isLiked: session?.user ? video.likes.length > 0 : false,
+    };
 
-Các bước xây dựng mô hình ML:
-1. Thu thập và chuẩn bị dữ liệu
-2. Chọn thuật toán phù hợp
-3. Huấn luyện mô hình
-4. Đánh giá và tinh chỉnh
-5. Triển khai mô hình
+    delete responseVideo.likes;
 
-Lưu ý quan trọng:
-- Chất lượng dữ liệu quyết định chất lượng mô hình
-- Cần cân nhắc giữa độ chính xác và tốc độ xử lý
-- Regularization để tránh overfitting
-- Validation để đảm bảo mô hình hoạt động tốt
-- Cập nhật mô hình thường xuyên với dữ liệu mới`,
-  };
-
-  return NextResponse.json(video);
+    return NextResponse.json(responseVideo);
+  } catch (error) {
+    console.error("Error fetching video:", error);
+    return NextResponse.json(
+      { error: "Error fetching video" },
+      { status: 500 }
+    );
+  }
 }

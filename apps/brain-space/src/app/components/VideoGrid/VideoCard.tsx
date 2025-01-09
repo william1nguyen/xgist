@@ -14,7 +14,7 @@ export default function VideoCard({ video, compact = false }: VideoCardProps) {
       <div className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow">
         <div className="relative pt-[56.25%] bg-gray-100">
           <Image
-            src={video.thumbnailUrl}
+            src={video.thumbnailUrl || ""}
             alt={video.title}
             fill
             className="object-cover"

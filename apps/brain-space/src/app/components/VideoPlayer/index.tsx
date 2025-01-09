@@ -10,8 +10,8 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
       <video
         className="absolute inset-0 w-full h-full"
         controls
-        poster={video.thumbnailUrl}
-        src={video.videoUrl}
+        poster={video.thumbnailUrl || ""}
+        src={video.url}
       />
     </div>
   );
