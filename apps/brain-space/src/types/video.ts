@@ -20,6 +20,7 @@ export interface Video {
   _count: {
     likes: number;
     comments: number;
+    views: number;
   };
   isLiked?: boolean;
 

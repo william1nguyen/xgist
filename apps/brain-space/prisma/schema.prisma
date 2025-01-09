@@ -25,6 +25,7 @@ model Video {
   id           String    @id @default(cuid())
   title        String    @db.VarChar(255)
   description  String?   @db.Text
+  summary      String?   @db.Text
   url          String    @db.VarChar(255)
   thumbnailUrl String?   @db.VarChar(255)
   category     String?   @db.VarChar(100)

@@ -18,7 +18,15 @@ interface CommentFormData {
   content: string;
 }
 
-export default function CommentSection({ videoId }: { videoId: string }) {
+type CommentSectionProps = {
+  videoId: string;
+  isAuthenticated: boolean;
+};
+
+export default function CommentSection({
+  videoId,
+  isAuthenticated,
+}: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useUser();

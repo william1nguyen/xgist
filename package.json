@@ -7,9 +7,6 @@
     "dev:whisper": "turbo dev --filter whisper",
     "dev:brain-space": "turbo dev --filter brain-space",
     "dev:phantom": "turbo dev --filter phantom",
-    "db:studio": "turbo db:studio --filter phantom",
-    "db:generate": "turbo db:generate --filter phantom",
-    "db:migrate": "turbo db:migrate --filter phantom",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

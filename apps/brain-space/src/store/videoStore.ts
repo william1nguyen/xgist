@@ -18,7 +18,7 @@ interface VideoState {
   filters: Filters;
   setVideos: (videos: Video[]) => void;
   appendVideos: (newVideos: Video[]) => void;
-  setCurrentVideo: (video: Video) => void;
+  setCurrentVideo: (video: Video | null) => void;
   setLoading: (loading: boolean) => void;
   setHasMore: (hasMore: boolean) => void;
   setPage: (page: number) => void;
