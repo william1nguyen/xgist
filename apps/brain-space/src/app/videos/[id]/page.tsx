@@ -153,7 +153,7 @@ export default function VideoDetailPage() {
                   {currentVideo.description}
                 </p>
               )}
-              <VideoSummary videoUrl={currentVideo.url} />
+              <VideoSummary video={currentVideo} />
             </div>
 
             <CommentSection

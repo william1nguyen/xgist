@@ -21,12 +21,6 @@ const EnvSchema = Type.Object({
   GEMINI_FLASH_URL: Type.String(),
   GOOGLE_API_KEY: Type.String(),
 
-  DATABASE_URL: Type.String(),
-  DATABASE_MAX_CONNECTIONS: OptionalDefaultNull(Type.Number({ integer: true })),
-  DATABASE_IDLE_TIMEOUT_MS: OptionalDefaultNull(Type.Number({ integer: true })),
-  DATABASE_AUTO_MIGRATE: Type.Optional(Type.Boolean()),
-
-  MINIO_BUCKET: Type.String(),
   MINIO_ENDPOINT: Type.String(),
   MINIO_PORT: OptionalDefaultNull(Type.Number({ integer: true })),
   MINIO_USE_SSL: Type.Boolean(),
@@ -35,6 +29,13 @@ const EnvSchema = Type.Object({
 
   JWT_SECRET: Type.String(),
   JWT_EXPIRE: Type.String(),
+
+  REDIS_URL: Type.String(),
+  REDIS_MAX_CONCURRENCY: Type.Number(),
+
+  BULL_BOARD_USERNAME: Type.String(),
+  BULL_BOARD_PASSWORD: Type.String(),
+  BULL_REDIS_DB: Type.Number(),
 });
 
 type Env = Static<typeof EnvSchema>;
@@ -68,16 +69,10 @@ const validateEnv = (): Env => {
     NODE_ENV: process.env.NODE_ENV ?? "development",
     LOG_LEVEL: process.env.LOG_LEVEL,
 
-    DATABASE_URL: process.env.DATABASE_URL,
-    DATABASE_MAX_CONNECTIONS: coerceInt(process.env.DATABASE_MAX_CONNECTIONS),
-    DATABASE_IDLE_TIMEOUT_MS: coerceInt(process.env.DATABASE_IDLE_TIMEOUT_MS),
-    DATABASE_AUTO_MIGRATE: coerceBool(process.env.DATABASE_AUTO_MIGRATE),
-
     WHISPERAI_URL: process.env.WHISPERAI_URL,
     GEMINI_FLASH_URL: process.env.GEMINI_FLASH_URL,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
 
-    MINIO_BUCKET: process.env.MINIO_BUCKET,
     MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
     MINIO_PORT: coerceInt(process.env.MINIO_PORT),
     MINIO_USE_SSL: coerceBool(process.env.MINIO_USE_SSL),
@@ -86,6 +81,13 @@ const validateEnv = (): Env => {
 
     JWT_SECRET: process.env.JWT_SECRET,
     JWT_EXPIRE: process.env.JWT_EXPIRE,
+
+    REDIS_URL: process.env.REDIS_URL,
+    REDIS_MAX_CONCURRENCY: coerceInt(process.env.REDIS_MAX_CONCURRENCY),
+
+    BULL_BOARD_USERNAME: process.env.BULL_BOARD_USERNAME,
+    BULL_BOARD_PASSWORD: process.env.BULL_BOARD_PASSWORD,
+    BULL_REDIS_DB: coerceInt(process.env.BULL_REDIS_DB),
   };
 
   if (!validator.Check(env)) {

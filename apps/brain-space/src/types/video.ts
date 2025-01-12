@@ -10,6 +10,7 @@ export interface Video {
   description: string | null;
   url: string;
   thumbnailUrl: string | null;
+  summary: string | null;
   category: string | null;
   tags: string[];
   views: number;

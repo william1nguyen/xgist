@@ -2,13 +2,13 @@ import fastifyCors from "@fastify/cors";
 import fastifyMultipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import scalar from "@scalar/fastify-api-reference";
-import fastify, { type FastifyInstance } from "fastify";
-import { execSecurityHandlerChain } from "~/domain/user/security-plugin/plugin";
-import { userModule } from "~/domain/user/user.module";
+import fastify from "fastify";
 import { videoModule } from "~/domain/video/video.module";
 import { env } from "~/env";
+import { bullBoardPlugin } from "./bullboard";
+import { queues } from "./jobs";
 
-const app: FastifyInstance = fastify({ logger: true });
+const app = fastify({ logger: true });
 
 app.register(fastifyCors, {
   origin: true,
@@ -31,8 +31,6 @@ app.register(fastifyMultipart, {
   },
 });
 
-app.addHook("preHandler", execSecurityHandlerChain);
-
 if (env.NODE_ENV !== "production") {
   app.register(swagger, {
     mode: "dynamic",
@@ -41,15 +39,12 @@ if (env.NODE_ENV !== "production") {
         title: "API Documentation",
         version: "1.0.0",
       },
-      consumes: ["application/json", "multipart/form-data"],
-      produces: ["application/json"],
     },
   });
-
   app.register(scalar, { routePrefix: "/api-reference" });
 }
 
-app.register(userModule);
+app.register(bullBoardPlugin, { queues: queues, path: "/bullboard" });
 app.register(videoModule);
 
 export { app };

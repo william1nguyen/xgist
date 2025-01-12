@@ -1,5 +1,5 @@
-import {Client, type ClientOptions} from 'minio';
-import {env} from '~/env';
+import { Client, type ClientOptions } from "minio";
+import { env } from "~/env";
 
 const minioConfig: ClientOptions = {
   endPoint: env.MINIO_ENDPOINT,
@@ -27,12 +27,12 @@ export const uploadVideo = async (
   file: Buffer,
   path: string
 ): Promise<void> => {
-  await client.putObject('videos', path, file);
+  await client.putObject("videos", path, file);
 };
 
 export const getVideoStreamUrl = async (
   videoId: string,
   resolution: string
 ): Promise<string> => {
-  return client.presignedGetObject('videos', `${videoId}/${resolution}`);
+  return client.presignedGetObject("videos", `${videoId}/${resolution}`);
 };

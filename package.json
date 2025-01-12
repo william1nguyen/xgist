@@ -6,7 +6,7 @@
     "dev": "turbo dev",
     "dev:whisper": "turbo dev --filter whisper",
     "dev:brain-space": "turbo dev --filter brain-space",
-    "dev:phantom": "turbo dev --filter phantom",
+    "dev:phantombe": "turbo dev --filter phantombe",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

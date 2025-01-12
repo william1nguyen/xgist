@@ -1,13 +1,11 @@
 import dotenv from "dotenv";
 import { app } from "./infra/app";
 import logger from "./infra/logger";
-import { runMigrations } from "./drizzle/migrate";
+import { setupBackgroundJobs } from "./infra/jobs";
 
 dotenv.config();
 
 const startApp = async () => {
-  await runMigrations();
-
   app.listen({ port: 8080, host: "0.0.0.0" }, (err, addr) => {
     if (err) {
       app.log.error(err);
@@ -16,6 +14,7 @@ const startApp = async () => {
 
     logger.info(`Server running on ${addr}`);
   });
+  setupBackgroundJobs();
 };
 
 startApp();

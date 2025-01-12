@@ -1,88 +1,49 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, X } from "lucide-react";
 import { Modal } from "../Modal";
+import { Video } from "@/types/video";
 
 interface VideoSummaryProps {
-  videoUrl: string;
+  video: Video
 }
 
-export default function VideoSummary({ videoUrl }: VideoSummaryProps) {
+export default function VideoSummary({ video }: VideoSummaryProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
 
-  const mockSummary = `Video này trình bày về các khái niệm cơ bản của React.
+  const handleGenerateSummary = async () => {
+    // Nếu đã có summary, hiển thị ngay
+    if (summary) {
+      setIsModalOpen(true);
+      return;
+    }
 
-Những điểm chính được đề cập:
-1. Components và Props
-- Cách tạo và sử dụng components
-- Truyền dữ liệu qua props
-- PropTypes và TypeScript
-- Best practices khi thiết kế components
-
-2. State Management
-- Local state với useState
-- Complex state với useReducer
-- Global state management
-- State optimization
-
-3. Lifecycle Methods
-- Component mounting
-- Component updating
-- Component unmounting
-- Error boundaries
-
-4. Hooks và Custom Hooks
-- Built-in hooks (useState, useEffect, useContext)
-- Rules of Hooks
-- Creating custom hooks
-- Common use cases
-
-5. Performance Optimization
-- React.memo
-- useMemo và useCallback
-- Code splitting
-- Lazy loading
-
-6. Advanced Patterns
-- Render props
-- Higher-order components
-- Compound components
-- Custom hooks patterns
-
-Ngoài ra, video cũng đưa ra các best practices và common patterns khi làm việc với React.
-
-Practical Examples:
-- Building a responsive navigation
-- Form handling with validation
-- Data fetching and caching
-- State management solutions
-- Testing strategies
-- Deployment considerations
-
-Key Takeaways:
-1. Start with component composition
-2. Manage state effectively
-3. Optimize when needed
-4. Follow React best practices`;
-
-  const handleGenerateSummary = () => {
     setIsModalOpen(true);
     setIsLoading(true);
 
-    setTimeout(() => {
-      setSummary(mockSummary);
+    try {
+      // Gọi API để lấy summary
+      const response = await fetch(`/api/videos/${video.id}/summary`);
+      if (!response.ok) {
+        throw new Error('Failed to generate summary');
+      }
+      const summaryData = (await response.json()).summary;
+
+      // Đợi 3 giây trước khi hiển thị kết quả
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      setSummary(summaryData);
       setIsLoading(false);
-    }, 3000);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      setIsLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    if (!summary) {
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -108,7 +69,6 @@ Key Takeaways:
           >
             <X className="h-5 w-5" />
           </button>
-
           <div className="pr-8">
             {isLoading ? (
               <div className="flex flex-col items-center gap-4 py-8">

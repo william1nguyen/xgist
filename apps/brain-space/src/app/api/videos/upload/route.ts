@@ -18,14 +18,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No user ID found" }, { status: 401 });
     }
 
-    // Log user information
     console.log("User Info:", {
       sub: session.user.sub,
       email: session.user.email,
       name: session.user.name,
     });
 
-    // Create or update user first
     const user = await prisma.user.upsert({
       where: { id: session.user.sub },
       update: {
@@ -62,7 +60,7 @@ export async function POST(request: Request) {
       videoObjectName,
       videoBuffer,
       videoFile.size,
-      { "Content-Type": videoFile.type }
+      { "Content-Type": videoFile.type },
     );
     const videoUrl = `${process.env.MINIO_PUBLIC_URL}/videos/${videoObjectName}`;
 
@@ -78,7 +76,7 @@ export async function POST(request: Request) {
         thumbnailObjectName,
         thumbnailBuffer,
         thumbnailFile.size,
-        { "Content-Type": thumbnailFile.type }
+        { "Content-Type": thumbnailFile.type },
       );
       thumbnailUrl = `${process.env.MINIO_PUBLIC_URL}/thumbnails/${thumbnailObjectName}`;
       console.log("Thumbnail uploaded:", thumbnailUrl);
@@ -130,7 +128,7 @@ export async function POST(request: Request) {
           details:
             "Could not link video to user. Please ensure you're properly logged in.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -139,7 +137,7 @@ export async function POST(request: Request) {
         error: "Error uploading video",
         details: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
