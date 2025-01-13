@@ -1,4 +1,4 @@
-import _ from "lodash";
+import _, { sum } from "lodash";
 import logger from "~/infra/logger";
 import axios from "axios";
 import { env } from "~/env";
@@ -71,11 +71,11 @@ export const isVideoContentValid = async (content: string) => {
           },
         ],
       },
-      { headers }
+      { headers },
     );
     const data = res.data as GeminiResponse;
     const isAcademic = JSON.parse(
-      _.first(_.first(data.candidates)?.content.parts)?.text as string
+      _.first(_.first(data.candidates)?.content.parts)?.text as string,
     );
     return isAcademic;
   } catch (err) {
@@ -103,7 +103,7 @@ export const getSummary = async (transcript: string) => {
         },
       ],
     },
-    { headers }
+    { headers },
   );
   const data = res.data as GeminiResponse;
   const summary = _.first(_.first(data.candidates)?.content.parts)
@@ -111,10 +111,20 @@ export const getSummary = async (transcript: string) => {
   return summary;
 };
 
+export const updateVideoSummary = async (videoId: string, summary: string) => {
+  const url = `${env.BULL_API_CALLBACK_URL}/api/videos/${videoId}/summary`;
+  const data = {
+    summary: summary,
+  };
+  const res = await axios.post(url, data);
+  return res.data;
+};
+
 export const handleUploadFile = async (
+  videoId: string,
   mimeType: string,
   fileName: string,
-  fileBuffer: Buffer
+  fileBuffer: Buffer,
 ) => {
   if (!isMimeTypeAllowed(mimeType)) {
     throw new FileTypeNotAllowedError();
@@ -131,7 +141,7 @@ export const handleUploadFile = async (
   }
 
   const summary = await getSummary(transcript);
-  logger.info(summary);
+  await updateVideoSummary(videoId, summary);
 
   return {
     transcript,
@@ -139,7 +149,7 @@ export const handleUploadFile = async (
   };
 };
 
-export const uploadVideo = async ({ file }: UploadVideoBody) => {
+export const uploadVideo = async ({ file, videoId }: UploadVideoBody) => {
   if (!file) {
     throw new VideoUploadNotFoundError();
   }
@@ -150,7 +160,9 @@ export const uploadVideo = async ({ file }: UploadVideoBody) => {
 
   const encodedData = Buffer.from(fileBuffer).toString("base64");
 
+  const id = videoId.value;
   await transcribeQueue.add("transcribe", {
+    videoId: id,
     mimeType,
     fileName,
     encodedData,

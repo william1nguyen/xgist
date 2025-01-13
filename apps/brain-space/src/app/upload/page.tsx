@@ -41,10 +41,21 @@ export default function UploadPage() {
         body: formData,
       });
 
-      if (response.ok) {
-        const { id } = await response.json();
-        router.push(`/videos/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to upload video');
       }
+
+      const { id } = await response.json();
+      const processingFormData = new FormData();
+      processingFormData.append('file', videoFile);
+      processingFormData.append('videoId', id as string);
+
+      await fetch(`${process.env.NEXT_PUBLIC_VIDEO_PROCESSING_URL}/v1/videos`, {
+        method: 'POST',
+        body: processingFormData
+      });
+
+      router.push(`/videos/${id}`);
     } catch (error) {
       console.error("Error uploading video:", error);
     } finally {

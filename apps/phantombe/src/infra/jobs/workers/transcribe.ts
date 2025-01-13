@@ -6,6 +6,7 @@ import logger from "~/infra/logger";
 import { redisForBullMq } from "~/infra/redis";
 
 interface ITranscribe {
+  videoId: string;
   mimeType: string;
   fileName: string;
   encodedData: string;
@@ -21,9 +22,9 @@ export const transcribeQueue = new Queue<ITranscribe>("transcribe", {
 });
 
 const handleTranscribeJob = async (job: Job) => {
-  const { mimeType, fileName, encodedData } = job.data as ITranscribe;
+  const { videoId, mimeType, fileName, encodedData } = job.data as ITranscribe;
   const decodedData = Buffer.from(encodedData, "base64");
-  const res = await handleUploadFile(mimeType, fileName, decodedData);
+  const res = await handleUploadFile(videoId, mimeType, fileName, decodedData);
   return res;
 };
 
@@ -36,7 +37,7 @@ export const createTranscribeWorker = () => {
     {
       connection: redisForBullMq,
       concurrency: env.REDIS_MAX_CONCURRENCY,
-    }
+    },
   );
 
   worker.on("completed", (job) => {

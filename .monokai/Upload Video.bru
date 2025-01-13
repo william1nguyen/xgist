@@ -6,7 +6,7 @@ meta {
 
 post {
   url: http://localhost:8080/v1/videos
-  body: json
+  body: multipartForm
   auth: none
 }
 
@@ -17,5 +17,6 @@ body:json {
 }
 
 body:multipart-form {
-  fileUrl: 
+  file: @file(/Users/megumin/Project/monokai/apps/phantombe/test/30s.mp4)
+  videoId: cm5uk5oaq00091v6a5q61x0m0
 }

@@ -1,24 +1,17 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@auth0/nextjs-auth0";
 import prisma from "@/lib/db";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
-    const session = await getSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Get summary from request body
     const { summary } = await request.json();
     if (!summary) {
       return NextResponse.json(
         { error: "Summary is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -47,14 +40,14 @@ export async function POST(
     console.error("Error updating summary:", error);
     return NextResponse.json(
       { error: "Failed to update summary" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: { id: string } }
 ) {
   try {
     const video = await prisma.video.findUnique({
@@ -73,7 +66,7 @@ export async function GET(
     console.error("Error fetching summary:", error);
     return NextResponse.json(
       { error: "Failed to fetch summary" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
