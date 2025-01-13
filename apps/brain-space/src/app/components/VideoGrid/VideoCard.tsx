@@ -27,7 +27,9 @@ export default function VideoCard({ video, compact = false }: VideoCardProps) {
               compact ? "text-base" : "text-lg"
             } mb-2`}
           >
-            {video.title}
+            {video.title.length > 35
+              ? `${video.title.slice(0, 35)}...`
+              : video.title}
           </h3>
           {!compact && (
             <p className="text-sm text-gray-600 mb-3">{video.description}</p>
