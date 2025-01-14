@@ -29,18 +29,17 @@ export default function VideoGrid() {
     rootMargin: "100px",
   });
 
-  // Initial load
   useEffect(() => {
     const fetchInitialVideos = async () => {
       setLoading(true);
       try {
         const searchParams = new URLSearchParams({
           page: "1",
-          category,
-          sort: sortBy,
+          sortBy: sortBy,
           ...(searchQuery && { search: searchQuery }),
-          ...(filters.dateRange && { dateRange: filters.dateRange }),
         });
+
+        console.log("Fetching with params:", searchParams.toString());
 
         const response = await fetch(`/api/videos?${searchParams}`);
         if (!response.ok) throw new Error("Failed to fetch videos");
@@ -49,7 +48,7 @@ export default function VideoGrid() {
 
         setVideos(data.videos);
         setHasMore(data.pagination.hasMore);
-        setPage(2); // Set to 2 since we've loaded page 1
+        setPage(2);
       } catch (error) {
         console.error("Error fetching initial videos:", error);
       } finally {
@@ -58,7 +57,7 @@ export default function VideoGrid() {
     };
 
     fetchInitialVideos();
-  }, [category, sortBy, searchQuery, filters]); // Reset and reload when filters change
+  }, [category, sortBy, searchQuery, filters]);
 
   const loadMoreVideos = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -67,10 +66,8 @@ export default function VideoGrid() {
     try {
       const searchParams = new URLSearchParams({
         page: page.toString(),
-        category,
-        sort: sortBy,
+        sortBy: sortBy,
         ...(searchQuery && { search: searchQuery }),
-        ...(filters.dateRange && { dateRange: filters.dateRange }),
       });
 
       const response = await fetch(`/api/videos?${searchParams}`);
@@ -86,9 +83,8 @@ export default function VideoGrid() {
     } finally {
       setLoading(false);
     }
-  }, [page, category, sortBy, searchQuery, filters, loading, hasMore]);
+  }, [page, sortBy, searchQuery, loading, hasMore]);
 
-  // Load more when scrolling to bottom
   useEffect(() => {
     if (inView && !loading) {
       loadMoreVideos();
@@ -112,7 +108,7 @@ export default function VideoGrid() {
         ))}
       </div>
 
-      {/* Loading skeletons */}
+      {}
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <VideoSkeleton />
@@ -121,10 +117,10 @@ export default function VideoGrid() {
         </div>
       )}
 
-      {/* Infinite scroll trigger */}
+      {}
       {hasMore && <div ref={ref} className="h-10" />}
 
-      {/* End of content message */}
+      {}
       {!hasMore && videos.length > 0 && (
         <div className="text-center text-gray-600 py-8">
           Bạn đã xem hết video
