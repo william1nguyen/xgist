@@ -12,11 +12,14 @@ model User {
   email     String    @unique
   name      String?
   avatar    String?
+  bio       String?
+  website   String?
   videos    Video[]   @relation("UserVideos")
   likes     Like[]    @relation("UserLikes")
   comments  Comment[] @relation("UserComments")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  settings  UserSettings?
 
   @@map("users")
 }
@@ -69,4 +72,20 @@ model Comment {
   @@index([videoId])
   @@index([userId])
   @@map("comments")
+}
+
+model UserSettings {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotif      Boolean   @default(true)
+  commentNotif    Boolean   @default(true)
+  likeNotif       Boolean   @default(true)
+  mentionNotif    Boolean   @default(true)
+  profileVisible  Boolean   @default(true)
+  showEmail       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("user_settings")
 }

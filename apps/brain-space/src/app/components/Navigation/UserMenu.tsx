@@ -59,13 +59,6 @@ export default function UserMenu() {
             <User className="w-4 h-4" />
             Trang cá nhân
           </Link>
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50"
-          >
-            <Settings className="w-4 h-4" />
-            Cài đặt
-          </Link>
           <a
             href="/api/auth/logout"
             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-red-600"
