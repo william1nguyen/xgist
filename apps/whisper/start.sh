@@ -1,4 +1,4 @@
 #!/bin/bash
 eval "$(conda shell.zsh hook)"
-conda activate whisperV3
+conda activate ai
 uvicorn app:app --reload
