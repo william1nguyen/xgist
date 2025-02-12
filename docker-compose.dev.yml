@@ -1,0 +1,178 @@
+x-common: &common
+  networks:
+    - default
+  restart: unless-stopped
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  minio:
+    image: docker.io/bitnami/minio:2024
+    container_name: minio
+    hostname: minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/bitnami/minio
+    <<: *common
+
+  redis:
+    image: bitnami/redis:7.2.5
+    container_name: redis
+    hostname: redis
+    volumes:
+      - redis_data:/bitnami/redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redisadmin}
+    ports:
+      - 6379:6379
+    <<: *common
+  elasticsearch:
+    image: elasticsearch:8.7.0
+    container_name: elasticsearch
+    hostname: elasticsearch
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    restart: unless-stopped
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    <<: *common
+
+  kibana:
+    depends_on:
+      - elasticsearch
+    image: kibana:8.7.0
+    container_name: kibana
+    hostname: kibana
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    <<: *common
+
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - 9094:9094
+      - 6666:6666
+    volumes:
+      - kafka_data:/bitnami/kafka
+    environment:
+      # KRaft settings
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # Listeners
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      # JMX (non-production)
+      - JMX_PORT=6666
+    <<: *common
+
+  kafka-ui:
+    depends_on:
+      - kafka
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui
+    hostname: kafka-io
+    ports:
+      - 8088:8080
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 6666
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    hostname: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: edu
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5433:5432
+    <<: *common
+
+  keycloak_db:
+    image: postgres:17
+    container_name: keycloak_db
+    hostname: keycloak_db
+    volumes:
+      - keycloak_data:/var/lib/keycloak/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - 6543:5432
+    <<: *common
+
+  keycloak:
+    image: quay.io/phasetwo/phasetwo-keycloak:latest
+    container_name: keycloak
+    hostname: keycloak
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: password
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_SCHEMA: public
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: password
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_LOG_LEVEL: INFO
+    command: start-dev
+    ports:
+      - 8084:8080
+      - 8443:8443
+    depends_on:
+      - postgres
+    <<: *common
+
+volumes:
+  minio_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  kibana_data:
+    driver: local
+  kafka_data:
+    driver: local
+  postgres_data:
+    driver: local
+  keycloak_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
