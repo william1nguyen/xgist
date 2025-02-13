@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "lib": ["ES2021"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "~/*": ["./src/*"],
+      "0prelude": ["./src/prelude"]
+    }
+  },
+  "include": ["src", "test", "src/drizzle/schema", "src/drizzle/db.ts", "src/drizzle/migrate.ts"]
+}

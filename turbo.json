@@ -11,6 +11,9 @@
     "db:migrate": {
       "cache": false
     },
+    "db:studio": {
+      "cache": false
+    },
     "dev": {
       "dependsOn": ["^db:generate"],
       "cache": false
