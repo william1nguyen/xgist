@@ -1,4 +1,5 @@
 import {
+  type Static,
   type TArray,
   type TLiteral,
   type TObject,
@@ -81,3 +82,23 @@ export const FileSchema = Type.Object({
 
 export const ImageSchema = FileSchema;
 export const VideoSchema = FileSchema;
+
+export const GetQueryString = Type.Object({
+  page: Type.Number(),
+  size: Type.Number(),
+});
+export type GetQueryString = Static<typeof GetQueryString>;
+
+export const SearchQueryString = Type.Object({
+  q: Type.String(),
+  page: Type.Number(),
+  size: Type.Number(),
+});
+export type SearchQueryString = Static<typeof SearchQueryString>;
+
+export const GetResponse = Type.Object({
+  page: Type.Number(),
+  size: Type.Number(),
+  total: Type.Number(),
+});
+export type SearchResponse = Static<typeof GetResponse>;

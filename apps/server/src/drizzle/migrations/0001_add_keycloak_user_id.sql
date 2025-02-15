@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "keycloak_user_id" uuid NOT NULL;

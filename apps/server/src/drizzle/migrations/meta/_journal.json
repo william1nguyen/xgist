@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1739378053268,
-      "tag": "0000_add_user_and_video_table",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1739411620317,
-      "tag": "0001_add_keycloak_user_id",
+      "when": 1739632767327,
+      "tag": "0000_create_schemas",
       "breakpoints": true
     }
   ]

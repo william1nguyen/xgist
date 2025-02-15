@@ -1,10 +1,93 @@
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
-import { createVideo } from "./video.services";
-import { UploadVideoBody } from "./video.types";
+import {
+  createCommentVideo,
+  createVideo,
+  getVideoComments,
+  getVideoDetail,
+  getVideos,
+  toggleLikeVideo,
+} from "./video.services";
+import {
+  CreateCommentBody,
+  CreateCommentResponse,
+  GetCommentsParams,
+  GetCommentsResponse,
+  GetVideoDetailParams,
+  GetVideoDetailResponse,
+  GetVideosResponse,
+  ToggleLikeVideoBody,
+  ToggleLikeVideoResponse,
+  UploadVideoBody,
+} from "./video.types";
+import { GetQueryString } from "~/infra/utils/schema";
 
 const tags = ["video"];
 
 export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
+  app.get(
+    "",
+    {
+      schema: {
+        tags: tags,
+        description: "Lấy dữ liệu videos",
+        querystring: GetQueryString,
+        response: {
+          200: GetVideosResponse,
+        },
+      },
+      config: {
+        shouldSkipAuth: true,
+      },
+    },
+    async (req) => {
+      const res = await getVideos(req.query);
+      return res;
+    }
+  );
+
+  app.get(
+    "/:videoId",
+    {
+      schema: {
+        tags: tags,
+        description: "Lấy dữ liệu chi tiết của một video",
+        params: GetVideoDetailParams,
+        response: {
+          200: GetVideoDetailResponse,
+        },
+      },
+      config: {
+        shouldSkipAuth: true,
+      },
+    },
+    async (req) => {
+      const res = await getVideoDetail(req.params);
+      return res;
+    }
+  );
+
+  app.get(
+    "/:videoId/comments",
+    {
+      schema: {
+        tags: tags,
+        description: "Lấy dữ liệu bình luận của một video",
+        querystring: GetQueryString,
+        params: GetCommentsParams,
+        response: {
+          200: GetCommentsResponse,
+        },
+      },
+      config: {
+        shouldSkipAuth: true,
+      },
+    },
+    async (req) => {
+      const res = await getVideoComments(req.query, req.params);
+      return res;
+    }
+  );
+
   app.post(
     "",
     {
@@ -17,6 +100,42 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await createVideo(req.body);
+      return res;
+    }
+  );
+
+  app.post(
+    "/comments",
+    {
+      schema: {
+        tags: tags,
+        description: "Bình luận một video",
+        body: CreateCommentBody,
+        response: {
+          200: CreateCommentResponse,
+        },
+      },
+    },
+    async (req) => {
+      const res = await createCommentVideo(req.body, req.principal?.user?.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/like",
+    {
+      schema: {
+        tags: tags,
+        description: "Thích một video",
+        body: ToggleLikeVideoBody,
+        response: {
+          200: ToggleLikeVideoResponse,
+        },
+      },
+    },
+    async (req) => {
+      const res = await toggleLikeVideo(req.body, req.principal?.user?.id);
       return res;
     }
   );
