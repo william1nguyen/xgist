@@ -13,21 +13,27 @@ export const getUserByKeycloakUserId = async (keycloakUserId: string) => {
     .from(userTable)
     .where(eq(userTable.keycloakUserId, keycloakUserId));
 
-  if (!users || users.length === 0) {
+  if (!users) {
     throw new UserNotFoundError();
   }
 
   return users[0] as User;
 };
 
-export const getUserInfo = async (user: User) => {
-  if (!user) {
+export const getUserInfo = async (userId: string | undefined) => {
+  if (!userId) {
     throw new UserNotFoundError();
   }
-  return user;
+
+  const users = await db.select().from(userTable).where(eq(userTable.id, userId)).limit(1);
+  if (!users) {
+    throw new UserNotFoundError();
+  }
+
+  return users[0];
 };
 
-export const registerUser = async ({
+export const register = async ({
   time,
   realmId,
   uid,
@@ -66,5 +72,3 @@ export const registerUser = async ({
     logger.error({ msg: "Lỗi tạo người dùng", error });
   }
 };
-
-export const updateUserInfo = async () => {};
