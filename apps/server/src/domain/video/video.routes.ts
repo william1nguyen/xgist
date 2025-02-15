@@ -1,5 +1,5 @@
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
-import { uploadVideo } from "./video.services";
+import { createVideo } from "./video.services";
 import { UploadVideoBody } from "./video.types";
 
 const tags = ["video"];
@@ -9,14 +9,14 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     "",
     {
       schema: {
-        consumes: ["multipart/form-data"],
         tags: tags,
         description: "Đăng tải một video mới",
+        consumes: ["multipart/form-data"],
         body: UploadVideoBody,
       },
     },
     async (req) => {
-      const res = await uploadVideo(req.body);
+      const res = await createVideo(req.body);
       return res;
     }
   );

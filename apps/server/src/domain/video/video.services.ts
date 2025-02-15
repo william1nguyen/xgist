@@ -10,6 +10,7 @@ import {
   VideoUploadNotFoundError,
 } from "./video.errors";
 import { transcribeQueue } from "~/infra/jobs/workers/transcribe";
+import { uploadFileToMinio } from "~/infra/minio";
 
 enum AllowedMimeTypes {
   mp4 = "video/mp4",
@@ -53,7 +54,7 @@ export const isVideoContentValid = async (content: string) => {
       "Content-Type": "application/json",
     };
     const prompt = `
-    Use your general knowledge and check if this content is relate to academic or if it provide some source of knowledges, experiences or stories:
+    Use your general knowledge and check if this content is academically related or it provides some source of knowledge, experience or stories:
       ${content}
     Rule:
       - Only return boolean: true or false
@@ -71,11 +72,11 @@ export const isVideoContentValid = async (content: string) => {
           },
         ],
       },
-      { headers },
+      { headers }
     );
     const data = res.data as GeminiResponse;
     const isAcademic = JSON.parse(
-      _.first(_.first(data.candidates)?.content.parts)?.text as string,
+      _.first(_.first(data.candidates)?.content.parts)?.text as string
     );
     return isAcademic;
   } catch (err) {
@@ -103,7 +104,7 @@ export const getSummary = async (transcript: string) => {
         },
       ],
     },
-    { headers },
+    { headers }
   );
   const data = res.data as GeminiResponse;
   const summary = _.first(_.first(data.candidates)?.content.parts)
@@ -111,20 +112,10 @@ export const getSummary = async (transcript: string) => {
   return summary;
 };
 
-export const updateVideoSummary = async (videoId: string, summary: string) => {
-  const url = `${env.BULL_API_CALLBACK_URL}/api/videos/${videoId}/summary`;
-  const data = {
-    summary: summary,
-  };
-  const res = await axios.post(url, data);
-  return res.data;
-};
-
-export const handleUploadFile = async (
-  videoId: string,
+export const handleCreateVideo = async (
   mimeType: string,
   fileName: string,
-  fileBuffer: Buffer,
+  fileBuffer: Buffer
 ) => {
   if (!isMimeTypeAllowed(mimeType)) {
     throw new FileTypeNotAllowedError();
@@ -140,15 +131,16 @@ export const handleUploadFile = async (
   }
 
   const summary = await getSummary(transcript);
-  await updateVideoSummary(videoId, summary);
+  const url = await uploadFileToMinio("videos", fileName, mimeType, fileBuffer);
 
   return {
+    url,
     transcript,
     summary,
   };
 };
 
-export const uploadVideo = async ({ file, videoId }: UploadVideoBody) => {
+export const createVideo = async ({ file }: UploadVideoBody) => {
   if (!file) {
     throw new VideoUploadNotFoundError();
   }
@@ -159,9 +151,7 @@ export const uploadVideo = async ({ file, videoId }: UploadVideoBody) => {
 
   const encodedData = Buffer.from(fileBuffer).toString("base64");
 
-  const id = videoId.value;
   await transcribeQueue.add("transcribe", {
-    videoId: id,
     mimeType,
     fileName,
     encodedData,

@@ -1,38 +1,52 @@
 import { Client, type ClientOptions } from "minio";
 import { env } from "~/env";
+import logger from "./logger";
+import { createError } from "./utils/errors";
 
-const minioConfig: ClientOptions = {
+export const UploadFileToMinioError = createError(
+  "UploadFileToMinioError",
+  "Failed to upload file to Minio",
+  500
+);
+
+export const minioClient = new Client({
   endPoint: env.MINIO_ENDPOINT,
   useSSL: env.MINIO_USE_SSL,
   accessKey: env.MINIO_ACCESS_KEY,
   secretKey: env.MINIO_SECRET_KEY,
-};
-
-if (env.MINIO_PORT) {
-  minioConfig.port = Number(env.MINIO_PORT);
-}
-
-export const client = new Client(minioConfig);
+  port: env.MINIO_PORT ? Number(env.MINIO_PORT) : undefined,
+});
 
 export const isMinioBucketExisted = async (bucket: string) => {
-  if (!bucket) {
-    return false;
-  }
-
-  const existed = await client.bucketExists(bucket);
+  if (!bucket) return false;
+  const existed = await minioClient.bucketExists(bucket);
   return existed;
 };
 
-export const uploadVideo = async (
-  file: Buffer,
-  path: string
-): Promise<void> => {
-  await client.putObject("videos", path, file);
-};
-
-export const getVideoStreamUrl = async (
-  videoId: string,
-  resolution: string
-): Promise<string> => {
-  return client.presignedGetObject("videos", `${videoId}/${resolution}`);
+export const uploadFileToMinio = async (
+  bucketName: string,
+  objectName: string,
+  mimeType: string,
+  fileBuffer: Buffer
+) => {
+  try {
+    await minioClient.putObject(
+      bucketName,
+      objectName,
+      fileBuffer,
+      fileBuffer.length,
+      {
+        "Content-Type": mimeType,
+      }
+    );
+    const httpProtocol = env.MINIO_USE_SSL ? "https" : "http";
+    const endpoint = env.MINIO_PORT
+      ? `${env.MINIO_ENDPOINT}:${env.MINIO_PORT}`
+      : `${env.MINIO_ENDPOINT}`;
+    const url = `${httpProtocol}://${endpoint}/${bucketName}/${objectName}`;
+    return url;
+  } catch (error) {
+    logger.error(`Failed to upload file to MinIO: ${error}`);
+    throw new UploadFileToMinioError();
+  }
 };

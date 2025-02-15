@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev --parallel",
+    "dev": "turbo dev",
+    "dev:ai": "turbo dev --filter @edu/ai",
     "dev:server": "turbo dev --filter @edu/server",
     "db:generate": "turbo db:generate --filter @edu/server",
     "db:migrate": "turbo db:migrate --filter @edu/server",
