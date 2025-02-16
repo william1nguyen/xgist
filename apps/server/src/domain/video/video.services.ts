@@ -18,7 +18,7 @@ import {
   VideoNotFoundError,
   VideoUploadNotFoundError,
 } from "./video.errors";
-import { transcribeQueue } from "~/infra/jobs/workers/transcribe";
+import { uploadQueue } from "~/infra/jobs/workers/upload.worker";
 import { uploadFileToMinio } from "~/infra/minio";
 import { db } from "~/drizzle/db";
 import { commentTable } from "~/drizzle/schema/comment";
@@ -128,49 +128,71 @@ export const getSummary = async (transcript: string) => {
   return summary;
 };
 
-export const handleCreateVideo = async (
+export const handleUploadVideo = async (
+  title: string,
+  description: string,
+  thumbnailUrl: string | null,
   mimeType: string,
   fileName: string,
-  fileBuffer: Buffer
+  fileBuffer: Buffer,
+  userId: string
 ) => {
   if (!isMimeTypeAllowed(mimeType)) {
     throw new FileTypeNotAllowedError();
   }
 
-  const transcript = await getTranscript(fileBuffer, fileName);
-  const category = (await isVideoContentValid(transcript))
-    ? "academic"
-    : "entertainment";
-
-  if (category !== "academic") {
-    throw new VideoContentInvalidError();
-  }
-
-  const summary = await getSummary(transcript);
   const url = await uploadFileToMinio("videos", fileName, mimeType, fileBuffer);
+  const videos = await db
+    .insert(videoTable)
+    .values({
+      title,
+      description,
+      thumbnailUrl,
+      url,
+      userId,
+    })
+    .returning();
 
-  return {
-    url,
-    transcript,
-    summary,
-  };
+  console.log(videos);
+
+  return videos[0];
 };
 
-export const createVideo = async ({ file }: UploadVideoBody) => {
+export const uploadVideo = async (
+  { file, thumbnail, title, description }: UploadVideoBody,
+  userId: string
+) => {
   if (!file) {
     throw new VideoUploadNotFoundError();
+  }
+
+  let thumbnailUrl = null;
+
+  if (thumbnail) {
+    const mimeType = thumbnail.mimetype;
+    const fileName = thumbnail.filename;
+    const fileBuffer = (await thumbnail.toBuffer()) as Buffer;
+    thumbnailUrl = await uploadFileToMinio(
+      "thumbnails",
+      fileName,
+      mimeType,
+      fileBuffer
+    );
   }
 
   const mimeType = file.mimetype;
   const fileName = file.filename;
   const fileBuffer = (await file.toBuffer()) as Buffer;
-
   const encodedData = Buffer.from(fileBuffer).toString("base64");
 
-  await transcribeQueue.add("transcribe", {
+  await uploadQueue.add("upload", {
+    title: title.value,
+    description: description.value,
+    thumbnailUrl,
     mimeType,
     fileName,
     encodedData,
+    userId,
   });
 
   return {

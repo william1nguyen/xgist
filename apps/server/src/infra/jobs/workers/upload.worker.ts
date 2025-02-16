@@ -1,16 +1,20 @@
 import { type Job, Queue, Worker } from "bullmq";
-import { handleCreateVideo } from "~/domain/video/video.services";
+import { handleUploadVideo } from "~/domain/video/video.services";
 import { env } from "~/env";
 import logger from "~/infra/logger";
 import { redisForBullMq } from "~/infra/redis";
 
-interface ITranscribe {
+interface ITUpload {
+  title: string;
+  description: string;
+  thumbnailUrl: string | null;
   mimeType: string;
   fileName: string;
   encodedData: string;
+  userId: string;
 }
 
-export const transcribeQueue = new Queue<ITranscribe>("transcribe", {
+export const uploadQueue = new Queue<ITUpload>("upload", {
   connection: redisForBullMq,
   defaultJobOptions: {
     attempts: 5,
@@ -19,18 +23,34 @@ export const transcribeQueue = new Queue<ITranscribe>("transcribe", {
   },
 });
 
-const handleTranscribeJob = async (job: Job) => {
-  const { mimeType, fileName, encodedData } = job.data as ITranscribe;
+const handleUploadJob = async (job: Job) => {
+  const {
+    title,
+    description,
+    thumbnailUrl,
+    mimeType,
+    fileName,
+    encodedData,
+    userId,
+  } = job.data as ITUpload;
   const decodedData = Buffer.from(encodedData, "base64");
-  const res = await handleCreateVideo(mimeType, fileName, decodedData);
+  const res = await handleUploadVideo(
+    title,
+    description,
+    thumbnailUrl,
+    mimeType,
+    fileName,
+    decodedData,
+    userId
+  );
   return res;
 };
 
-export const createTranscribeWorker = () => {
+export const createUploadWorker = () => {
   const worker = new Worker(
-    "transcribe",
+    "upload",
     async (job) => {
-      await handleTranscribeJob(job);
+      await handleUploadJob(job);
     },
     {
       connection: redisForBullMq,

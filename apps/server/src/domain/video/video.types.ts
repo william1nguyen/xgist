@@ -53,6 +53,13 @@ export type GeminiResponse = Static<typeof GeminiResponse>;
 
 export const UploadVideoBody = Type.Object({
   file: FileUpload,
+  thumbnail: FileUpload,
+  title: Type.Object({
+    value: Type.String(),
+  }),
+  description: Type.Object({
+    value: Type.String(),
+  }),
 });
 export type UploadVideoBody = Static<typeof UploadVideoBody>;
 

@@ -25,7 +25,11 @@ export const getUserInfo = async (userId: string | undefined) => {
     throw new UserNotFoundError();
   }
 
-  const users = await db.select().from(userTable).where(eq(userTable.id, userId)).limit(1);
+  const users = await db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.id, userId))
+    .limit(1);
   if (!users) {
     throw new UserNotFoundError();
   }

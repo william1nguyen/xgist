@@ -11,6 +11,7 @@ export const videoTable = pgTable(
     thumbnailUrl: text("thumbnail_url"),
     transcripts: jsonb("transcripts").$type<string[]>().default([]),
     tags: jsonb("tags").$type<string[]>().default([]),
+    url: text("url").notNull(),
     userId: uuid("user_id")
       .references(() => userTable.id)
       .notNull(),

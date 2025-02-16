@@ -1,7 +1,7 @@
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import {
   createCommentVideo,
-  createVideo,
+  uploadVideo,
   getVideoComments,
   getVideoDetail,
   getVideos,
@@ -99,7 +99,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
     async (req) => {
-      const res = await createVideo(req.body);
+      const res = await uploadVideo(req.body, req.principal.user.id);
       return res;
     }
   );

@@ -1,9 +1,9 @@
 import logger from "../logger";
-import { createTranscribeWorker, transcribeQueue } from "./workers/transcribe";
+import { createUploadWorker, uploadQueue } from "./workers/upload.worker";
 
 const initWorkers = () => {
   logger.info("Create workers");
-  createTranscribeWorker();
+  createUploadWorker();
   logger.info("Workers created");
 };
 
@@ -11,4 +11,4 @@ export const setupBackgroundJobs = () => {
   initWorkers();
 };
 
-export const queues = [transcribeQueue];
+export const queues = [uploadQueue];

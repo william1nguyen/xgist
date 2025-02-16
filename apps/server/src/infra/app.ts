@@ -25,13 +25,7 @@ app.addHook("preHandler", execSecurityHandlerChain);
 app.register(fastifyMultipart, {
   attachFieldsToBody: true,
   limits: {
-    fieldNameSize: 100,
-    fieldSize: 100,
-    fields: 10,
-    fileSize: 21048576,
-    files: 1,
-    headerPairs: 2000,
-    parts: 1000,
+    fileSize: 50 * 1024 * 1024,
   },
 });
 
