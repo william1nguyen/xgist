@@ -1,6 +1,6 @@
 import { index, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
-import { userTable } from "./user";
 import { commonFields } from "./base";
+import { userTable } from "./user";
 
 export const videoTable = pgTable(
   "video",

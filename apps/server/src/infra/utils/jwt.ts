@@ -1,15 +1,14 @@
-import jwt from 'jsonwebtoken';
-import {JwksClient, type SigningKey} from 'jwks-rsa';
+import jwt from "jsonwebtoken";
+import { JwksClient, type SigningKey } from "jwks-rsa";
 import {
   ExpiredTokenError,
   InvalidAuthTokenError,
-} from '~/domain/user/user.errors';
-import {env} from '~/env';
-import logger from '../logger';
-;
+} from "~/domain/user/user.errors";
+import { env } from "~/env";
+import logger from "../logger";
 
 const jwksUri = env.JWKS_URI;
-const jwksClient = new JwksClient({jwksUri});
+const jwksClient = new JwksClient({ jwksUri });
 
 const getJwksClient = (isAdmin: boolean) => {
   return jwksClient;
@@ -35,7 +34,7 @@ export const verifyJwt = async (
   useAdminAuth?: boolean
 ) => {
   const jwksC = getJwksClient(Boolean(useAdminAuth));
-  const jwtPayload = jwt.decode(accessToken, {complete: true, json: true});
+  const jwtPayload = jwt.decode(accessToken, { complete: true, json: true });
 
   if (!jwtPayload?.header?.kid) {
     throw new InvalidAuthTokenError();
@@ -47,19 +46,19 @@ export const verifyJwt = async (
   try {
     return jwt.verify(accessToken, signingKey);
   } catch (err) {
-    logger.error({err, msg: 'Lỗi xác thực token'});
+    logger.error({ err, msg: "Lỗi xác thực token" });
     throw new ExpiredTokenError();
   }
 };
 
 export const decodeToken = (token: string) => {
-  return jwt.decode(token, {complete: true, json: true});
+  return jwt.decode(token, { complete: true, json: true });
 };
 
 export const extractPayloadNoVerify = (jwtToken: string) => {
   const payload = jwt.decode(jwtToken);
   if (
-    typeof payload === 'string' ||
+    typeof payload === "string" ||
     !payload?.sub ||
     !payload?.jti ||
     !payload?.sid ||
@@ -76,13 +75,11 @@ export const extractPayloadNoVerify = (jwtToken: string) => {
   };
 };
 
-export const extractPayload = async (
-  accessToken: string,
-) => {
+export const extractPayload = async (accessToken: string) => {
   const payload = await verifyJwt(accessToken);
 
   if (
-    typeof payload === 'string' ||
+    typeof payload === "string" ||
     !payload.sub ||
     !payload.jti ||
     !payload.sid ||
@@ -97,5 +94,5 @@ export const extractPayload = async (
   const sid = payload.sid;
   const roles = payload.realm_access?.roles ?? [];
 
-  return {sub, exp: expiredTimeInSeconds, jti, sid, roles};
+  return { sub, exp: expiredTimeInSeconds, jti, sid, roles };
 };

@@ -1,6 +1,5 @@
-import { env } from "~/env";
-import type { ConnectionOptions } from "bullmq";
 import { Redis, type RedisOptions } from "ioredis";
+import { env } from "~/env";
 
 const commonOptions = {
   connectTimeout: 500,

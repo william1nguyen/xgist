@@ -1,13 +1,17 @@
-import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import { GetQueryString } from "~/infra/utils/schema";
 import {
   createCommentVideo,
-  uploadVideo,
   getVideoComments,
+} from "./services/comment.services";
+import { checkIsLiked, likeVideo, unlikeVideo } from "./services/like.services";
+import {
   getVideoDetail,
   getVideos,
-  toggleLikeVideo,
-} from "./video.services";
+  uploadVideo,
+} from "./services/video.services";
 import {
+  CheckIsLikedParams,
   CreateCommentBody,
   CreateCommentResponse,
   GetCommentsParams,
@@ -15,11 +19,12 @@ import {
   GetVideoDetailParams,
   GetVideoDetailResponse,
   GetVideosResponse,
-  ToggleLikeVideoBody,
-  ToggleLikeVideoResponse,
+  LikeVideoParams,
+  LikeVideoResponse,
+  UnlikeVideoParams,
+  UnlikeVideoResponse,
   UploadVideoBody,
 } from "./video.types";
-import { GetQueryString } from "~/infra/utils/schema";
 
 const tags = ["video"];
 
@@ -88,6 +93,21 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     }
   );
 
+  app.get(
+    "/:videoId/isLiked",
+    {
+      schema: {
+        tags: tags,
+        description: "Kiểm tra người dùng đã từng like video hay chưa ?",
+        params: CheckIsLikedParams,
+      },
+    },
+    async (req) => {
+      const res = await checkIsLiked(req.params, req.principal.user.id);
+      return res;
+    }
+  );
+
   app.post(
     "",
     {
@@ -123,19 +143,37 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
   );
 
   app.post(
-    "/like",
+    "/:videoId/like",
     {
       schema: {
         tags: tags,
         description: "Thích một video",
-        body: ToggleLikeVideoBody,
+        params: LikeVideoParams,
         response: {
-          200: ToggleLikeVideoResponse,
+          200: LikeVideoResponse,
         },
       },
     },
     async (req) => {
-      const res = await toggleLikeVideo(req.body, req.principal?.user?.id);
+      const res = await likeVideo(req.params, req.principal?.user?.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/:videoId/unlike",
+    {
+      schema: {
+        tags: tags,
+        description: "Bỏ thích một video",
+        params: UnlikeVideoParams,
+        response: {
+          200: UnlikeVideoResponse,
+        },
+      },
+    },
+    async (req) => {
+      const res = await unlikeVideo(req.params, req.principal?.user?.id);
       return res;
     }
   );

@@ -1,11 +1,11 @@
+import type { User } from "@sentry/node";
 import { eq } from "drizzle-orm";
-import { InvalidWebhookTypeError, UserNotFoundError } from "./user.errors";
-import { userTable } from "~/drizzle/schema/user";
 import { db } from "~/drizzle/db";
-import { type User } from "@sentry/node";
-import { KeycloakWebhookPayload } from "./user.types";
+import { userTable } from "~/drizzle/schema/user";
 import logger from "~/infra/logger";
 import { itemResponse } from "~/infra/utils/fns";
+import { InvalidWebhookTypeError, UserNotFoundError } from "./user.errors";
+import type { KeycloakWebhookPayload } from "./user.types";
 
 export const getUserByKeycloakUserId = async (keycloakUserId: string) => {
   const users: User[] = await db

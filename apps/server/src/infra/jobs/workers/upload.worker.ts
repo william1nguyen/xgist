@@ -1,5 +1,5 @@
 import { type Job, Queue, Worker } from "bullmq";
-import { handleUploadVideo } from "~/domain/video/video.services";
+import { handleUploadVideo } from "~/domain/video/services/utils/upload";
 import { env } from "~/env";
 import logger from "~/infra/logger";
 import { redisForBullMq } from "~/infra/redis";

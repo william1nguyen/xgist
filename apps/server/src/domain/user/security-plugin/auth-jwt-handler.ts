@@ -1,14 +1,14 @@
 import type { FastifyRequest } from "fastify";
+import { extractPayload } from "~/infra/utils/jwt";
+import { matchAnyRegex } from "~/infra/utils/regex";
 import {
   ExpiredTokenError,
   InvalidAuthTokenError,
   NotLoggedInError,
 } from "../user.errors";
-import { SecurityHandlerOptions } from "./types";
-import { matchAnyRegex } from "~/infra/utils/regex";
-import { extractPayload } from "~/infra/utils/jwt";
-import { KeycloakPrincipal, User } from "../user.types";
 import { getUserByKeycloakUserId } from "../user.services";
+import type { KeycloakPrincipal, User } from "../user.types";
+import type { SecurityHandlerOptions } from "./types";
 
 const AUTH_HEADER_NAME = "authorization";
 const AUTH_HEADER_PREFIX = "Bearer ";
@@ -47,7 +47,7 @@ export const authJwtHandler: SecurityHandlerOptions = {
   },
   onHandle: async (req) => {
     const accessToken = extractAccessTokenOrThrow(req);
-    const { sub, exp, jti, roles } = await extractPayload(accessToken);
+    const { sub, exp } = await extractPayload(accessToken);
 
     if (!sub) {
       throw new InvalidAuthTokenError();

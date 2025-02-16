@@ -1,4 +1,4 @@
-import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { videoRoutes } from "./video.routes";
 
 export const videoModule: FastifyPluginAsyncTypebox = async (app) => {

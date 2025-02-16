@@ -3,12 +3,12 @@ import fastifyMultipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import scalar from "@scalar/fastify-api-reference";
 import fastify from "fastify";
+import { execSecurityHandlerChain } from "~/domain/user/security-plugin/plugin";
+import { userModule } from "~/domain/user/user.module";
 import { videoModule } from "~/domain/video/video.module";
 import { env } from "~/env";
 import { bullBoardPlugin } from "./bullboard";
 import { queues } from "./jobs";
-import { execSecurityHandlerChain } from "~/domain/user/security-plugin/plugin";
-import { userModule } from "~/domain/user/user.module";
 
 const app = fastify({ logger: true });
 

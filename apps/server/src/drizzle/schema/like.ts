@@ -1,7 +1,7 @@
 import { index, pgTable, unique, uuid } from "drizzle-orm/pg-core";
-import { videoTable } from "./video";
-import { userTable } from "./user";
 import { commonFields } from "./base";
+import { userTable } from "./user";
+import { videoTable } from "./video";
 
 export const likeTable = pgTable(
   "likes",

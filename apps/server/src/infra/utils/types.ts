@@ -1,5 +1,3 @@
-import { Type } from "@sinclair/typebox";
-
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export type AnyFn = (...args: any) => any;
 

@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
-import { app } from "./infra/app";
-import logger from "./infra/logger";
-import { setupBackgroundJobs } from "./infra/jobs";
 import { runMigrations } from "./drizzle/migrate";
+import { app } from "./infra/app";
+import { setupBackgroundJobs } from "./infra/jobs";
+import logger from "./infra/logger";
 
 dotenv.config();
 

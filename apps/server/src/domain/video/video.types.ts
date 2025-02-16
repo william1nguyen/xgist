@@ -1,9 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import {
   BaseModelSchema,
+  OptionalDefaultNull,
   createItemResponseSchema,
   createListResponseSchema,
-  OptionalDefaultNull,
 } from "~/infra/utils/schema";
 import { User } from "../user/user.types";
 
@@ -14,6 +14,7 @@ export const Comment = Type.Object({
   videoId: Type.String(),
   content: Type.String(),
   userId: Type.String(),
+  user: User,
   ...BaseModelSchema,
 });
 export type Comment = Static<typeof Comment>;
@@ -28,11 +29,16 @@ export type Like = Static<typeof Like>;
 export const Video = Type.Object({
   title: Type.String(),
   description: Type.String(),
+  url: OptionalDefaultNull(Type.String()),
   thumbnailUrl: OptionalDefaultNull(Type.String()),
   transcripts: OptionalDefaultNull(Type.Array(Type.String())),
   tags: OptionalDefaultNull(Type.Array(Type.String())),
   userId: Type.String(),
   user: User,
+  _count: Type.Object({
+    likes: Type.Number(),
+    comments: Type.Number(),
+  }),
   ...BaseModelSchema,
 });
 export type Video = Static<typeof Video>;
@@ -98,10 +104,23 @@ export const GetCommentsResponse = createListResponseSchema(
   Comment
 );
 
-export const ToggleLikeVideoBody = Type.Object({
+export const LikeVideoParams = Type.Object({
   videoId: Type.String(),
 });
-export type ToggleLikeVideoBody = Static<typeof ToggleLikeVideoBody>;
+export type LikeVideoParams = Static<typeof LikeVideoParams>;
 
-export const ToggleLikeVideoResponse = createItemResponseSchema("like", Like);
-export type ToggleLikeVideoResponse = Static<typeof ToggleLikeVideoResponse>;
+export const LikeVideoResponse = createItemResponseSchema("like", Like);
+export type LikeVideoResponse = Static<typeof LikeVideoResponse>;
+
+export const UnlikeVideoParams = Type.Object({
+  videoId: Type.String(),
+});
+export type UnlikeVideoParams = Static<typeof UnlikeVideoParams>;
+
+export const UnlikeVideoResponse = createItemResponseSchema("like", Like);
+export type UnlikeVideoResponse = Static<typeof UnlikeVideoResponse>;
+
+export const CheckIsLikedParams = Type.Object({
+  videoId: Type.String(),
+});
+export type CheckIsLikedParams = Static<typeof CheckIsLikedParams>;

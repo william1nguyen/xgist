@@ -1,4 +1,4 @@
-import { pgTable, uuid, text } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid } from "drizzle-orm/pg-core";
 import { commonFields } from "./base";
 
 export const userTable = pgTable("users", {
