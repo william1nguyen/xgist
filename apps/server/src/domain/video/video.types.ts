@@ -5,6 +5,7 @@ import {
   createListResponseSchema,
   OptionalDefaultNull,
 } from "~/infra/utils/schema";
+import { User } from "../user/user.types";
 
 export const FileUpload = Type.Any();
 export type FileUpload = Static<typeof FileUpload>;
@@ -31,6 +32,7 @@ export const Video = Type.Object({
   transcripts: OptionalDefaultNull(Type.Array(Type.String())),
   tags: OptionalDefaultNull(Type.Array(Type.String())),
   userId: Type.String(),
+  user: User,
   ...BaseModelSchema,
 });
 export type Video = Static<typeof Video>;

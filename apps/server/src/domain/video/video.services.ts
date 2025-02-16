@@ -27,6 +27,7 @@ import { GetQueryString } from "~/infra/utils/schema";
 import { videoTable } from "~/drizzle/schema/video";
 import { and, count, eq } from "drizzle-orm";
 import { likeTable } from "~/drizzle/schema/like";
+import { userTable } from "~/drizzle/schema/user";
 
 enum AllowedMimeTypes {
   mp4 = "video/mp4",
@@ -204,8 +205,21 @@ export const getVideos = async ({ page = 1, size = 10 }: GetQueryString) => {
   try {
     const offset = (page - 1) * size;
     const videos = await db
-      .select()
+      .select({
+        id: videoTable.id,
+        title: videoTable.title,
+        description: videoTable.description,
+        userId: videoTable.userId,
+        createdTime: videoTable.createdTime,
+        user: {
+          id: userTable.id,
+          keycloakUserId: userTable.keycloakUserId,
+          username: userTable.username,
+          email: userTable.email,
+        },
+      })
       .from(videoTable)
+      .innerJoin(userTable, eq(videoTable.userId, userTable.id))
       .limit(size)
       .offset(offset);
     const total = (await db.select({ count: count() }).from(videoTable))[0]
@@ -227,8 +241,21 @@ export const getVideos = async ({ page = 1, size = 10 }: GetQueryString) => {
 export const getVideoDetail = async ({ videoId }: GetVideoDetailParams) => {
   try {
     const videos = await db
-      .select()
+      .select({
+        id: videoTable.id,
+        title: videoTable.title,
+        description: videoTable.description,
+        userId: videoTable.userId,
+        createdTime: videoTable.createdTime,
+        user: {
+          id: userTable.id,
+          keycloakUserId: userTable.keycloakUserId,
+          username: userTable.username,
+          email: userTable.email,
+        },
+      })
       .from(videoTable)
+      .innerJoin(userTable, eq(videoTable.userId, userTable.id))
       .where(eq(videoTable.id, videoId));
 
     return itemResponse({ video: videos[0] });
