@@ -9,21 +9,18 @@ const envSchema = z.object({
 
 type Env = z.infer<typeof envSchema>;
 
-const validateEnv = (): Env => {
-  try {
-    return envSchema.parse(process.env);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const issues = error.issues.map((issue) => {
-        return `${issue.path.join(".")}: ${issue.message}`;
-      });
-      console.error("❌ Invalid environment variables:\n", issues.join("\n"));
-      process.exit(1);
-    }
+const loadEnvConfig = (): Env => {
+  const result = envSchema.safeParse(import.meta.env);
 
-    console.error("❌ Unknown error validating environment variables:", error);
-    process.exit(1);
+  if (!result.success) {
+    const issues = result.error.issues.map(
+      (issue) => `${issue.path.join(".")}: ${issue.message}`
+    );
+    console.error("❌ Invalid environment variables:\n", issues.join("\n"));
+    throw new Error("Invalid environment variables");
   }
+
+  return result.data;
 };
 
-export const env = validateEnv();
+export const env: Env = loadEnvConfig();
