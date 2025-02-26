@@ -6,7 +6,7 @@ export const oidcConfig: AuthProviderProps = {
     import.meta.env.VITE_KEYCLOAK_REALM
   }`,
   client_id: import.meta.env.VITE_CLIENT_ID || "tnv",
-  redirect_uri: window.location.origin,
+  redirect_uri: `${window.location.origin}/explore`,
   userStore: new WebStorageStateStore({
     store: window.localStorage,
   }),
