@@ -22,9 +22,6 @@ export const OptionalDefaultUndefined = (ts: TSchema) =>
 
 export const BaseModelSchema = {
   id: Type.String(),
-  createdBy: OptionalDefaultNull(Type.Any()),
-  updatedBy: OptionalDefaultNull(Type.Any()),
-  deletedBy: OptionalDefaultNull(Type.Any()),
   createdTime: OptionalDefaultNull(Type.String()),
   updatedTime: OptionalDefaultNull(Type.String()),
   deletedTime: OptionalDefaultNull(Type.String()),
@@ -40,19 +37,14 @@ export function EnumType<T extends string[]>(
   return {
     enum: [...values],
     type: "string",
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   } as any;
 }
-const ErrorSchema = Type.Optional(
-  Type.Object({ code: Type.String(), message: Type.String() })
-);
 
 export const createListResponseSchema = <T extends TObject>(
   listKey: string,
   itemSchema: T
 ) =>
   Type.Object({
-    // error: ErrorSchema,
     data: Type.Object({
       [listKey]: Type.Optional(Type.Array(itemSchema)),
     }),
@@ -70,7 +62,6 @@ export const createItemResponseSchema = <T extends TObject | TArray | TLiteral>(
   itemSchema: T
 ) =>
   Type.Object({
-    // error: ErrorSchema,
     data: Type.Object({
       [key]: itemSchema,
     }),
@@ -84,21 +75,11 @@ export const ImageSchema = FileSchema;
 export const VideoSchema = FileSchema;
 
 export const GetQueryString = Type.Object({
-  page: Type.Number(),
-  size: Type.Number(),
+  q: Type.Optional(Type.String()),
+  page: Type.Optional(Type.Number()),
+  size: Type.Optional(Type.Number()),
 });
 export type GetQueryString = Static<typeof GetQueryString>;
 
-export const SearchQueryString = Type.Object({
-  q: Type.String(),
-  page: Type.Number(),
-  size: Type.Number(),
-});
-export type SearchQueryString = Static<typeof SearchQueryString>;
-
-export const GetResponse = Type.Object({
-  page: Type.Number(),
-  size: Type.Number(),
-  total: Type.Number(),
-});
-export type SearchResponse = Static<typeof GetResponse>;
+export const File = Type.Any();
+export type File = Static<typeof File>;

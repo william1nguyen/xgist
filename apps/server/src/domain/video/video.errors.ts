@@ -4,11 +4,9 @@ enum ErrorCode {
   FileNotFound = "FileNotFound",
   FileTypeNotAllowed = "FileTypeNotAllowed",
   FileSizeLimitExceed = "FileSizeLimitExceed",
-  AudioFileEmpty = "AudioFileEmpty",
   VideoNotFound = "VideoNotFound",
-  VideoUploadNotFound = "VideoUploadNotFound",
-  VideoContentInvalid = "VideoContentInvalid",
-  CommentInvalid = "CommentInvalid",
+  VideoInvalid = "VideoInvalid",
+  ThumbnailInvalid = "ThumbnailInvalid",
 }
 
 export const FileNotFoundError = createError(
@@ -29,32 +27,20 @@ export const FileSizeLimitExceedError = createError(
   500
 );
 
-export const AudioFileEmptyError = createError(
-  ErrorCode.AudioFileEmpty,
-  "thư mục âm thanh rỗng",
-  500
-);
-
 export const VideoNotFoundError = createError(
   ErrorCode.VideoNotFound,
   "Không tìm thấy video phù hợp",
   404
 );
 
-export const VideoUploadNotFoundError = createError(
-  ErrorCode.VideoUploadNotFound,
-  "Video chưa được upload",
-  404
-);
-
-export const VideoContentInvalidError = createError(
-  ErrorCode.VideoContentInvalid,
-  "Nội dung video cần liên quan đến học thuật",
+export const VideoInvalidError = createError(
+  ErrorCode.VideoInvalid,
+  "Video không phù hợp",
   500
 );
 
-export const CommentInvalidError = createError(
-  ErrorCode.CommentInvalid,
-  "Nội dung của bình luận không hợp lệ",
+export const ThumbnailInvalidError = createError(
+  ErrorCode.ThumbnailInvalid,
+  "Ảnh thumbnail không phù hợp",
   500
 );

@@ -1,44 +1,29 @@
 import { type Static, Type } from "@sinclair/typebox";
 import {
   BaseModelSchema,
-  OptionalDefaultNull,
   createItemResponseSchema,
   createListResponseSchema,
 } from "~/infra/utils/schema";
 import { User } from "../user/user.types";
+import { createEnum } from "~/infra/utils/fns";
+import { videoCategory } from "~/drizzle/schema/video";
+import { File } from "~/infra/utils/schema";
 
-export const FileUpload = Type.Any();
-export type FileUpload = Static<typeof FileUpload>;
-
-export const Comment = Type.Object({
-  videoId: Type.String(),
-  content: Type.String(),
-  userId: Type.String(),
-  user: User,
-  ...BaseModelSchema,
-});
-export type Comment = Static<typeof Comment>;
-
-export const Like = Type.Object({
-  videoId: Type.String(),
-  userId: Type.String(),
-  ...BaseModelSchema,
-});
-export type Like = Static<typeof Like>;
+export const Category = Type.Enum(createEnum(videoCategory.enumValues));
 
 export const Video = Type.Object({
+  url: Type.String(),
   title: Type.String(),
   description: Type.String(),
-  url: OptionalDefaultNull(Type.String()),
-  thumbnailUrl: OptionalDefaultNull(Type.String()),
-  transcripts: OptionalDefaultNull(Type.Array(Type.String())),
-  tags: OptionalDefaultNull(Type.Array(Type.String())),
+  thumbnail: Type.String(),
   userId: Type.String(),
-  user: User,
-  _count: Type.Object({
-    likes: Type.Number(),
-    comments: Type.Number(),
-  }),
+  category: Category,
+  duration: Type.Number(),
+  views: Type.Number(),
+  likes: Type.Number(),
+  isSummarized: Type.Boolean(),
+  metadata: Type.Optional(Type.Any()),
+  creator: User,
   ...BaseModelSchema,
 });
 export type Video = Static<typeof Video>;
@@ -60,14 +45,11 @@ export const GeminiResponse = Type.Object({
 export type GeminiResponse = Static<typeof GeminiResponse>;
 
 export const UploadVideoBody = Type.Object({
-  file: FileUpload,
-  thumbnail: FileUpload,
-  title: Type.Object({
-    value: Type.String(),
-  }),
-  description: Type.Object({
-    value: Type.String(),
-  }),
+  videoFile: File,
+  thumbnailFile: File,
+  title: Type.Object({ value: Type.String() }),
+  description: Type.Object({ value: Type.String() }),
+  category: Type.Object({ value: Category }),
 });
 export type UploadVideoBody = Static<typeof UploadVideoBody>;
 
@@ -82,45 +64,19 @@ export type GetVideoDetailParams = Static<typeof GetVideoDetailParams>;
 export const GetVideoDetailResponse = createItemResponseSchema("video", Video);
 export type GetVideoDetailResponse = Static<typeof GetVideoDetailParams>;
 
-export const CreateCommentBody = Type.Object({
+export const GetRelatedVideosParams = Type.Object({
   videoId: Type.String(),
-  content: Type.String(),
+  page: Type.Optional(Type.Number()),
+  size: Type.Optional(Type.Number()),
 });
-export type CreateCommentBody = Static<typeof CreateCommentBody>;
+export type GetRelatedVideosParams = Static<typeof GetRelatedVideosParams>;
 
-export const CreateCommentResponse = createItemResponseSchema(
-  "comment",
-  Comment
-);
-export type CreateCommentResponse = Static<typeof CreateCommentResponse>;
-
-export const GetCommentsParams = Type.Object({
+export const ToggleLikeParams = Type.Object({
   videoId: Type.String(),
 });
-export type GetCommentsParams = Static<typeof GetCommentsParams>;
+export type ToggleLikeParams = Static<typeof ToggleLikeParams>;
 
-export const GetCommentsResponse = createListResponseSchema(
-  "comments",
-  Comment
-);
-
-export const LikeVideoParams = Type.Object({
+export const ToggleBookmarkParams = Type.Object({
   videoId: Type.String(),
 });
-export type LikeVideoParams = Static<typeof LikeVideoParams>;
-
-export const LikeVideoResponse = createItemResponseSchema("like", Like);
-export type LikeVideoResponse = Static<typeof LikeVideoResponse>;
-
-export const UnlikeVideoParams = Type.Object({
-  videoId: Type.String(),
-});
-export type UnlikeVideoParams = Static<typeof UnlikeVideoParams>;
-
-export const UnlikeVideoResponse = createItemResponseSchema("like", Like);
-export type UnlikeVideoResponse = Static<typeof UnlikeVideoResponse>;
-
-export const CheckIsLikedParams = Type.Object({
-  videoId: Type.String(),
-});
-export type CheckIsLikedParams = Static<typeof CheckIsLikedParams>;
+export type ToggleBookmarkParams = Static<typeof ToggleBookmarkParams>;

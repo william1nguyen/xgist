@@ -1,1 +1,0 @@
-ALTER TABLE "video" ADD COLUMN "url" text NOT NULL;

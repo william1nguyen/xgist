@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1739632767327,
+      "when": 1740596743695,
       "tag": "0000_create_schemas",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1739684607668,
-      "tag": "0001_add_video_url",
       "breakpoints": true
     }
   ]
