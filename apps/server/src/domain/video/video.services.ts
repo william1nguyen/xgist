@@ -18,6 +18,7 @@ import {
   type UploadVideoBody,
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
+import { summaryQueue } from "~/infra/jobs/workers/summarize";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnail",
@@ -72,10 +73,10 @@ export const getVideoDetail = async ({ videoId }: GetVideoDetailParams) => {
   }
 };
 
-export const getRelatedVideos = async (
-  { videoId, page = 1, size = 20 }: GetRelatedVideosParams,
-  userId: string
-) => {
+export const getRelatedVideos = async ({
+  page = 1,
+  size = 20,
+}: GetRelatedVideosParams) => {
   const offset = (page - 1) * size;
   const videos = await db.query.videoTable.findMany({
     with: {
@@ -110,14 +111,22 @@ export const postVideo = async (
   const thumbnail = await uploadThumbnail(thumbnailFile);
   const video = await uploadVideo(videoFile);
 
-  const res = await db.insert(videoTable).values({
-    title: title.value,
-    description: description.value,
-    url: video.url,
-    thumbnail: thumbnail.url,
-    category: category.value,
-    userId,
-  });
+  await summaryQueue.add("summary", video);
+
+  const res = (
+    await db
+      .insert(videoTable)
+      .values({
+        title: title.value,
+        description: description.value,
+        url: video.url,
+        thumbnail: thumbnail.url,
+        category: category.value,
+        userId,
+        isSummarized: false,
+      })
+      .returning()
+  )[0];
 
   return res;
 };

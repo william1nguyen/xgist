@@ -1,11 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { GetQueryString } from "~/infra/utils/schema";
 import { getVideoDetail, getVideos } from "./video.services";
-import {
-  GetVideoDetailParams,
-  GetVideosResponse,
-  UploadVideoBody,
-} from "./video.types";
+import { GetVideoDetailParams, GetVideosResponse } from "./video.types";
 
 const tags = ["video"];
 

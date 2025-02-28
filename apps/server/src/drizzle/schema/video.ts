@@ -23,6 +23,7 @@ export const videoCategory = pgEnum("category", [
 
 export type VideoMetadata = {
   transcripts: string[];
+  summary: string;
 };
 
 export const videoTable = pgTable(
