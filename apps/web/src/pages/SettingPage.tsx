@@ -5,18 +5,26 @@ import {
   Edit,
   Eye,
   ThumbsUp,
-  Trash2,
   Upload,
   Database,
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import { VideoItem } from "../types";
+import {
+  VideoItem,
+  StatisticsData,
+  CategoryData,
+  Activity,
+  ApiResponse,
+  VideosResponse,
+} from "../types";
 import { Button } from "../components/ui/Button";
 import { ViewToggle } from "../components/filter/ViewToggle";
 import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
 import { VideoCard } from "../components/video/VideoCard";
 import { Layout } from "../components/layout/Layout";
+import { DeleteConfirmation } from "../components/ui/DeleteConfirmation";
+import { httpClient } from "../config/httpClient";
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"uploads" | "statistics">(
@@ -24,20 +32,103 @@ export const SettingsPage: React.FC = () => {
   );
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [loading, setLoading] = useState(true);
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"date" | "views" | "likes">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [videoToDelete, setVideoToDelete] = useState<string | null>(null);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [statistics, setStatistics] = useState<StatisticsData>({
+    totalVideos: 0,
+    totalSummaries: 0,
+    totalDuration: "0h 0m",
+    totalSavedTime: "0h 0m",
+    uploadedThisMonth: 0,
+    summarizedThisMonth: 0,
+  });
+  const [categoryStats, setCategoryStats] = useState<CategoryData[]>([]);
+  const [mostPopularVideo, setMostPopularVideo] = useState<VideoItem | null>(
+    null
+  );
+  const [storageData, setStorageData] = useState({
+    used: 0,
+    total: 5,
+    summarizedCount: 0,
+    nonSummarizedCount: 0,
+  });
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
+    fetchData();
   }, [activeTab]);
 
-  const toggleSelectItem = (id: number) => {
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      if (activeTab === "uploads") {
+        const response =
+          await httpClient.get<ApiResponse<VideosResponse>>("/v1/videos");
+        setVideos(response.data.data.videos);
+      } else {
+        const [
+          videosResponse,
+          statsResponse,
+          categoriesResponse,
+          activitiesResponse,
+        ] = await Promise.all([
+          httpClient.get(`/v1/videos/me`),
+          httpClient.get<ApiResponse<StatisticsData>>(
+            "/v1/videos/me/statistics"
+          ),
+          httpClient.get<ApiResponse<{ categories: CategoryData[] }>>(
+            "/v1/videos/categories/stats"
+          ),
+          httpClient.get<ApiResponse<{ activities: Activity[] }>>(
+            "/v1/videos/user/activities"
+          ),
+        ]);
+
+        setVideos(videosResponse.data.data.videos);
+        setStatistics(statsResponse.data.data);
+        setCategoryStats(categoriesResponse.data.data.categories);
+        setRecentActivities(activitiesResponse.data.data.activities);
+
+        if (videosResponse.data.data.videos.length > 0) {
+          const popular = [...videosResponse.data.data.videos].sort(
+            (a, b) => b.views - a.views
+          )[0];
+          setMostPopularVideo(popular);
+        }
+
+        const summarized = videosResponse.data.data.videos.filter(
+          (v: VideoItem) => v.isSummarized
+        ).length;
+        const nonSummarized =
+          videosResponse.data.data.videos.length - summarized;
+
+        setStorageData({
+          used: calculateStorageUsed(videosResponse.data.data.videos),
+          total: 5,
+          summarizedCount: summarized,
+          nonSummarizedCount: nonSummarized,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateStorageUsed = (videos: VideoItem[]): number => {
+    const totalMinutes = videos.reduce((sum, video) => {
+      return sum + video.duration / 60;
+    }, 0);
+
+    return parseFloat(((totalMinutes * 100) / 1024).toFixed(2));
+  };
+
+  const toggleSelectItem = (id: string) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
     } else {
@@ -49,130 +140,127 @@ export const SettingsPage: React.FC = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
-  const videos: VideoItem[] = [
-    {
-      id: 1,
-      title: "Tổng quan về Machine Learning và ứng dụng",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "15:42",
-      views: "24.5K",
-      likes: 1840,
-      category: "technology",
-      creator: "Tech Insights",
-      creatorAvatar: "TI",
-      createdAt: "2024-02-15",
-      summarized: true,
-      size: "420 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 2,
-      title: "Cách tối ưu hóa công việc với AI trong cuộc sống hàng ngày",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "23:15",
-      views: "18.2K",
-      likes: 1350,
-      category: "productivity",
-      creator: "Productivity Pro",
-      creatorAvatar: "PP",
-      createdAt: "2024-02-18",
-      summarized: true,
-      size: "650 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 3,
-      title: "Review chi tiết MacBook Pro M3 sau 1 tháng sử dụng",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "18:30",
-      views: "32K",
-      likes: 2240,
-      category: "technology",
-      creator: "TechReviewer",
-      creatorAvatar: "TR",
-      createdAt: "2024-02-10",
-      summarized: false,
-      size: "520 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 4,
-      title: "Bí quyết đầu tư chứng khoán thành công trong thời kỳ biến động",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "28:45",
-      views: "15.8K",
-      likes: 1120,
-      category: "finance",
-      creator: "Investment Master",
-      creatorAvatar: "IM",
-      createdAt: "2024-02-20",
-      summarized: true,
-      size: "780 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-  ];
-
-  const totalViews = videos.reduce((sum, video) => {
-    return sum + parseInt(video.views?.replace(/[^\d]/g, "") || "0");
-  }, 0);
-
-  const totalLikes = videos.reduce((sum, video) => {
-    return sum + (video.likes || 0);
-  }, 0);
-
-  const totalDuration = videos.reduce((sum, video) => {
-    const [mins, secs] = video.duration
-      ? video.duration.split(":").map(Number)
-      : [0, 0];
-    return sum + mins * 60 + secs;
-  }, 0);
-
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  const handleDeleteVideo = (videoId: string) => {
+    setVideoToDelete(videoId);
+    setIsDeleteModalOpen(true);
   };
 
-  const sortedVideos = [...videos].sort((a, b) => {
-    let comparison = 0;
-
-    if (sortBy === "views") {
-      comparison =
-        parseInt(b.views?.replace(/[^\d]/g, "") || "0") -
-        parseInt(a.views?.replace(/[^\d]/g, "") || "0");
-    } else if (sortBy === "likes") {
-      comparison = (b.likes || 0) - (a.likes || 0);
-    } else {
-      comparison =
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  const confirmDeleteVideo = async () => {
+    if (videoToDelete) {
+      try {
+        await httpClient.delete(`/v1/videos/${videoToDelete}`);
+        setVideos(videos.filter((v) => v.id !== videoToDelete));
+        setVideoToDelete(null);
+      } catch (error) {
+        console.error("Error deleting video:", error);
+      }
     }
+    setIsDeleteModalOpen(false);
+  };
 
-    return sortOrder === "asc" ? -comparison : comparison;
-  });
+  const formatTimeDuration = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
 
-  const categoryStats = videos.reduce(
-    (acc, video) => {
-      acc[video.category] = (acc[video.category] || 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const formatViews = (viewCount: number): string => {
+    if (viewCount >= 1000000) {
+      return (viewCount / 1000000).toFixed(1) + "M";
+    } else if (viewCount >= 1000) {
+      return (viewCount / 1000).toFixed(1) + "K";
+    }
+    return viewCount.toString();
+  };
 
-  const mostPopularVideo = [...videos].sort((a, b) => {
-    return (
-      parseInt(b.views?.replace(/[^\d]/g, "") || "0") -
-      parseInt(a.views?.replace(/[^\d]/g, "") || "0")
-    );
-  })[0];
+  const getSortedVideos = (): VideoItem[] => {
+    return [...videos].sort((a, b) => {
+      let comparison = 0;
+
+      if (sortBy === "views") {
+        comparison = b.views - a.views;
+      } else if (sortBy === "likes") {
+        comparison = b.likes - a.likes;
+      } else {
+        comparison =
+          new Date(b.createdTime || "").getTime() -
+          new Date(a.createdTime || "").getTime();
+      }
+
+      return sortOrder === "asc" ? -comparison : comparison;
+    });
+  };
+
+  const adaptVideoForComponent = (video: VideoItem) => {
+    return {
+      id: video.id,
+      title: video.title,
+      thumbnail: video.thumbnail,
+      formattedDuration: formatTimeDuration(video.duration || 0),
+      formattedViews: formatViews(video.views || 0),
+      creatorName: video.creator?.username || "",
+      creatorAvatar:
+        video.creator?.username?.substring(0, 2).toUpperCase() || "",
+      summarized: video.isSummarized,
+      createdTime: video.createdTime || "",
+      category: video.category,
+      creator: video.creator,
+      description: video.description,
+      url: video.url,
+      userId: video.userId,
+      views: video.views,
+      likes: video.likes,
+      isLiked: video.isLiked,
+      isBookmarked: video.isBookmarked,
+      metadata: video.metadata,
+      duration: video.duration,
+      isSummarized: video.isSummarized,
+      updatedTime: video.updatedTime,
+      deletedTime: video.deletedTime,
+    };
+  };
+
+  const getCategoryLabel = (category: string): string => {
+    switch (category) {
+      case "technology":
+        return "Công nghệ";
+      case "education":
+        return "Giáo dục";
+      case "productivity":
+        return "Năng suất";
+      case "finance":
+        return "Tài chính";
+      case "travel":
+        return "Du lịch";
+      case "health":
+        return "Sức khỏe";
+      default:
+        return category;
+    }
+  };
+
+  const getCategoryColor = (category: string): string => {
+    switch (category) {
+      case "technology":
+        return "#4f46e5";
+      case "education":
+        return "#0ea5e9";
+      case "productivity":
+        return "#8b5cf6";
+      case "finance":
+        return "#10b981";
+      case "travel":
+        return "#f59e0b";
+      case "health":
+        return "#ef4444";
+      default:
+        return "#6b7280";
+    }
+  };
 
   return (
     <Layout activeItem="settings" title="Cài đặt">
       <div className="max-w-7xl mx-auto">
-        {/* Settings header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
             Quản lý video của bạn
@@ -183,7 +271,6 @@ export const SettingsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Tab navigation */}
         <div className="flex border-b mb-6">
           <button
             className={`px-4 py-2 font-medium text-sm ${
@@ -211,7 +298,6 @@ export const SettingsPage: React.FC = () => {
 
         {activeTab === "uploads" ? (
           <>
-            {/* Video uploads tab */}
             <div className="flex flex-wrap items-center justify-between mb-6">
               <div className="mb-4 sm:mb-0">
                 <h2 className="text-lg font-medium text-gray-800">
@@ -271,47 +357,31 @@ export const SettingsPage: React.FC = () => {
               <>
                 {viewMode === "grid" ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-                    {sortedVideos.map((video) => (
+                    {getSortedVideos().map((video) => (
                       <div key={video.id} className="relative group">
                         <VideoCard
-                          item={video}
+                          item={adaptVideoForComponent(video)}
                           viewMode="grid"
                           isSelected={selectedItems.includes(video.id)}
-                          onSelect={toggleSelectItem}
+                          onSelect={() => toggleSelectItem(video.id)}
                           contentType="video"
+                          onDelete={() => handleDeleteVideo(video.id)}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <div className="flex space-x-2">
-                            <button className="p-2 bg-white rounded-full hover:bg-gray-100">
-                              <Edit size={16} className="text-gray-600" />
-                            </button>
-                            <button className="p-2 bg-white rounded-full hover:bg-gray-100">
-                              <Trash2 size={16} className="text-red-500" />
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-4 mb-6">
-                    {sortedVideos.map((video) => (
+                    {getSortedVideos().map((video) => (
                       <div key={video.id} className="relative group">
                         <VideoCard
-                          item={video}
+                          item={adaptVideoForComponent(video)}
                           viewMode="list"
                           isSelected={selectedItems.includes(video.id)}
-                          onSelect={toggleSelectItem}
+                          onSelect={() => toggleSelectItem(video.id)}
                           contentType="video"
+                          onDelete={() => handleDeleteVideo(video.id)}
                         />
-                        <div className="absolute top-1/2 right-4 -translate-y-1/2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-2 bg-white rounded-full shadow hover:bg-gray-100">
-                            <Edit size={16} className="text-gray-600" />
-                          </button>
-                          <button className="p-2 bg-white rounded-full shadow hover:bg-gray-100">
-                            <Trash2 size={16} className="text-red-500" />
-                          </button>
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -320,7 +390,11 @@ export const SettingsPage: React.FC = () => {
             )}
 
             <div className="mt-4 flex justify-center">
-              <Button variant="primary" leftIcon={<Upload size={16} />}>
+              <Button
+                variant="primary"
+                leftIcon={<Upload size={16} />}
+                onClick={() => (window.location.href = "/summarize")}
+              >
                 Đăng video mới
               </Button>
             </div>
@@ -372,7 +446,9 @@ export const SettingsPage: React.FC = () => {
                       </span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800">
-                      {totalViews.toLocaleString()}
+                      {videos
+                        .reduce((sum, video) => sum + video.views, 0)
+                        .toLocaleString()}
                     </h3>
                     <p className="text-sm text-gray-500">
                       Từ {videos.length} video đã đăng
@@ -387,11 +463,20 @@ export const SettingsPage: React.FC = () => {
                       </span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800">
-                      {totalLikes.toLocaleString()}
+                      {videos
+                        .reduce((sum, video) => sum + video.likes, 0)
+                        .toLocaleString()}
                     </h3>
                     <p className="text-sm text-gray-500">
                       Trung bình{" "}
-                      {Math.round(totalLikes / videos.length).toLocaleString()}{" "}
+                      {videos.length > 0
+                        ? Math.round(
+                            videos.reduce(
+                              (sum, video) => sum + video.likes,
+                              0
+                            ) / videos.length
+                          ).toLocaleString()
+                        : 0}{" "}
                       mỗi video
                     </p>
                   </div>
@@ -404,14 +489,10 @@ export const SettingsPage: React.FC = () => {
                       </span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800">
-                      {formatDuration(totalDuration)}
+                      {statistics.totalDuration}
                     </h3>
                     <p className="text-sm text-gray-500">
-                      Trung bình{" "}
-                      {formatDuration(
-                        Math.round(totalDuration / videos.length)
-                      )}{" "}
-                      mỗi video
+                      Tiết kiệm {statistics.totalSavedTime} nhờ tóm tắt
                     </p>
                   </div>
                 </div>
@@ -422,43 +503,28 @@ export const SettingsPage: React.FC = () => {
                       Phân bổ theo danh mục
                     </h3>
                     <div className="h-64 flex items-end space-x-6">
-                      {Object.entries(categoryStats).map(
-                        ([category, count]) => (
+                      {categoryStats.map((category) => (
+                        <div
+                          key={category.name}
+                          className="flex flex-col items-center flex-1"
+                        >
                           <div
-                            key={category}
-                            className="flex flex-col items-center flex-1"
-                          >
-                            <div
-                              className="w-full bg-indigo-500 rounded-t-md"
-                              style={{
-                                height: `${(count / videos.length) * 200}px`,
-                                background:
-                                  category === "technology"
-                                    ? "#4f46e5"
-                                    : category === "productivity"
-                                      ? "#8b5cf6"
-                                      : category === "finance"
-                                        ? "#10b981"
-                                        : "#f59e0b",
-                              }}
-                            ></div>
-                            <div className="mt-2 text-xs text-center">
-                              <div className="font-medium">
-                                {category === "technology"
-                                  ? "Công nghệ"
-                                  : category === "productivity"
-                                    ? "Năng suất"
-                                    : category === "finance"
-                                      ? "Tài chính"
-                                      : category === "travel"
-                                        ? "Du lịch"
-                                        : category}
-                              </div>
-                              <div className="text-gray-500">{count} video</div>
+                            className="w-full rounded-t-md"
+                            style={{
+                              height: `${Math.max(category.percentage * 2, 10)}px`,
+                              background: getCategoryColor(category.name),
+                            }}
+                          ></div>
+                          <div className="mt-2 text-xs text-center">
+                            <div className="font-medium">
+                              {getCategoryLabel(category.name)}
+                            </div>
+                            <div className="text-gray-500">
+                              {category.count} video
                             </div>
                           </div>
-                        )
-                      )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -475,7 +541,7 @@ export const SettingsPage: React.FC = () => {
                             className="w-24 h-24 object-cover rounded-md"
                           />
                           <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
-                            {mostPopularVideo.duration}
+                            {formatTimeDuration(mostPopularVideo.duration || 0)}
                           </div>
                         </div>
                         <div>
@@ -484,7 +550,7 @@ export const SettingsPage: React.FC = () => {
                           </h4>
                           <div className="flex items-center text-sm text-gray-500 mt-1">
                             <Eye size={14} className="mr-1" />
-                            {mostPopularVideo.views} lượt xem
+                            {formatViews(mostPopularVideo.views)} lượt xem
                           </div>
                           <div className="flex items-center text-sm text-gray-500 mt-1">
                             <ThumbsUp size={14} className="mr-1" />
@@ -495,6 +561,9 @@ export const SettingsPage: React.FC = () => {
                             size="sm"
                             className="mt-2"
                             leftIcon={<Edit size={14} />}
+                            onClick={() =>
+                              (window.location.href = `/edit/${mostPopularVideo.id}`)
+                            }
                           >
                             Chỉnh sửa
                           </Button>
@@ -518,12 +587,22 @@ export const SettingsPage: React.FC = () => {
                       <div className="h-3 bg-gray-200 rounded-full mb-2">
                         <div
                           className="h-3 bg-indigo-500 rounded-full"
-                          style={{ width: "65%" }}
+                          style={{
+                            width: `${(storageData.used / storageData.total) * 100}%`,
+                          }}
                         ></div>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">2.37 GB / 5 GB</span>
-                        <span className="text-indigo-500">65%</span>
+                        <span className="text-gray-600">
+                          {storageData.used.toFixed(2)} GB / {storageData.total}{" "}
+                          GB
+                        </span>
+                        <span className="text-indigo-500">
+                          {Math.round(
+                            (storageData.used / storageData.total) * 100
+                          )}
+                          %
+                        </span>
                       </div>
                     </div>
 
@@ -535,13 +614,13 @@ export const SettingsPage: React.FC = () => {
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-gray-600">Đã tóm tắt</span>
                         <span className="font-medium">
-                          {videos.filter((v) => v.summarized).length} video
+                          {storageData.summarizedCount} video
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Chưa tóm tắt</span>
                         <span className="font-medium">
-                          {videos.filter((v) => !v.summarized).length} video
+                          {storageData.nonSummarizedCount} video
                         </span>
                       </div>
                     </div>
@@ -552,56 +631,23 @@ export const SettingsPage: React.FC = () => {
                       Hoạt động gần đây
                     </h3>
                     <div className="space-y-4">
-                      <div className="flex items-start">
-                        <div className="bg-green-100 p-2 rounded-full mr-3">
-                          <Upload size={16} className="text-green-600" />
+                      {recentActivities.slice(0, 3).map((activity, index) => (
+                        <div key={index} className="flex items-start">
+                          <div
+                            className={`bg-${activity.iconColor}-100 p-2 rounded-full mr-3`}
+                          >
+                            {activity.icon}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {activity.title}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {activity.timestamp}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            Đã đăng video mới
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Cách đây 2 ngày
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            Bí quyết đầu tư chứng khoán thành công...
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start">
-                        <div className="bg-indigo-100 p-2 rounded-full mr-3">
-                          <Edit size={16} className="text-indigo-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            Đã chỉnh sửa video
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Cách đây 4 ngày
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            Cách tối ưu hóa công việc với AI...
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start">
-                        <div className="bg-orange-100 p-2 rounded-full mr-3">
-                          <Eye size={16} className="text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            Đạt 1000 lượt xem
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Cách đây 1 tuần
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            Tổng quan về Machine Learning và ứng dụng
-                          </p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -610,6 +656,14 @@ export const SettingsPage: React.FC = () => {
           </>
         )}
       </div>
+
+      <DeleteConfirmation
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteVideo}
+        itemCount={1}
+        itemType="video"
+      />
     </Layout>
   );
 };

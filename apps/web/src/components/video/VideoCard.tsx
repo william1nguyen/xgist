@@ -9,46 +9,39 @@ import {
   Share,
   Trash,
 } from "lucide-react";
-
-export interface VideoItem {
-  id: number;
-  title: string;
-  thumbnail: string;
-  duration?: string;
-  views?: string;
-  likes?: number;
-  category: string;
-  creator?: string;
-  creatorAvatar?: string;
-  createdAt: string;
-  summarized?: boolean;
-  size?: string;
-  format?: string;
-  resolution?: string;
-  originalDuration?: string;
-  readingTime?: string;
-  wordCount?: string;
-  originalVideoId?: number;
-}
+import { VideoItem } from "../../types";
 
 interface VideoCardProps {
-  item: VideoItem;
+  item: VideoItem & {
+    formattedDuration?: string;
+    formattedViews?: string;
+    creatorName?: string;
+    creatorAvatar?: string;
+    summarized?: boolean;
+    readingTime?: string;
+    wordCount?: string;
+    size?: string;
+    format?: string;
+    resolution?: string;
+    originalDuration?: string;
+  };
   viewMode: "grid" | "list";
   isSelected: boolean;
-  onSelect: (id: number) => void;
-  contentType: "video" | "summary" | "favorite";
+  onSelect: (id: string) => void;
+  contentType: "video" | "summary" | "bookmark";
+  onDelete?: (id: string) => void;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({
   item,
   viewMode,
-  isSelected,
-  onSelect,
   contentType,
+  onDelete,
 }) => {
   const navigate = useNavigate();
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN", {
       year: "numeric",
@@ -65,12 +58,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       return;
     }
 
-    if (contentType === "video") {
-      navigate(`/video/${item.id}`);
-    } else if (contentType === "summary") {
-      navigate(`/summary/${item.id}`);
-    } else if (contentType === "favorite") {
-      navigate(`/favorite/${item.id}`);
+    navigate(`/videos/${item.id}`);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(item.id);
     }
   };
 
@@ -87,27 +81,16 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             className="w-full h-40 object-cover"
           />
           <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-0.5 text-xs rounded">
-            {item.duration ||
+            {item.formattedDuration ||
               (item.originalDuration &&
                 `${item.originalDuration} → ${item.readingTime}`)}
           </div>
-          {"summarized" in item && item.summarized && (
+          {(item.summarized || item.isSummarized) && (
             <div className="absolute top-2 left-2 bg-indigo-600 text-white px-2 py-0.5 text-xs rounded-md flex items-center">
               <FastForward size={12} className="mr-1" />
               Đã tóm tắt
             </div>
           )}
-          <div
-            className="absolute top-2 right-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <input
-              type="checkbox"
-              className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-              checked={isSelected}
-              onChange={() => onSelect(item.id)}
-            />
-          </div>
         </div>
 
         <div className="p-3">
@@ -116,23 +99,27 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           </h3>
 
           <div className="flex items-center text-xs text-gray-500 mb-2">
-            {contentType === "video" && item.views && (
+            {contentType === "video" && (item.formattedViews || item.views) && (
               <>
-                <span>{item.views} lượt xem</span>
+                <span>{item.formattedViews || `${item.views} lượt xem`}</span>
                 <span className="mx-1">•</span>
               </>
             )}
-            <span>{formatDate(item.createdAt)}</span>
+            <span>{formatDate(item.createdTime || item.createdTime)}</span>
           </div>
 
           <div className="flex items-center justify-between">
-            {contentType === "video" && item.creator && (
+            {contentType === "video" && (item.creatorName || item.creator) && (
               <div className="flex items-center">
                 <div className="h-6 w-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-medium mr-2">
-                  {item.creatorAvatar}
+                  {item.creatorAvatar ||
+                    (item.creator
+                      ? item.creator.username.substring(0, 2).toUpperCase()
+                      : "N/A")}
                 </div>
                 <span className="text-sm text-gray-700 truncate">
-                  {item.creator}
+                  {item.creatorName ||
+                    (item.creator ? item.creator.username : "N/A")}
                 </span>
               </div>
             )}
@@ -148,6 +135,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             >
               <button className="text-gray-400 hover:text-red-500">
                 <Heart size={16} />
+              </button>
+              <button
+                className="text-gray-400 hover:text-red-500"
+                onClick={handleDelete}
+                title="Xóa"
+              >
+                <Trash size={16} />
               </button>
               <button className="text-gray-400 hover:text-gray-700">
                 <MoreHorizontal size={16} />
@@ -171,26 +165,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           className="w-full h-28 object-cover"
         />
         <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-1.5 py-0.5 text-xs rounded">
-          {item.duration ||
+          {item.formattedDuration ||
             (item.originalDuration && `${item.originalDuration}`)}
         </div>
-        {"summarized" in item && item.summarized && (
+        {(item.summarized || item.isSummarized) && (
           <div className="absolute top-2 left-2 bg-indigo-600 text-white px-1.5 py-0.5 text-xs rounded-md flex items-center">
             <FastForward size={10} className="mr-1" />
             Đã tóm tắt
           </div>
         )}
-        <div
-          className="absolute top-2 right-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <input
-            type="checkbox"
-            className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-            checked={isSelected}
-            onChange={() => onSelect(item.id)}
-          />
-        </div>
       </div>
 
       <div className="p-4 flex-1">
@@ -199,20 +182,20 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </h3>
 
         <div className="flex items-center text-xs text-gray-500 mb-2">
-          {contentType === "video" && item.views && (
+          {contentType === "video" && (item.formattedViews || item.views) && (
             <>
-              <span>{item.views} lượt xem</span>
+              <span>{item.formattedViews || `${item.views} lượt xem`}</span>
               <span className="mx-2">•</span>
             </>
           )}
-          <span>{formatDate(item.createdAt)}</span>
+          <span>{formatDate(item.createdTime || item.createdTime)}</span>
           <span className="mx-2">•</span>
           {contentType === "video" ? (
             <span>
-              {item.format}, {item.resolution}
+              {item.format || "MP4"}, {item.resolution || "HD"}
             </span>
           ) : (
-            <span>{item.format}</span>
+            <span>{item.format || "TXT"}</span>
           )}
           <span className="mx-2">•</span>
           {contentType === "summary" && item.wordCount ? (
@@ -225,13 +208,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </div>
 
         <div className="flex items-center justify-between">
-          {contentType === "video" && item.creator && (
+          {contentType === "video" && (item.creatorName || item.creator) && (
             <div className="flex items-center">
               <div className="h-6 w-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-medium mr-2">
-                {item.creatorAvatar}
+                {item.creatorAvatar ||
+                  (item.creator
+                    ? item.creator.username.substring(0, 2).toUpperCase()
+                    : "N/A")}
               </div>
               <span className="text-sm text-gray-700 truncate">
-                {item.creator}
+                {item.creatorName ||
+                  (item.creator ? item.creator.username : "N/A")}
               </span>
             </div>
           )}
@@ -262,7 +249,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               <Share size={16} className="mr-1" />
               <span className="text-xs">Chia sẻ</span>
             </button>
-            <button className="p-1.5 text-gray-400 hover:text-red-500 flex items-center">
+            <button
+              className="p-1.5 text-gray-400 hover:text-red-500 flex items-center"
+              onClick={handleDelete}
+            >
               <Trash size={16} className="mr-1" />
               <span className="text-xs">Xóa</span>
             </button>

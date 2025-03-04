@@ -1,36 +1,56 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import { Plus, TrendingUp, FastForward } from "lucide-react";
-import { VideoItem, SortOption } from "../types";
+import { VideoItem, SortOption, ApiResponse, VideosResponse } from "../types";
 import { Button } from "../components/ui/Button";
 import { SortingMenu } from "../components/filter/SortingMenu";
 import { ViewToggle } from "../components/filter/ViewToggle";
 import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
 import { VideoCard } from "../components/video/VideoCard";
 import { Layout } from "../components/layout/Layout";
+import { httpClient } from "../config/httpClient";
 
 export const MainVideoPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("recent");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [loading, setLoading] = useState(true);
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [size, setSize] = useState<number>(8);
+  const [total, setTotal] = useState<number>(0);
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const fetchVideos = async () => {
+  const fetchVideos = async (pageNum = 1, pageSize = 8, query?: string) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}/videos`);
-      setVideos(response.data);
+      const response = await httpClient.get<ApiResponse<VideosResponse>>(
+        `${BASE_URL}/v1/videos`,
+        {
+          params: {
+            page: pageNum,
+            size: pageSize,
+            q: query || undefined,
+          },
+        }
+      );
+
+      setVideos(response.data.data.videos);
+
+      if (response.data.metadata) {
+        setTotal(response.data.metadata.total);
+        setPage(response.data.metadata.page);
+        setSize(response.data.metadata.size);
+      }
+
       setError(null);
     } catch (err) {
       console.error("Error fetching videos:", err);
-      setVideos(mockVideos);
     } finally {
       setLoading(false);
     }
@@ -41,11 +61,11 @@ export const MainVideoPage: React.FC = () => {
   }, []);
 
   const handleReload = () => {
-    fetchVideos();
+    fetchVideos(1, size);
     window.scrollTo(0, 0);
   };
 
-  const toggleSelectItem = (id: number) => {
+  const toggleSelectItem = (id: string) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
     } else {
@@ -66,139 +86,8 @@ export const MainVideoPage: React.FC = () => {
   };
 
   const handleGetStartedClick = () => {
-    navigate("/register");
+    navigate("/summarize");
   };
-
-  const mockVideos: VideoItem[] = [
-    {
-      id: 1,
-      title: "Tổng quan về Machine Learning và ứng dụng",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "15:42",
-      views: "24.5K",
-      likes: 1840,
-      category: "technology",
-      creator: "Tech Insights",
-      creatorAvatar: "TI",
-      createdAt: "2024-02-15",
-      summarized: true,
-      size: "420 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 2,
-      title: "Cách tối ưu hóa công việc với AI trong cuộc sống hàng ngày",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "23:15",
-      views: "18.2K",
-      likes: 1350,
-      category: "productivity",
-      creator: "Productivity Pro",
-      creatorAvatar: "PP",
-      createdAt: "2024-02-18",
-      summarized: true,
-      size: "650 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 3,
-      title: "Review chi tiết MacBook Pro M3 sau 1 tháng sử dụng",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "18:30",
-      views: "32K",
-      likes: 2240,
-      category: "technology",
-      creator: "TechReviewer",
-      creatorAvatar: "TR",
-      createdAt: "2024-02-10",
-      summarized: false,
-      size: "520 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 4,
-      title: "Bí quyết đầu tư chứng khoán thành công trong thời kỳ biến động",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "28:45",
-      views: "15.8K",
-      likes: 1120,
-      category: "finance",
-      creator: "Investment Master",
-      creatorAvatar: "IM",
-      createdAt: "2024-02-20",
-      summarized: true,
-      size: "780 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 5,
-      title: "Khám phá Hồ Tràm - Điểm du lịch lý tưởng cho kỳ nghỉ cuối tuần",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "12:20",
-      views: "8.7K",
-      likes: 780,
-      category: "travel",
-      creator: "Travel Explorer",
-      creatorAvatar: "TE",
-      createdAt: "2024-02-14",
-      summarized: true,
-      size: "320 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 6,
-      title: "Phương pháp học tiếng Anh hiệu quả không cần đến lớp",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "21:35",
-      views: "45.3K",
-      likes: 3240,
-      category: "education",
-      creator: "English Pro",
-      creatorAvatar: "EP",
-      createdAt: "2024-02-05",
-      summarized: true,
-      size: "580 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 7,
-      title: "Cách xây dựng thói quen tập thể dục đều đặn",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "16:50",
-      views: "12.1K",
-      likes: 950,
-      category: "health",
-      creator: "Fitness Coach",
-      creatorAvatar: "FC",
-      createdAt: "2024-02-21",
-      summarized: false,
-      size: "480 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 8,
-      title: "TOP 10 công cụ AI miễn phí giúp tăng năng suất làm việc",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "14:25",
-      views: "36.9K",
-      likes: 2780,
-      category: "technology",
-      creator: "AI Enthusiast",
-      creatorAvatar: "AE",
-      createdAt: "2024-02-19",
-      summarized: true,
-      size: "380 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-  ];
 
   const categories = [
     { id: "all", label: "Tất cả" },
@@ -209,16 +98,6 @@ export const MainVideoPage: React.FC = () => {
     { id: "travel", label: "Du lịch" },
     { id: "health", label: "Sức khỏe" },
   ];
-
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/categories`);
-      return response.data;
-    } catch (err) {
-      console.error("Error fetching categories:", err);
-      return categories;
-    }
-  };
 
   const filteredVideos =
     activeCategory === "all"
@@ -233,32 +112,66 @@ export const MainVideoPage: React.FC = () => {
 
   const sortedVideos = [...filteredVideos].sort((a, b) => {
     if (sortBy === "popular") {
-      return (
-        parseInt(b.views?.replace(/[^\d]/g, "") || "0") -
-        parseInt(a.views?.replace(/[^\d]/g, "") || "0")
-      );
+      return b.views - a.views;
     } else if (sortBy === "trending") {
-      return (b.likes || 0) - (a.likes || 0);
+      return b.likes - a.likes;
     }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return (
+      new Date(b.createdTime || 0).getTime() -
+      new Date(a.createdTime || 0).getTime()
+    );
   });
 
   const loadMoreVideos = async () => {
+    if (page * size >= total) return;
+
     try {
       setLoading(true);
-      const lastVideoId = videos[videos.length - 1]?.id;
-      const response = await axios.get(`${BASE_URL}/videos`, {
+      const nextPage = page + 1;
+
+      const response = await httpClient.get(`${BASE_URL}/v1/videos`, {
         params: {
-          offset: lastVideoId,
-          limit: 8,
+          page: nextPage,
+          size: size,
         },
       });
-      setVideos([...videos, ...response.data]);
+
+      if (response.data.data.videos && response.data.data.videos.length > 0) {
+        setVideos([...videos, ...response.data.data.videos]);
+
+        if (response.data.metadata) {
+          setPage(response.data.metadata.page);
+        }
+      }
     } catch (err) {
       console.error("Error loading more videos:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDuration = (durationInSeconds: number): string => {
+    const minutes = Math.floor(durationInSeconds / 60);
+    const seconds = durationInSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const formatViews = (viewCount: number): string => {
+    if (viewCount >= 1000) {
+      return (viewCount / 1000).toFixed(1) + "K";
+    }
+    return viewCount.toString();
+  };
+
+  const adaptVideoForComponent = (video: VideoItem) => {
+    return {
+      ...video,
+      formattedDuration: formatDuration(video.duration),
+      formattedViews: formatViews(video.views),
+      creatorName: video.creator.username,
+      creatorAvatar: video.creator.username.substring(0, 2).toUpperCase(),
+      summarized: video.isSummarized,
+    };
   };
 
   return (
@@ -468,7 +381,7 @@ export const MainVideoPage: React.FC = () => {
                   {sortedVideos.map((video) => (
                     <VideoCard
                       key={video.id}
-                      item={video}
+                      item={adaptVideoForComponent(video)}
                       viewMode="grid"
                       isSelected={selectedItems.includes(video.id)}
                       onSelect={toggleSelectItem}
@@ -481,7 +394,7 @@ export const MainVideoPage: React.FC = () => {
                   {sortedVideos.map((video) => (
                     <VideoCard
                       key={video.id}
-                      item={video}
+                      item={adaptVideoForComponent(video)}
                       viewMode="list"
                       isSelected={selectedItems.includes(video.id)}
                       onSelect={toggleSelectItem}
@@ -508,26 +421,27 @@ export const MainVideoPage: React.FC = () => {
             </div>
           )}
 
-          <div className="mt-8 text-center space-x-4">
-            <Button
-              variant="outline"
-              onClick={loadMoreVideos}
-              disabled={loading}
-              className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
-            >
-              {loading ? "Đang tải..." : "Tải thêm video"}
-            </Button>
-            <Button
-              variant="primary"
-              leftIcon={<Plus size={16} />}
-              onClick={handleUploadClick}
-            >
-              Đăng video
-            </Button>
-          </div>
+          {page * size < total && (
+            <div className="mt-8 text-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={loadMoreVideos}
+                disabled={loading}
+                className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
+              >
+                {loading ? "Đang tải..." : "Tải thêm video"}
+              </Button>
+              <Button
+                variant="primary"
+                leftIcon={<Plus size={16} />}
+                onClick={handleUploadClick}
+              >
+                Đăng video
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* CTA section */}
         <div className="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-10 px-6 mt-8 -mx-8 -mb-8">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-2xl font-bold mb-3">

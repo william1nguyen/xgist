@@ -9,6 +9,7 @@ import { Button } from "../components/ui/Button";
 import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { VideoCard } from "../components/video/VideoCard";
+import { httpClient } from "../config/httpClient";
 
 type ViewModeType = "grid" | "list";
 type SortByType = "popular" | "newest" | "most-liked" | "most-viewed";
@@ -17,110 +18,63 @@ type TimeRangeType = "today" | "week" | "month" | "year";
 export const TrendingPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<ViewModeType>("grid");
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortByType>("popular");
   const [timeRange, setTimeRange] = useState<TimeRangeType>("week");
   const [activeCategory, setActiveCategory] = useState<string>("technology");
   const [activeTab, setActiveTab] = useState<string>("trending");
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const trendingVideos: VideoItem[] = [
-    {
-      id: 1,
-      title: "Giải pháp AI giúp tăng năng suất làm việc gấp 3 lần",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "15:42",
-      views: "184.2K",
-      likes: 14200,
-      category: "technology",
-      creator: "Tech Insights",
-      creatorAvatar: "TI",
-      createdAt: "2024-02-22",
-      summarized: true,
-      size: "420 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 2,
-      title: "Top 10 điểm đến du lịch hấp dẫn nhất Việt Nam năm 2024",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "18:30",
-      views: "142.8K",
-      likes: 9850,
-      category: "travel",
-      creator: "Travel Explorer",
-      creatorAvatar: "TE",
-      createdAt: "2024-02-20",
-      summarized: true,
-      size: "520 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 3,
-      title: "Bí quyết đầu tư thông minh cho người mới bắt đầu",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "22:15",
-      views: "98.6K",
-      likes: 7600,
-      category: "finance",
-      creator: "Finance Master",
-      creatorAvatar: "FM",
-      createdAt: "2024-02-19",
-      summarized: false,
-      size: "580 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 4,
-      title: "Cách xây dựng thói quen học tập hiệu quả trong 21 ngày",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "12:48",
-      views: "76.5K",
-      likes: 5400,
-      category: "education",
-      creator: "Learning Pro",
-      creatorAvatar: "LP",
-      createdAt: "2024-02-21",
-      summarized: true,
-      size: "340 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 5,
-      title: "Hướng dẫn sử dụng ChatGPT hiệu quả cho công việc",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "16:30",
-      views: "112.3K",
-      likes: 8900,
-      category: "technology",
-      creator: "AI Enthusiast",
-      creatorAvatar: "AE",
-      createdAt: "2024-02-18",
-      summarized: false,
-      size: "470 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-    {
-      id: 6,
-      title: "Chế độ ăn uống và tập luyện tối ưu cho người bận rộn",
-      thumbnail: "https://via.placeholder.com/600x340",
-      duration: "20:10",
-      views: "65.7K",
-      likes: 4800,
-      category: "health",
-      creator: "Health Coach",
-      creatorAvatar: "HC",
-      createdAt: "2024-02-23",
-      summarized: true,
-      size: "550 MB",
-      format: "MP4",
-      resolution: "1080p",
-    },
-  ];
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+  const fetchVideos = async () => {
+    setLoading(true);
+    try {
+      const params: Record<string, any> = {
+        size: 12,
+        page: 1,
+      };
+
+      if (searchQuery) {
+        params.q = searchQuery;
+      }
+
+      const response = await httpClient.get(`${BASE_URL}/v1/videos`, {
+        params,
+      });
+
+      if (response.data.data.videos) {
+        setVideos(response.data.data.videos);
+      }
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching trending videos:", err);
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVideos();
+  }, [activeCategory, sortBy, timeRange, activeTab]);
+
+  const handleReload = (): void => {
+    fetchVideos();
+    window.scrollTo(0, 0);
+  };
+
+  const toggleSelectItem = (id: string): void => {
+    setSelectedItems((prevSelectedItems) => {
+      if (prevSelectedItems.includes(id)) {
+        return prevSelectedItems.filter((itemId) => itemId !== id);
+      } else {
+        return [...prevSelectedItems, id];
+      }
+    });
+  };
 
   const sortOptions: SortOption[] = [
     { id: "popular", label: "Phổ biến nhất" },
@@ -138,80 +92,70 @@ export const TrendingPage: React.FC = () => {
 
   const handleCategoryClick = (category: string): void => {
     setActiveCategory(category);
-    console.log(`Category selected: ${category}`);
   };
 
   const handleTabClick = (tab: string): void => {
     setActiveTab(tab);
-    console.log(`Tab selected: ${tab}`);
-  };
-
-  const handleReload = (): void => {
-    setLoading(true);
-    window.scrollTo(0, 0);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-  };
-
-  const toggleSelectItem = (id: number): void => {
-    setSelectedItems((prevSelectedItems) => {
-      if (prevSelectedItems.includes(id)) {
-        return prevSelectedItems.filter((itemId) => itemId !== id);
-      } else {
-        return [...prevSelectedItems, id];
-      }
-    });
   };
 
   const getSortedVideos = (): VideoItem[] => {
-    let sorted = [...trendingVideos];
+    let sorted = [...videos];
 
-    // Lọc theo danh mục đang hoạt động
-    if (activeCategory) {
+    if (activeCategory && activeCategory !== "all") {
       sorted = sorted.filter((video) => video.category === activeCategory);
     }
 
-    // Sắp xếp theo tiêu chí đã chọn
     switch (sortBy) {
       case "popular":
-        return sorted.sort(
-          (a, b) =>
-            parseInt(b.views?.replace(/[^\d]/g, "") || "0") -
-            parseInt(a.views?.replace(/[^\d]/g, "") || "0")
-        );
+        return sorted.sort((a, b) => b.views - a.views);
       case "newest":
         return sorted.sort(
           (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            new Date(b.createdTime || 0).getTime() -
+            new Date(a.createdTime || 0).getTime()
         );
       case "most-liked":
-        return sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        return sorted.sort((a, b) => b.likes - a.likes);
       case "most-viewed":
-        return sorted.sort(
-          (a, b) =>
-            parseInt(b.views?.replace(/[^\d]/g, "") || "0") -
-            parseInt(a.views?.replace(/[^\d]/g, "") || "0")
-        );
+        return sorted.sort((a, b) => b.views - a.views);
       default:
         return sorted;
     }
   };
 
   const handleSearch = (query: string): void => {
-    console.log("Searching for:", query);
+    setSearchQuery(query);
+    fetchVideos();
   };
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   const sortedVideos = getSortedVideos();
+
+  const formatDuration = (durationInSeconds: number): string => {
+    const minutes = Math.floor(durationInSeconds / 60);
+    const seconds = durationInSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const formatViews = (viewCount: number): string => {
+    if (viewCount >= 1000000) {
+      return (viewCount / 1000000).toFixed(1) + "M";
+    } else if (viewCount >= 1000) {
+      return (viewCount / 1000).toFixed(1) + "K";
+    }
+    return viewCount.toString();
+  };
+
+  const adaptVideoForComponent = (video: VideoItem) => {
+    return {
+      ...video,
+      formattedDuration: formatDuration(video.duration),
+      formattedViews: formatViews(video.views),
+      creatorName: video.creator.username,
+      creatorAvatar: video.creator.username.substring(0, 2).toUpperCase(),
+      summarized: video.isSummarized,
+      createdAt: video.createdTime,
+    };
+  };
 
   const headerContent = (
     <div className="flex space-x-4">
@@ -244,6 +188,12 @@ export const TrendingPage: React.FC = () => {
       title="Xu hướng"
       headerContent={headerContent}
     >
+      {error && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+          <p>{error}</p>
+        </div>
+      )}
+
       <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="w-full md:w-auto">
           <SearchBar
@@ -273,8 +223,13 @@ export const TrendingPage: React.FC = () => {
             onViewChange={(mode) => setViewMode(mode as ViewModeType)}
           />
 
-          <Button onClick={handleReload} variant="outline" size="sm">
-            Tải lại
+          <Button
+            onClick={handleReload}
+            variant="outline"
+            size="sm"
+            disabled={loading}
+          >
+            {loading ? "Đang tải..." : "Tải lại"}
           </Button>
         </div>
       </div>
@@ -288,6 +243,13 @@ export const TrendingPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <Button
+            variant={activeCategory === "all" ? "primary" : "outline"}
+            size="sm"
+            onClick={() => handleCategoryClick("all")}
+          >
+            Tất cả
+          </Button>
           <Button
             variant={activeCategory === "technology" ? "primary" : "outline"}
             size="sm"
@@ -322,6 +284,13 @@ export const TrendingPage: React.FC = () => {
             onClick={() => handleCategoryClick("health")}
           >
             Sức khỏe
+          </Button>
+          <Button
+            variant={activeCategory === "productivity" ? "primary" : "outline"}
+            size="sm"
+            onClick={() => handleCategoryClick("productivity")}
+          >
+            Năng suất
           </Button>
         </div>
       </div>
@@ -359,7 +328,7 @@ export const TrendingPage: React.FC = () => {
               {sortedVideos.map((video) => (
                 <VideoCard
                   key={video.id}
-                  item={video}
+                  item={adaptVideoForComponent(video)}
                   viewMode={viewMode}
                   isSelected={selectedItems.includes(video.id)}
                   onSelect={() => toggleSelectItem(video.id)}
@@ -395,7 +364,7 @@ export const TrendingPage: React.FC = () => {
               {sortedVideos.slice(0, 3).map((video) => (
                 <VideoCard
                   key={video.id}
-                  item={video}
+                  item={adaptVideoForComponent(video)}
                   viewMode={viewMode}
                   isSelected={selectedItems.includes(video.id)}
                   onSelect={() => toggleSelectItem(video.id)}
@@ -440,7 +409,7 @@ export const TrendingPage: React.FC = () => {
               {sortedVideos.map((video) => (
                 <VideoCard
                   key={video.id}
-                  item={video}
+                  item={adaptVideoForComponent(video)}
                   viewMode={viewMode}
                   isSelected={selectedItems.includes(video.id)}
                   onSelect={() => toggleSelectItem(video.id)}

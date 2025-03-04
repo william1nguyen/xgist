@@ -4,32 +4,50 @@ export interface Category {
 }
 
 export interface VideoItem {
-  id: number;
+  id: string;
   title: string;
+  description: string;
   thumbnail: string;
-  duration?: string;
-  views?: string;
-  likes?: number;
-  category: string;
-  creator?: string;
-  creatorAvatar?: string;
-  createdAt: string;
-  summarized?: boolean;
-  size?: string;
-  format?: string;
-  resolution?: string;
-  originalDuration?: string;
-  readingTime?: string;
-  wordCount?: string;
-  originalVideoId?: number;
+  url: string;
+  userId: string;
+  category:
+    | "technology"
+    | "education"
+    | "productivity"
+    | "finance"
+    | "travel"
+    | "health";
+  duration: number;
+  views: number;
+  likes: number;
+  isSummarized: boolean;
+  isLiked: {
+    state: boolean;
+  };
+  isBookmarked: {
+    state: boolean;
+  };
+  metadata?: any;
+  creator: {
+    id: string;
+    keycloakUserId: string;
+    username: string;
+    email: string;
+    createdTime?: string | null;
+    updatedTime?: string | null;
+    deletedTime?: string | null;
+  };
+  createdTime?: string | null;
+  updatedTime?: string | null;
+  deletedTime?: string | null;
 }
 
-export interface SummaryItem extends VideoItem {
+export interface SummaryItem extends Omit<VideoItem, "isSummarized"> {
   originalDuration: string;
   readingTime: string;
   wordCount: string;
   format: string;
-  originalVideoId: number;
+  originalVideoId: string;
 }
 
 export interface StatisticsData {
@@ -63,4 +81,19 @@ export interface SortOption {
 export interface TabItem {
   id: string;
   label: string;
+}
+
+export interface PaginationMetadata {
+  page: number;
+  size: number;
+  total: number;
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  metadata?: PaginationMetadata;
+}
+
+export interface VideosResponse {
+  videos: VideoItem[];
 }

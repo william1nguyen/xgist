@@ -10,6 +10,8 @@ import {
   ThumbsDown,
   Printer,
   ExternalLink,
+  Tag,
+  Lightbulb,
 } from "lucide-react";
 
 interface KeyPoint {
@@ -19,13 +21,15 @@ interface KeyPoint {
 }
 
 interface VideoSummaryProps {
-  videoId: number;
+  videoId: string;
   videoTitle: string;
   originalDuration: string;
   readingTime: string;
   summaryDate: string;
   summaryText: string;
   keyPoints: KeyPoint[];
+  mainIdeas?: string[];
+  mainKeys?: string[];
   wordCount: string;
 }
 
@@ -36,6 +40,8 @@ export const VideoSummary: React.FC<VideoSummaryProps> = ({
   summaryDate,
   summaryText,
   keyPoints,
+  mainIdeas = [],
+  mainKeys = [],
   wordCount,
 }) => {
   const [activeSection, setActiveSection] = useState<"summary" | "key-points">(
@@ -57,8 +63,14 @@ export const VideoSummary: React.FC<VideoSummaryProps> = ({
 
 ${summaryText}
 
+## Ý chính:
+${mainIdeas.map((idea) => `- ${idea}`).join("\n")}
+
 ## Điểm chính:
 ${keyPoints.map((point) => `- [${point.timestamp}] ${point.title}: ${point.content}`).join("\n")}
+
+## Từ khóa:
+${mainKeys.join(", ")}
     `;
 
     navigator.clipboard.writeText(content);
@@ -134,10 +146,54 @@ ${keyPoints.map((point) => `- [${point.timestamp}] ${point.title}: ${point.conte
 
       <div className="p-4">
         {activeSection === "summary" ? (
-          <div className="prose max-w-none">
-            <p className="text-gray-800 leading-relaxed whitespace-pre-line">
-              {summaryText}
-            </p>
+          <div>
+            <div className="prose max-w-none mb-6">
+              <p className="text-gray-800 leading-relaxed whitespace-pre-line">
+                {summaryText}
+              </p>
+            </div>
+
+            {/* Ý chính section */}
+            {mainIdeas.length > 0 && (
+              <div className="mt-6 mb-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center text-indigo-700">
+                  <Lightbulb size={18} className="mr-2" />Ý chính
+                </h3>
+                <div className="space-y-2">
+                  {mainIdeas.map((idea, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start p-3 border border-indigo-100 bg-indigo-50 rounded-lg"
+                    >
+                      <div className="bg-indigo-100 text-indigo-800 w-6 h-6 flex items-center justify-center rounded-full mr-3 flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <p className="text-gray-800">{idea}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Từ khóa section */}
+            {mainKeys.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center text-indigo-700">
+                  <Tag size={18} className="mr-2" />
+                  Từ khóa
+                </h3>
+                <div className="flex flex-wrap gap-2 py-2">
+                  {mainKeys.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="bg-indigo-50 text-indigo-700 rounded-full px-3 py-1 text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
