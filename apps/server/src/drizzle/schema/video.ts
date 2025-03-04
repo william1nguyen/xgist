@@ -23,6 +23,8 @@ export const videoCategory = pgEnum("category", [
 
 export type VideoMetadata = {
   transcripts: string[];
+  mainIdeas: string[];
+  mainKeys: string[];
   summary: string;
 };
 
@@ -40,7 +42,6 @@ export const videoTable = pgTable(
     category: videoCategory("category").default("technology").notNull(),
     duration: integer("duration").default(0).notNull(),
     views: integer("views").default(0).notNull(),
-    likes: integer("likes").default(0).notNull(),
     isSummarized: boolean("is_summarized").default(false).notNull(),
     metadata: jsonb().$type<VideoMetadata>(),
     ...commonFields,
@@ -52,8 +53,8 @@ export const videoTable = pgTable(
   }
 );
 
-export const likeTable = pgTable(
-  "like",
+export const videoLikeTable = pgTable(
+  "video_like",
   {
     id: uuid("id").primaryKey().defaultRandom().notNull(),
     userId: uuid("user_id")
@@ -62,6 +63,7 @@ export const likeTable = pgTable(
     videoId: uuid("video_id")
       .references(() => videoTable.id)
       .notNull(),
+    state: boolean("state"),
   },
   (table) => {
     return {
@@ -91,9 +93,39 @@ export const bookmarkTable = pgTable(
   }
 );
 
-export const videoRelations = relations(videoTable, ({ one }) => ({
+export const videoRelations = relations(videoTable, ({ one, many }) => ({
   creator: one(userTable, {
     fields: [videoTable.userId],
     references: [userTable.id],
+  }),
+  isLiked: one(videoLikeTable, {
+    fields: [videoTable.id],
+    references: [videoLikeTable.videoId],
+  }),
+  isBookmarked: one(bookmarkTable, {
+    fields: [videoTable.id],
+    references: [bookmarkTable.videoId],
+  }),
+}));
+
+export const videoLikeRelations = relations(videoLikeTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [videoLikeTable.userId],
+    references: [userTable.id],
+  }),
+  video: one(videoTable, {
+    fields: [videoLikeTable.videoId],
+    references: [videoTable.id],
+  }),
+}));
+
+export const bookmarkRelations = relations(bookmarkTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [bookmarkTable.userId],
+    references: [userTable.id],
+  }),
+  video: one(videoTable, {
+    fields: [bookmarkTable.videoId],
+    references: [videoTable.id],
   }),
 }));

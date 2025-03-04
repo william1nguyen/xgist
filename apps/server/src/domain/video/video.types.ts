@@ -1,4 +1,4 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import {
   BaseModelSchema,
   createItemResponseSchema,

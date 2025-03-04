@@ -1,7 +1,19 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { GetQueryString } from "~/infra/utils/schema";
-import { getVideoDetail, getVideos } from "./video.services";
-import { GetVideoDetailParams, GetVideosResponse } from "./video.types";
+import {
+  getBookmarkedVideos,
+  getVideoDetail,
+  getVideos,
+  toggleBookmark,
+  toggleLike,
+} from "./video.services";
+import {
+  GetVideoDetailParams,
+  GetVideoDetailResponse,
+  GetVideosResponse,
+  ToggleBookmarkParams,
+  ToggleLikeParams,
+} from "./video.types";
 
 const tags = ["video"];
 
@@ -13,16 +25,13 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
         tags: tags,
         description: "Lấy dữ liệu videos",
         querystring: GetQueryString,
-        response: {
-          200: GetVideosResponse,
-        },
       },
       config: {
         shouldSkipAuth: true,
       },
     },
     async (req) => {
-      const res = await getVideos(req.query);
+      const res = await getVideos(req.query, req.principal.user.id);
       return res;
     }
   );
@@ -40,7 +49,52 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
     async (req) => {
-      const res = await getVideoDetail(req.params);
+      const res = await getVideoDetail(req.params, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.get(
+    "/bookmarks",
+    {
+      schema: {
+        tags: tags,
+        description: "Lấy video đã được đánh dấu",
+        querystring: GetQueryString,
+      },
+    },
+    async (req) => {
+      const res = await getBookmarkedVideos(req.query, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/:videoId/bookmark",
+    {
+      schema: {
+        tags: tags,
+        description: "Đánh dấu một video",
+        params: ToggleBookmarkParams,
+      },
+    },
+    async (req) => {
+      const res = await toggleBookmark(req.params, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/:videoId/like",
+    {
+      schema: {
+        tags: tags,
+        description: "Thích một video",
+        params: ToggleLikeParams,
+      },
+    },
+    async (req) => {
+      const res = await toggleLike(req.params, req.principal.user.id);
       return res;
     }
   );

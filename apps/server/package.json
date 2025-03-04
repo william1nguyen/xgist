@@ -17,6 +17,7 @@
   "scripts": {
     "clean": "rm -rf ./dist",
     "dev": "npm run build && npm start",
+    "db:seed": "tsx src/drizzle/seeds/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
