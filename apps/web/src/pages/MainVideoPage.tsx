@@ -26,7 +26,7 @@ export const MainVideoPage: React.FC = () => {
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const fetchVideos = async (pageNum = 1, pageSize = 8, query?: string) => {
+  const fetchVideos = async (pageNum = 1, pageSize = 20, query?: string) => {
     setLoading(true);
     try {
       const response = await httpClient.get<ApiResponse<VideosResponse>>(
@@ -151,9 +151,8 @@ export const MainVideoPage: React.FC = () => {
   };
 
   const formatDuration = (durationInSeconds: number): string => {
-    const minutes = Math.floor(durationInSeconds / 60);
-    const seconds = durationInSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    const minutes = Math.floor(durationInSeconds / 1000 / 60);
+    return `${minutes}m`;
   };
 
   const formatViews = (viewCount: number): string => {

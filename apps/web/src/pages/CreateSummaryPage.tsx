@@ -1,152 +1,405 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, ChangeEvent, FormEvent } from "react";
 import {
   Clock,
   X,
-  Check,
-  AlertTriangle,
-  Info,
-  Youtube,
   Upload,
-  Link,
   File,
-  FileText,
-  List,
-  Music,
   ChevronDown,
+  Image as ImageIcon,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { TabItem } from "../types";
 import { TabNavigation } from "../components/navigation/TabNavigation";
 import { Layout } from "../components/layout/Layout";
 import { Button } from "../components/ui/Button";
 import { ProgressBar } from "../components/ui/ProgressBar";
+import { httpClient } from "../config/httpClient";
+import { toast } from "react-toastify";
+
+interface AdvancedOptions {
+  keywords: boolean;
+  mainIdeas: boolean;
+  [key: string]: boolean;
+}
+
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface TranscriptEntry {
+  timestamp: {
+    start: number;
+    end: number;
+  };
+  transcript: string;
+}
+
+interface SummaryData {
+  id: string;
+  summary: string;
+  keyPoints: string[];
+  keywords?: string[];
+  transcripts: TranscriptEntry[];
+  originalDuration: string;
+  readingTime: string;
+}
 
 export const CreateSummaryPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("summarize");
-  const [url, setUrl] = useState<string>("");
-  const [summaryType, setSummaryType] = useState<string>("text");
-  const [summaryLength, setSummaryLength] = useState<string>("medium");
   const [showAdvancedOptions, setShowAdvancedOptions] =
     useState<boolean>(false);
-  const [advancedOptions, setAdvancedOptions] = useState({
+  const [advancedOptions, setAdvancedOptions] = useState<AdvancedOptions>({
     keywords: true,
-    chapters: true,
-    sentiment: false,
-    actionItems: false,
+    mainIdeas: true,
   });
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isComplete, setIsComplete] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-  const [uploadMethod, setUploadMethod] = useState<string>("url");
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [uploadComplete, setUploadComplete] = useState<boolean>(false);
-  const [uploadError, setUploadError] = useState<boolean>(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoTitle, setVideoTitle] = useState<string>("");
   const [videoDescription, setVideoDescription] = useState<string>("");
   const [videoCategory, setVideoCategory] = useState<string>("technology");
-  const [videoTags, setVideoTags] = useState<string>("");
-  const [videoVisibility, setVideoVisibility] = useState<string>("public");
   const [previewMode, setPreviewMode] = useState<string>("summary");
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [categories] = useState<Category[]>([]);
+
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const videoPreviewRef = useRef<HTMLVideoElement>(null);
+
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   const tabs: TabItem[] = [
     { id: "summarize", label: "Tóm tắt Video" },
     { id: "upload", label: "Đăng Video" },
   ];
 
-  const handleAdvancedOptionChange = (option: string) => {
+  const handleAdvancedOptionChange = (option: string): void => {
     setAdvancedOptions({
       ...advancedOptions,
-      [option]: !advancedOptions[option as keyof typeof advancedOptions],
+      [option]: !advancedOptions[option],
     });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadedFile(file);
-      simulateUpload();
+      setVideoFile(file);
+
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+      }
+      const previewUrl = URL.createObjectURL(file);
+      setVideoPreviewUrl(previewUrl);
     }
   };
 
-  const simulateUpload = () => {
-    setUploadProgress(0);
-    setUploadComplete(false);
-    setUploadError(false);
+  const handleThumbnailSelect = (e: ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type.match("image.*")) {
+        setThumbnailFile(file);
 
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setUploadComplete(true);
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 200);
+        const reader = new FileReader();
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+          setThumbnailPreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        toast.error("Vui lòng chọn file hình ảnh hợp lệ (JPG, PNG, WebP)");
+      }
+    }
   };
 
-  const simulateProcessing = () => {
+  const togglePlayPause = (): void => {
+    if (videoPreviewRef.current) {
+      if (isPlaying) {
+        videoPreviewRef.current.pause();
+      } else {
+        videoPreviewRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = (): void => {
+    if (videoPreviewRef.current) {
+      videoPreviewRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleSummarizeSubmit = async (e: FormEvent): Promise<void> => {
+    e.preventDefault();
+
+    if (!videoFile) return;
+
     setIsProcessing(true);
     setProgress(0);
-    setIsComplete(false);
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsComplete(true);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 200);
+    try {
+      const formData = new FormData();
+      formData.append("videoFile", videoFile);
+      if (thumbnailFile) {
+        formData.append("thumbnailFile", thumbnailFile);
+      }
+      formData.append("options", JSON.stringify(advancedOptions));
+
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent: any) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setProgress(percentCompleted);
+        },
+      };
+
+      const response = await httpClient.post(
+        "/v1/videos/summarize",
+        formData,
+        config
+      );
+
+      setIsComplete(true);
+      setSummaryData(response.data);
+      setIsProcessing(false);
+    } catch (error) {
+      console.error("Summarize failed:", error);
+      setIsProcessing(false);
+      toast.error("Tóm tắt video thất bại. Vui lòng thử lại.");
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    simulateProcessing();
+  const uploadVideo = async (): Promise<void> => {
+    if (!videoFile) return;
+
+    setIsProcessing(true);
+    setProgress(0);
+
+    try {
+      const formData = new FormData();
+      formData.append("videoFile", videoFile);
+      if (thumbnailFile) {
+        formData.append("thumbnailFile", thumbnailFile);
+      }
+      formData.append("title", videoTitle);
+      formData.append("description", videoDescription);
+      formData.append("category", videoCategory);
+      formData.append("options", JSON.stringify(advancedOptions));
+
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent: any) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setProgress(percentCompleted);
+        },
+      };
+
+      const response = await httpClient.post("/v1/videos", formData, config);
+
+      if (activeTab === "summarize") {
+        setIsComplete(true);
+        setSummaryData(response.data.result);
+      } else {
+        toast.success("Video đã được đăng thành công!");
+        resetForm();
+      }
+
+      setIsProcessing(false);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setIsProcessing(false);
+      toast.error("Tải lên video thất bại. Vui lòng thử lại.");
+    }
   };
 
-  const triggerFileInput = () => {
+  const handlePublishVideo = (): void => {
+    uploadVideo();
+  };
+
+  const triggerFileInput = (): void => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  const resetForm = () => {
-    setUrl("");
+  const triggerThumbnailInput = (): void => {
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.click();
+    }
+  };
+
+  const resetForm = (): void => {
     setIsProcessing(false);
     setIsComplete(false);
     setProgress(0);
-    setUploadedFile(null);
-    setUploadProgress(0);
-    setUploadComplete(false);
-    setUploadError(false);
+    setVideoFile(null);
+    setVideoTitle("");
+    setVideoDescription("");
+    setVideoCategory("technology");
+    setSummaryData(null);
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+      setVideoPreviewUrl(null);
+    }
+    setIsPlaying(false);
+    setIsMuted(false);
   };
 
-  const previewTabs: TabItem[] = [
-    { id: "summary", label: "Tóm tắt" },
-    { id: "key-points", label: "Điểm chính" },
-  ];
+  const generatePreviewTabs = (): TabItem[] => {
+    const tabs: TabItem[] = [
+      { id: "summary", label: "Tóm tắt" },
+      { id: "key-points", label: "Điểm chính" },
+    ];
 
-  if (advancedOptions.keywords) {
-    previewTabs.push({ id: "keywords", label: "Từ khóa" });
-  }
+    if (advancedOptions.keywords && summaryData?.keywords) {
+      tabs.push({ id: "keywords", label: "Từ khóa" });
+    }
 
-  if (advancedOptions.actionItems) {
-    previewTabs.push({ id: "actions", label: "Hành động" });
-  }
+    tabs.push({ id: "transcript", label: "Phiên bản gốc" });
+    return tabs;
+  };
 
-  previewTabs.push({ id: "transcript", label: "Phiên bản gốc" });
+  const previewTabs: TabItem[] = generatePreviewTabs();
 
   const headerContent = (
     <TabNavigation
       tabs={tabs}
       activeTab={activeTab}
-      onTabChange={(tabId) => setActiveTab(tabId)}
+      onTabChange={(tabId: string) => setActiveTab(tabId)}
     />
+  );
+
+  const renderVideoPlayer = () => (
+    <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+      <video
+        ref={videoPreviewRef}
+        className="w-full h-auto max-h-96 object-contain bg-black"
+        src={videoPreviewUrl || undefined}
+        poster={thumbnailPreview || undefined}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        muted={isMuted}
+        controls={false}
+      />
+
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 flex items-center justify-between">
+        <button
+          onClick={togglePlayPause}
+          className="text-white hover:text-blue-300 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+          type="button"
+        >
+          {isPlaying ? <Pause size={22} /> : <Play size={22} />}
+        </button>
+
+        <button
+          onClick={toggleMute}
+          className="text-white hover:text-blue-300 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+          type="button"
+        >
+          {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderFilePreview = () => (
+    <>
+      {videoPreviewUrl && renderVideoPlayer()}
+
+      <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center">
+            <File size={20} className="text-gray-600 mr-2" />
+            <span className="text-sm font-medium text-black">
+              {videoFile!.name}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              setVideoFile(null);
+              if (videoPreviewUrl) {
+                URL.revokeObjectURL(videoPreviewUrl);
+                setVideoPreviewUrl(null);
+              }
+            }}
+            className="text-gray-600 hover:text-red-600 p-1 rounded-full hover:bg-gray-200"
+            type="button"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {isProcessing && (
+          <>
+            <ProgressBar
+              progress={progress}
+              height="sm"
+              color="blue"
+              animate={true}
+            />
+            <div className="flex justify-between text-xs text-gray-700 mt-2">
+              <span className="font-medium">
+                {progress < 50 && "Đang tải lên video..."}
+                {progress >= 50 && progress < 95 && "Đang xử lý video..."}
+                {progress >= 95 && "Hoàn tất"}
+              </span>
+              <span className="font-medium">{progress}%</span>
+            </div>
+          </>
+        )}
+
+        <div className="flex justify-between text-xs text-gray-700 mt-2">
+          <span>Đã chọn video</span>
+          <span className="font-medium">
+            {(videoFile!.size / (1024 * 1024)).toFixed(2)} MB
+          </span>
+        </div>
+      </div>
+    </>
+  );
+
+  const renderLoadingIndicator = () => (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <h3 className="text-lg font-semibold text-black mb-4">
+          Đang xử lý video
+        </h3>
+        <ProgressBar
+          progress={progress}
+          height="md"
+          color="blue"
+          animate={true}
+        />
+        <div className="mt-3 text-sm text-gray-700">
+          <p className="mb-1 font-medium">
+            {progress < 50 && "Đang tải lên video..."}
+            {progress >= 50 && progress < 95 && "Đang xử lý video..."}
+            {progress >= 95 && "Đang hoàn tất..."}
+          </p>
+          <p>Vui lòng đợi trong giây lát.</p>
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -155,242 +408,123 @@ export const CreateSummaryPage: React.FC = () => {
       title={activeTab === "summarize" ? "Tạo tóm tắt video" : "Đăng video mới"}
       headerContent={headerContent}
     >
+      {isProcessing && renderLoadingIndicator()}
+
       {activeTab === "summarize" ? (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto px-4 py-6">
           {!isComplete ? (
-            <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+            <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
               <div className="p-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-6">
+                <h2 className="text-2xl font-bold text-black mb-6 border-b pb-3">
                   Tóm tắt video thông minh bằng AI
                 </h2>
 
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-6">
-                    <label
-                      htmlFor="url"
-                      className="block text-sm font-medium text-slate-700 mb-1"
-                    >
-                      URL Video
-                    </label>
-                    <input
-                      type="text"
-                      id="url"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      placeholder="Dán URL video từ YouTube, Vimeo, hoặc các nền tảng khác"
-                      className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      disabled={isProcessing}
-                      required
-                    />
+                <form onSubmit={handleSummarizeSubmit} className="space-y-6">
+                  <div>
+                    {!videoFile ? (
+                      <div
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors bg-gray-50"
+                        onClick={triggerFileInput}
+                      >
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          onChange={handleFileSelect}
+                          accept="video/*"
+                        />
+                        <Upload
+                          size={48}
+                          className="mx-auto text-blue-500 mb-4"
+                        />
+                        <p className="text-base text-black font-medium mb-2">
+                          Kéo thả video vào đây hoặc nhấp để chọn
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          Hỗ trợ MP4, MOV, AVI - Tối đa 2GB
+                        </p>
+                      </div>
+                    ) : (
+                      renderFilePreview()
+                    )}
                   </div>
 
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Loại tóm tắt
-                    </label>
-                    <div className="flex space-x-4">
-                      <Button
-                        variant={summaryType === "text" ? "primary" : "outline"}
-                        onClick={() => setSummaryType("text")}
-                        disabled={isProcessing}
-                        leftIcon={<FileText size={18} />}
-                        fullWidth
-                      >
-                        Văn bản
-                      </Button>
-                      <Button
-                        variant={
-                          summaryType === "bullet" ? "primary" : "outline"
-                        }
-                        onClick={() => setSummaryType("bullet")}
-                        disabled={isProcessing}
-                        leftIcon={<List size={18} />}
-                        fullWidth
-                      >
-                        Điểm chính
-                      </Button>
-                      <Button
-                        variant={
-                          summaryType === "audio" ? "primary" : "outline"
-                        }
-                        onClick={() => setSummaryType("audio")}
-                        disabled={isProcessing}
-                        leftIcon={<Music size={18} />}
-                        fullWidth
-                      >
-                        Âm thanh
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-slate-700">
-                        Độ dài tóm tắt
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-base font-semibold text-black">
+                        Tùy chọn nâng cao
                       </label>
                       <button
                         type="button"
                         onClick={() =>
                           setShowAdvancedOptions(!showAdvancedOptions)
                         }
-                        className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center font-medium"
                         disabled={isProcessing}
                       >
-                        Tùy chọn nâng cao{" "}
+                        {showAdvancedOptions
+                          ? "Ẩn tùy chọn"
+                          : "Hiển thị tùy chọn"}{" "}
                         <ChevronDown size={16} className="ml-1" />
                       </button>
                     </div>
 
-                    <div className="flex space-x-4">
-                      <Button
-                        variant={
-                          summaryLength === "short" ? "primary" : "outline"
-                        }
-                        onClick={() => setSummaryLength("short")}
-                        disabled={isProcessing}
-                        fullWidth
-                      >
-                        Ngắn
-                      </Button>
-                      <Button
-                        variant={
-                          summaryLength === "medium" ? "primary" : "outline"
-                        }
-                        onClick={() => setSummaryLength("medium")}
-                        disabled={isProcessing}
-                        fullWidth
-                      >
-                        Vừa
-                      </Button>
-                      <Button
-                        variant={
-                          summaryLength === "long" ? "primary" : "outline"
-                        }
-                        onClick={() => setSummaryLength("long")}
-                        disabled={isProcessing}
-                        fullWidth
-                      >
-                        Dài
-                      </Button>
-                    </div>
+                    {showAdvancedOptions && (
+                      <div className="p-5 bg-gray-50 rounded-lg border border-gray-200 mt-2 shadow-inner">
+                        <div className="space-y-5">
+                          <div>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={advancedOptions.keywords}
+                                onChange={() =>
+                                  handleAdvancedOptionChange("keywords")
+                                }
+                                className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                disabled={isProcessing}
+                              />
+                              <span className="ml-3 text-black">
+                                Trích xuất từ khóa
+                              </span>
+                            </label>
+                          </div>
+
+                          <div>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={advancedOptions.mainIdeas}
+                                onChange={() =>
+                                  handleAdvancedOptionChange("mainIdeas")
+                                }
+                                className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                disabled={isProcessing}
+                              />
+                              <span className="ml-3 text-black">
+                                Trích xuất ý chính
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {showAdvancedOptions && (
-                    <div className="mb-6 p-4 bg-slate-50 rounded-md border border-slate-200">
-                      <h3 className="text-sm font-medium text-slate-700 mb-3">
-                        Tùy chọn nâng cao
-                      </h3>
-
-                      <div className="space-y-4">
-                        <div>
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={advancedOptions.keywords}
-                              onChange={() =>
-                                handleAdvancedOptionChange("keywords")
-                              }
-                              className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                              disabled={isProcessing}
-                            />
-                            <span className="ml-2 text-sm text-slate-700">
-                              Trích xuất từ khóa
-                            </span>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={advancedOptions.chapters}
-                              onChange={() =>
-                                handleAdvancedOptionChange("chapters")
-                              }
-                              className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                              disabled={isProcessing}
-                            />
-                            <span className="ml-2 text-sm text-slate-700">
-                              Chia chương mục
-                            </span>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={advancedOptions.sentiment}
-                              onChange={() =>
-                                handleAdvancedOptionChange("sentiment")
-                              }
-                              className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                              disabled={isProcessing}
-                            />
-                            <span className="ml-2 text-sm text-slate-700">
-                              Phân tích cảm xúc
-                            </span>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={advancedOptions.actionItems}
-                              onChange={() =>
-                                handleAdvancedOptionChange("actionItems")
-                              }
-                              className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                              disabled={isProcessing}
-                            />
-                            <span className="ml-2 text-sm text-slate-700">
-                              Tạo mục hành động
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {isProcessing && (
-                    <div className="mb-6">
-                      <h3 className="text-sm font-medium text-slate-700 mb-2 flex items-center">
-                        {progress < 100 ? (
-                          <>Đang xử lý video của bạn</>
-                        ) : (
-                          <>Xử lý hoàn tất</>
-                        )}
-                      </h3>
-                      <ProgressBar
-                        progress={progress}
-                        height="md"
-                        color="indigo"
-                        animate={true}
-                      />
-                      <div className="flex justify-between text-xs text-slate-500 mt-1">
-                        <span>
-                          {progress < 30 && "Đang tải video..."}
-                          {progress >= 30 &&
-                            progress < 60 &&
-                            "Đang phân tích nội dung..."}
-                          {progress >= 60 &&
-                            progress < 90 &&
-                            "Đang tạo tóm tắt..."}
-                          {progress >= 90 && "Đang hoàn thiện..."}
-                        </span>
-                        <span>{progress}%</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex justify-end">
+                  <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
                     {isProcessing ? (
-                      <Button variant="outline" onClick={resetForm}>
+                      <Button
+                        variant="outline"
+                        onClick={resetForm}
+                        type="button"
+                      >
                         Hủy
                       </Button>
                     ) : (
-                      <Button variant="primary" type="submit" disabled={!url}>
+                      <Button
+                        variant="primary"
+                        type="submit"
+                        disabled={!videoFile}
+                      >
                         Tạo tóm tắt
                       </Button>
                     )}
@@ -399,345 +533,154 @@ export const CreateSummaryPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-              <div className="p-6 border-b border-slate-200">
+            <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
+              <div className="p-6 border-b border-gray-200 bg-gray-50">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">
+                    <h2 className="text-2xl font-bold text-black">
                       Kết quả tóm tắt
                     </h2>
-                    <p className="text-sm text-slate-500 mt-1">
-                      Video gốc:{" "}
-                      {url || "https://www.youtube.com/watch?v=example"}
+                    <p className="text-sm text-gray-700 mt-1">
+                      {videoFile?.name || "Video của bạn"}
                     </p>
                   </div>
                   <div>
-                    <Button variant="secondary" size="sm" onClick={resetForm}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={resetForm}
+                      type="button"
+                    >
                       Tạo tóm tắt mới
                     </Button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex border-b border-slate-200">
+              <div className="flex border-b border-gray-200 bg-gray-50">
                 <TabNavigation
                   tabs={previewTabs}
                   activeTab={previewMode}
-                  onTabChange={(tabId) => setPreviewMode(tabId)}
+                  onTabChange={(tabId: string) => setPreviewMode(tabId)}
                 />
               </div>
 
               <div className="p-6">
-                {previewMode === "summary" && (
+                {previewMode === "summary" && summaryData?.summary && (
                   <div>
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Clock size={16} className="text-slate-400" />
-                      <span className="text-sm text-slate-500">
-                        Video gốc: 15:32 | Tóm tắt: 2 phút đọc
+                    <div className="flex items-center space-x-2 mb-5 pb-3 border-b border-gray-100">
+                      <Clock size={18} className="text-gray-600" />
+                      <span className="text-sm text-gray-700 font-medium">
+                        Video gốc: {summaryData.originalDuration || "N/A"} | Tóm
+                        tắt: {summaryData.readingTime || "N/A"}
                       </span>
                     </div>
 
-                    <div className="prose max-w-none">
-                      <p>
-                        Trong video này, chuyên gia công nghệ Nguyễn Văn A trình
-                        bày về cách trí tuệ nhân tạo đang thay đổi ngành công
-                        nghiệp video. Ông tập trung vào ba ứng dụng chính của AI
-                        trong lĩnh vực video: tự động tạo phụ đề, tóm tắt nội
-                        dung, và cải thiện chất lượng video.
-                      </p>
-
-                      <p>
-                        Đầu tiên, công nghệ nhận dạng giọng nói đã tiến bộ đáng
-                        kể, cho phép tạo phụ đề tự động chính xác cho video với
-                        nhiều ngôn ngữ khác nhau. Điều này không chỉ tiết kiệm
-                        thời gian mà còn giúp video tiếp cận được nhiều đối
-                        tượng hơn, bao gồm cả người khiếm thính và người học
-                        ngôn ngữ.
-                      </p>
-
-                      <p>
-                        Thứ hai, các thuật toán AI có thể phân tích nội dung
-                        video và tạo ra các bản tóm tắt ngắn gọn, giúp người xem
-                        nhanh chóng nắm bắt thông tin quan trọng mà không cần
-                        xem toàn bộ video. Điều này đặc biệt hữu ích trong thời
-                        đại thông tin quá tải hiện nay.
-                      </p>
-
-                      <p>
-                        Cuối cùng, AI cũng đang được sử dụng để cải thiện chất
-                        lượng video, từ việc tăng độ phân giải của video cũ đến
-                        việc ổn định hình ảnh và cải thiện ánh sáng trong các
-                        điều kiện quay khó khăn.
-                      </p>
-
-                      <p>
-                        Ông Nguyễn kết luận rằng những công nghệ này sẽ tiếp tục
-                        phát triển và trở nên phổ biến hơn trong những năm tới,
-                        và các công ty nên bắt đầu tích hợp các giải pháp AI vào
-                        chiến lược video của họ để duy trì tính cạnh tranh.
-                      </p>
+                    <div className="prose max-w-none text-black">
+                      {summaryData.summary
+                        .split("\n")
+                        .map((paragraph: string, index: number) => (
+                          <p key={index} className="mb-4 leading-relaxed">
+                            {paragraph}
+                          </p>
+                        ))}
                     </div>
 
-                    <div className="mt-6 flex space-x-3">
-                      <Button variant="outline" leftIcon={<File size={16} />}>
+                    <div className="mt-8 flex space-x-4 pt-4 border-t border-gray-200">
+                      <Button
+                        variant="outline"
+                        leftIcon={<File size={16} />}
+                        onClick={() =>
+                          window.open(
+                            `/v1/videos/summary/${summaryData.id}/download/pdf`,
+                            "_blank"
+                          )
+                        }
+                        type="button"
+                      >
                         Tải xuống PDF
                       </Button>
-                      <Button variant="primary">Chia sẻ</Button>
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            window.location.origin +
+                              `/summary/${summaryData.id}`
+                          );
+                          toast.success(
+                            "Đã sao chép đường dẫn tóm tắt vào clipboard"
+                          );
+                        }}
+                        type="button"
+                      >
+                        Chia sẻ
+                      </Button>
                     </div>
                   </div>
                 )}
 
-                {previewMode === "key-points" && (
+                {previewMode === "key-points" && summaryData?.keyPoints && (
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">
+                    <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-100">
                       Điểm chính
                     </h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 font-medium text-xs">
-                          1
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          AI đang thay đổi ngành công nghiệp video qua 3 ứng
-                          dụng chính
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 font-medium text-xs">
-                          2
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Công nghệ nhận dạng giọng nói cho phép tạo phụ đề tự
-                          động chính xác
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 font-medium text-xs">
-                          3
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Thuật toán AI có thể tạo bản tóm tắt ngắn gọn từ nội
-                          dung video dài
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 font-medium text-xs">
-                          4
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          AI giúp cải thiện chất lượng video: tăng độ phân giải,
-                          ổn định hình ảnh, cải thiện ánh sáng
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 font-medium text-xs">
-                          5
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Các công ty nên tích hợp giải pháp AI vào chiến lược
-                          video để duy trì tính cạnh tranh
-                        </span>
-                      </li>
+                    <ul className="space-y-4">
+                      {summaryData.keyPoints.map(
+                        (point: string, index: number) => (
+                          <li key={index} className="flex items-start">
+                            <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold text-sm shadow-sm">
+                              {index + 1}
+                            </div>
+                            <span className="ml-4 text-black">{point}</span>
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                 )}
 
-                {previewMode === "keywords" && (
+                {previewMode === "keywords" && summaryData?.keywords && (
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">
+                    <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-100">
                       Từ khóa chính
                     </h3>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Trí tuệ nhân tạo
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Nhận dạng giọng nói
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Phụ đề tự động
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Tóm tắt nội dung
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Cải thiện chất lượng video
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Nguyễn Văn A
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Chiến lược video
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Tiếp cận người dùng
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Thông tin quá tải
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Tăng độ phân giải
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Ổn định hình ảnh
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
-                        Cải thiện ánh sáng
-                      </span>
+                    <div className="flex flex-wrap gap-3">
+                      {summaryData.keywords.map(
+                        (keyword: string, index: number) => (
+                          <span
+                            key={index}
+                            className="px-4 py-2 rounded-full bg-gray-100 text-black text-sm font-medium hover:bg-blue-100 transition-colors shadow-sm"
+                          >
+                            {keyword}
+                          </span>
+                        )
+                      )}
                     </div>
                   </div>
                 )}
 
-                {previewMode === "actions" && (
+                {previewMode === "transcript" && summaryData?.transcripts && (
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">
-                      Hành động đề xuất
-                    </h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-800 font-medium text-xs">
-                          <Check size={14} />
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Tìm hiểu thêm về các giải pháp AI cho video hiện có
-                          trên thị trường
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-800 font-medium text-xs">
-                          <Check size={14} />
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Xem xét tích hợp công nghệ nhận dạng giọng nói để tạo
-                          phụ đề tự động
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-800 font-medium text-xs">
-                          <Check size={14} />
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Đánh giá nhu cầu tóm tắt nội dung cho các video dài
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-800 font-medium text-xs">
-                          <Check size={14} />
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Xem xét cách AI có thể cải thiện chất lượng video hiện
-                          có
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-800 font-medium text-xs">
-                          <Check size={14} />
-                        </div>
-                        <span className="ml-3 text-slate-700">
-                          Phát triển chiến lược tích hợp AI vào quy trình sản
-                          xuất video
-                        </span>
-                      </li>
-                    </ul>
-                  </div>
-                )}
-
-                {previewMode === "transcript" && (
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-medium text-slate-700">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+                      <h3 className="text-lg font-semibold text-black">
                         Phiên bản gốc
                       </h3>
-                      <div className="flex items-center space-x-2">
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                          />
-                          <span className="ml-2 text-sm text-slate-700">
-                            Hiển thị dấu thời gian
-                          </span>
-                        </label>
-                      </div>
+                      <div className="flex items-center space-x-2"></div>
                     </div>
 
-                    <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                      <div className="flex">
-                        <span className="text-xs text-slate-400 w-16 flex-shrink-0">
-                          00:00
-                        </span>
-                        <p className="text-sm text-slate-700">
-                          Xin chào các bạn, tôi là Nguyễn Văn A, và hôm nay tôi
-                          sẽ nói về cách mà trí tuệ nhân tạo đang thay đổi ngành
-                          công nghiệp video.
-                        </p>
-                      </div>
-
-                      <div className="flex">
-                        <span className="text-xs text-slate-400 w-16 flex-shrink-0">
-                          00:18
-                        </span>
-                        <p className="text-sm text-slate-700">
-                          Chúng ta đều biết rằng video đã trở thành một phần
-                          không thể thiếu trong cuộc sống hàng ngày của chúng
-                          ta, từ giải trí đến giáo dục và kinh doanh.
-                        </p>
-                      </div>
-
-                      <div className="flex">
-                        <span className="text-xs text-slate-400 w-16 flex-shrink-0">
-                          00:35
-                        </span>
-                        <p className="text-sm text-slate-700">
-                          Nhưng với lượng nội dung video khổng lồ được tạo ra
-                          mỗi ngày, chúng ta đang phải đối mặt với thách thức về
-                          thời gian và hiệu quả.
-                        </p>
-                      </div>
-
-                      <div className="flex">
-                        <span className="text-xs text-slate-400 w-16 flex-shrink-0">
-                          00:52
-                        </span>
-                        <p className="text-sm text-slate-700">
-                          May mắn thay, AI đang cung cấp giải pháp cho những
-                          thách thức này thông qua ba ứng dụng chính mà tôi sẽ
-                          thảo luận hôm nay.
-                        </p>
-                      </div>
-
-                      <div className="flex">
-                        <span className="text-xs text-slate-400 w-16 flex-shrink-0">
-                          01:10
-                        </span>
-                        <p className="text-sm text-slate-700">
-                          Ứng dụng đầu tiên là khả năng tạo phụ đề tự động. Công
-                          nghệ nhận dạng giọng nói đã tiến bộ đáng kể trong
-                          những năm gần đây.
-                        </p>
-                      </div>
-
-                      <div className="flex">
-                        <span className="text-xs text-slate-400 w-16 flex-shrink-0">
-                          01:28
-                        </span>
-                        <p className="text-sm text-slate-700">
-                          Các thuật toán hiện đại có thể chuyển đổi giọng nói
-                          thành văn bản với độ chính xác đáng kinh ngạc, ngay cả
-                          trong môi trường ồn ào hoặc với các giọng khó.
-                        </p>
-                      </div>
-
-                      <div className="flex">
-                        <span className="text-xs text-slate-400 w-16 flex-shrink-0">
-                          01:45
-                        </span>
-                        <p className="text-sm text-slate-700">
-                          Điều này cho phép tự động tạo phụ đề cho video, tiết
-                          kiệm rất nhiều thời gian và công sức so với phương
-                          pháp thủ công truyền thống.
-                        </p>
-                      </div>
+                    <div className="space-y-4 max-h-96 overflow-y-auto pr-3 pb-2 custom-scrollbar">
+                      {summaryData.transcripts.map(
+                        (entry: TranscriptEntry, index: number) => (
+                          <div key={index} className="flex">
+                            <span className="text-sm text-gray-500 w-16 flex-shrink-0 font-mono">
+                              {entry.timestamp.start.toFixed(2)}
+                            </span>
+                            <p className="text-base text-black">
+                              {entry.transcript}
+                            </p>
+                          </div>
+                        )
+                      )}
                     </div>
                   </div>
                 )}
@@ -746,278 +689,257 @@ export const CreateSummaryPage: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-slate-900 mb-6">
+              <h2 className="text-2xl font-bold text-black mb-6 border-b pb-3">
                 Đăng video mới
               </h2>
 
-              <div className="mb-6">
-                <div className="flex space-x-4 mb-4">
-                  <Button
-                    variant={uploadMethod === "url" ? "primary" : "outline"}
-                    onClick={() => setUploadMethod("url")}
-                    leftIcon={<Link size={18} />}
-                    fullWidth
-                  >
-                    URL Video
-                  </Button>
-                  <Button
-                    variant={uploadMethod === "file" ? "primary" : "outline"}
-                    onClick={() => setUploadMethod("file")}
-                    leftIcon={<Upload size={18} />}
-                    fullWidth
-                  >
-                    Tải lên tệp
-                  </Button>
-                  <Button
-                    variant={uploadMethod === "youtube" ? "primary" : "outline"}
-                    onClick={() => setUploadMethod("youtube")}
-                    leftIcon={<Youtube size={18} />}
-                    fullWidth
-                  >
-                    YouTube
-                  </Button>
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  {!videoFile ? (
+                    <div
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors bg-gray-50"
+                      onClick={triggerFileInput}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={handleFileSelect}
+                        accept="video/*"
+                      />
+                      <Upload
+                        size={48}
+                        className="mx-auto text-blue-500 mb-4"
+                      />
+                      <p className="text-base text-black font-medium mb-2">
+                        Kéo thả video vào đây hoặc nhấp để chọn
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        Hỗ trợ MP4, MOV, AVI - Tối đa 2GB
+                      </p>
+                    </div>
+                  ) : (
+                    renderFilePreview()
+                  )}
                 </div>
 
-                {uploadMethod === "url" && (
-                  <div>
-                    <label
-                      htmlFor="videoUrl"
-                      className="block text-sm font-medium text-slate-700 mb-1"
-                    >
-                      Nhập URL video từ bất kỳ nguồn nào
-                    </label>
-                    <input
-                      type="text"
-                      id="videoUrl"
-                      placeholder="https://example.com/video.mp4"
-                      className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                )}
+                <div className="mt-2">
+                  <label className="block text-base font-semibold text-black mb-3">
+                    Ảnh thumbnail
+                  </label>
 
-                {uploadMethod === "file" && (
-                  <div>
-                    {!uploadedFile ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
                       <div
-                        className="border-2 border-dashed border-slate-300 rounded-md p-6 text-center cursor-pointer hover:border-indigo-500 transition-colors"
-                        onClick={triggerFileInput}
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors h-48 flex flex-col items-center justify-center bg-gray-50"
+                        onClick={triggerThumbnailInput}
                       >
                         <input
                           type="file"
-                          ref={fileInputRef}
+                          ref={thumbnailInputRef}
                           className="hidden"
-                          onChange={handleFileUpload}
-                          accept="video/*"
+                          onChange={handleThumbnailSelect}
+                          accept="image/*"
                         />
-                        <Upload
-                          size={32}
-                          className="mx-auto text-slate-400 mb-2"
-                        />
-                        <p className="text-sm text-slate-700 mb-1">
-                          Kéo thả video vào đây hoặc nhấp để chọn
+                        <ImageIcon size={36} className="text-blue-500 mb-3" />
+                        <p className="text-sm text-black font-medium mb-1">
+                          Kéo thả ảnh thumbnail hoặc nhấp để chọn
                         </p>
-                        <p className="text-xs text-slate-500">
-                          Hỗ trợ MP4, MOV, AVI - Tối đa 2GB
+                        <p className="text-xs text-gray-700">
+                          Khuyến nghị: JPG, PNG - Tỷ lệ 16:9
                         </p>
                       </div>
-                    ) : (
-                      <div className="border border-slate-300 rounded-md p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center">
-                            <File size={20} className="text-slate-400 mr-2" />
-                            <span className="text-sm font-medium">
-                              {uploadedFile.name}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => {
-                              setUploadedFile(null);
-                              setUploadProgress(0);
-                              setUploadComplete(false);
-                            }}
-                            className="text-slate-400 hover:text-slate-600"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
+                    </div>
 
-                        <ProgressBar
-                          progress={uploadProgress}
-                          height="sm"
-                          color={uploadError ? "red" : "indigo"}
-                          animate={true}
+                    {thumbnailPreview && (
+                      <div className="relative h-48 rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+                        <img
+                          src={thumbnailPreview}
+                          alt="Thumbnail preview"
+                          className="w-full h-full object-cover"
                         />
-
-                        <div className="flex justify-between text-xs text-slate-500 mt-1">
-                          <span>
-                            {uploadError ? (
-                              <span className="text-red-500 flex items-center">
-                                <AlertTriangle size={12} className="mr-1" /> Lỗi
-                                tải lên
-                              </span>
-                            ) : uploadComplete ? (
-                              <span className="text-green-500 flex items-center">
-                                <Check size={12} className="mr-1" /> Tải lên
-                                hoàn tất
-                              </span>
-                            ) : (
-                              `Đang tải lên... ${uploadProgress}%`
-                            )}
-                          </span>
-                          <span>
-                            {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB
-                          </span>
-                        </div>
+                        <button
+                          onClick={() => {
+                            setThumbnailFile(null);
+                            setThumbnailPreview(null);
+                          }}
+                          className="absolute top-2 right-2 bg-gray-800 bg-opacity-70 text-white p-1.5 rounded-full hover:bg-opacity-90"
+                          type="button"
+                        >
+                          <X size={16} />
+                        </button>
                       </div>
                     )}
                   </div>
-                )}
 
-                {uploadMethod === "youtube" && (
+                  {!thumbnailPreview && (
+                    <p className="text-xs text-gray-700 mt-2">
+                      Nếu không tải lên thumbnail, hệ thống sẽ tự động tạo
+                      thumbnail từ video của bạn
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-5 mt-4">
                   <div>
                     <label
-                      htmlFor="youtubeUrl"
-                      className="block text-sm font-medium text-slate-700 mb-1"
+                      htmlFor="videoTitle"
+                      className="block text-base font-semibold text-black mb-2"
                     >
-                      Nhập URL video YouTube
+                      Tiêu đề video <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      id="youtubeUrl"
-                      placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      id="videoTitle"
+                      value={videoTitle}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        setVideoTitle(e.target.value)
+                      }
+                      placeholder="Nhập tiêu đề video"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                      required
+                      disabled={isProcessing}
                     />
-                    <p className="mt-1 text-xs text-slate-500 flex items-center">
-                      <Info size={12} className="mr-1" /> Chỉ có thể nhúng các
-                      video YouTube công khai hoặc không liệt kê
-                    </p>
                   </div>
-                )}
-              </div>
 
-              <div className="mb-6">
-                <label
-                  htmlFor="videoTitle"
-                  className="block text-sm font-medium text-slate-700 mb-1"
-                >
-                  Tiêu đề video <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="videoTitle"
-                  value={videoTitle}
-                  onChange={(e) => setVideoTitle(e.target.value)}
-                  placeholder="Nhập tiêu đề video"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-              </div>
+                  <div>
+                    <label
+                      htmlFor="videoDescription"
+                      className="block text-base font-semibold text-black mb-2"
+                    >
+                      Mô tả
+                    </label>
+                    <textarea
+                      id="videoDescription"
+                      value={videoDescription}
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                        setVideoDescription(e.target.value)
+                      }
+                      placeholder="Mô tả nội dung video của bạn"
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                      disabled={isProcessing}
+                    ></textarea>
+                  </div>
 
-              <div className="mb-6">
-                <label
-                  htmlFor="videoDescription"
-                  className="block text-sm font-medium text-slate-700 mb-1"
-                >
-                  Mô tả
-                </label>
-                <textarea
-                  id="videoDescription"
-                  value={videoDescription}
-                  onChange={(e) => setVideoDescription(e.target.value)}
-                  placeholder="Mô tả nội dung video của bạn"
-                  rows={4}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                ></textarea>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label
-                    htmlFor="videoCategory"
-                    className="block text-sm font-medium text-slate-700 mb-1"
-                  >
-                    Danh mục
-                  </label>
-                  <select
-                    id="videoCategory"
-                    value={videoCategory}
-                    onChange={(e) => setVideoCategory(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="technology">Công nghệ</option>
-                    <option value="education">Giáo dục</option>
-                    <option value="productivity">Năng suất</option>
-                    <option value="finance">Tài chính</option>
-                    <option value="travel">Du lịch</option>
-                    <option value="health">Sức khỏe</option>
-                    <option value="other">Khác</option>
-                  </select>
+                  <div>
+                    <label
+                      htmlFor="videoCategory"
+                      className="block text-base font-semibold text-black mb-2"
+                    >
+                      Danh mục
+                    </label>
+                    <select
+                      id="videoCategory"
+                      value={videoCategory}
+                      onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                        setVideoCategory(e.target.value)
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                      disabled={isProcessing}
+                    >
+                      {categories.length > 0 ? (
+                        categories.map((category: Category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="technology">Công nghệ</option>
+                          <option value="education">Giáo dục</option>
+                          <option value="productivity">Năng suất</option>
+                          <option value="finance">Tài chính</option>
+                          <option value="travel">Du lịch</option>
+                          <option value="health">Sức khỏe</option>
+                          <option value="other">Khác</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="videoVisibility"
-                    className="block text-sm font-medium text-slate-700 mb-1"
-                  >
-                    Quyền riêng tư
-                  </label>
-                  <select
-                    id="videoVisibility"
-                    value={videoVisibility}
-                    onChange={(e) => setVideoVisibility(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="public">Công khai</option>
-                    <option value="unlisted">Không công khai</option>
-                    <option value="private">Riêng tư</option>
-                  </select>
+                <div className="mt-4 p-5 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base font-semibold text-black">
+                      Tùy chọn tóm tắt
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowAdvancedOptions(!showAdvancedOptions)
+                      }
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center font-medium"
+                      disabled={isProcessing}
+                    >
+                      {showAdvancedOptions
+                        ? "Ẩn tùy chọn"
+                        : "Hiển thị tùy chọn"}{" "}
+                      <ChevronDown size={16} className="ml-1" />
+                    </button>
+                  </div>
+
+                  {showAdvancedOptions && (
+                    <div className="space-y-5 mb-3">
+                      <div>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={advancedOptions.keywords}
+                            onChange={() =>
+                              handleAdvancedOptionChange("keywords")
+                            }
+                            className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            disabled={isProcessing}
+                          />
+                          <span className="ml-3 text-black">
+                            Trích xuất từ khóa
+                          </span>
+                        </label>
+                      </div>
+
+                      <div>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={advancedOptions.mainIdeas}
+                            onChange={() =>
+                              handleAdvancedOptionChange("mainIdeas")
+                            }
+                            className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            disabled={isProcessing}
+                          />
+                          <span className="ml-3 text-black">
+                            Trích xuất ý chính
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-sm text-gray-700 mt-2">
+                    Video của bạn sẽ được tự động tóm tắt bằng AI khi đăng lên
+                  </p>
                 </div>
-              </div>
 
-              <div className="mb-6">
-                <label
-                  htmlFor="videoTags"
-                  className="block text-sm font-medium text-slate-700 mb-1"
-                >
-                  Thẻ (phân cách bằng dấu phẩy)
-                </label>
-                <input
-                  type="text"
-                  id="videoTags"
-                  value={videoTags}
-                  onChange={(e) => setVideoTags(e.target.value)}
-                  placeholder="video, tutorial, ai, technology"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2 text-sm text-slate-700">
-                    Tự động tạo tóm tắt cho video này
-                  </span>
-                </label>
-                <p className="mt-1 text-xs text-slate-500 ml-6">
-                  AI sẽ tự động tạo tóm tắt và trích xuất điểm chính từ video
-                  của bạn
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Button variant="secondary" size="sm">
-                  Lưu bản nháp
-                </Button>
-
-                <div className="flex space-x-3">
-                  <Button variant="outline">Xem trước</Button>
-                  <Button variant="primary">Đăng video</Button>
+                <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+                  {isProcessing ? (
+                    <Button variant="outline" onClick={resetForm} type="button">
+                      Hủy
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      onClick={handlePublishVideo}
+                      disabled={!videoFile || !videoTitle}
+                      type="button"
+                    >
+                      Đăng video
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

@@ -4,12 +4,12 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "dev:ai": "turbo dev --filter @edu/ai",
-    "dev:web": "turbo dev --filter @edu/web",
-    "dev:server": "turbo dev --filter @edu/server",
-    "db:generate": "turbo db:generate --filter @edu/server",
-    "db:migrate": "turbo db:migrate --filter @edu/server",
-    "db:studio": "turbo db:studio --filter @edu/server",
+    "dev:ai": "turbo dev --filter @xgist/ai",
+    "dev:web": "turbo dev --filter @xgist/web",
+    "dev:server": "turbo dev --filter @xgist/server",
+    "db:generate": "turbo db:generate --filter @xgist/server",
+    "db:migrate": "turbo db:migrate --filter @xgist/server",
+    "db:studio": "turbo db:studio --filter @xgist/server",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

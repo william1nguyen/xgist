@@ -33,7 +33,7 @@ export const TrendingPage: React.FC = () => {
     setLoading(true);
     try {
       const params: Record<string, any> = {
-        size: 12,
+        size: 20,
         page: 1,
       };
 

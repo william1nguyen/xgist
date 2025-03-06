@@ -302,7 +302,7 @@ export const LandingPage = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-slate-800 rounded-xl p-6 border border-transparent hover:border-indigo-500 transition-colors">
               <div className="text-xl font-bold mb-2">Cá nhân</div>
-              <div className="text-4xl font-bold mb-1">199k₫</div>
+              <div className="text-4xl font-bold mb-1">199.000₫</div>
               <div className="text-gray-400 mb-6">mỗi tháng</div>
 
               <ul className="space-y-3 mb-8">
@@ -337,7 +337,7 @@ export const LandingPage = () => {
               </ul>
 
               <button className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors font-medium">
-                Chọn gói này
+                Đăng ký trước
               </button>
             </div>
 
@@ -346,7 +346,7 @@ export const LandingPage = () => {
                 Phổ biến nhất
               </div>
               <div className="text-xl font-bold mb-2">Chuyên nghiệp</div>
-              <div className="text-4xl font-bold mb-1">499k₫</div>
+              <div className="text-4xl font-bold mb-1">499.000₫</div>
               <div className="text-gray-400 mb-6">mỗi tháng</div>
 
               <ul className="space-y-3 mb-8">
@@ -388,7 +388,7 @@ export const LandingPage = () => {
               </ul>
 
               <button className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors font-medium">
-                Chọn gói này
+                Đăng ký trước
               </button>
             </div>
 
@@ -508,7 +508,10 @@ export const LandingPage = () => {
             Tiết kiệm thời gian và tăng hiệu suất với công nghệ AI tóm tắt video
             hàng đầu
           </p>
-          <button className="bg-white text-indigo-800 hover:bg-gray-100 transition-colors px-8 py-3 rounded-full font-bold">
+          <button
+            className="bg-white text-indigo-800 hover:bg-gray-100 transition-colors px-8 py-3 rounded-full font-bold"
+            onClick={() => navigate("/summarize")}
+          >
             Đăng ký dùng thử miễn phí
           </button>
         </div>
