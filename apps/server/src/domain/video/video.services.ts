@@ -184,7 +184,7 @@ export const postVideo = async (
       .returning()
   )[0];
 
-  const videoBuffer = await videoFile.toBuffer();
+  const videoBuffer = videoFile._buf;
   const encodedData = Buffer.from(videoBuffer).toString("base64");
 
   await summaryQueue.add("summary", {
@@ -409,10 +409,13 @@ export const extractKeyWords = async (
 
 export const summarizeBuffer = async (buffer: Buffer) => {
   const transcripts = await transcribe(buffer);
-  const summary = await summarize(transcripts);
-  const readingTime = await estimateReadTime(transcripts);
-  const keyPoints = await extractMainIdeas(transcripts);
-  const keywords = await extractKeyWords(transcripts);
+
+  const [summary, readingTime, keyPoints, keywords] = await Promise.all([
+    summarize(transcripts),
+    estimateReadTime(transcripts),
+    extractMainIdeas(transcripts),
+    extractKeyWords(transcripts),
+  ]);
 
   return {
     summary,
@@ -428,7 +431,7 @@ export const summarizeVideo = async ({ videoFile }: SummarizeVideoBody) => {
     throw new VideoInvalidError();
   }
 
-  const buffer = await videoFile.toBuffer();
-  const res = await summarize(buffer);
+  const buffer = videoFile._buf;
+  const res = await summarizeBuffer(buffer);
   return res;
 };
