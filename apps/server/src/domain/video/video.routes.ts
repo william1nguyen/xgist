@@ -2,6 +2,7 @@ import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { GetQueryString } from "~/infra/utils/schema";
 import {
   getBookmarkedVideos,
+  getRelatedVideos,
   getVideoDetail,
   getVideos,
   postVideo,
@@ -10,6 +11,8 @@ import {
   toggleLike,
 } from "./video.services";
 import {
+  GetRelatedVideosParams,
+  GetRelatedVideosQuerystring,
   GetVideoDetailParams,
   SummarizeVideoBody,
   ToggleBookmarkParams,
@@ -52,6 +55,25 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await getVideoDetail(req.params, req.principal?.user?.id);
+      return res;
+    }
+  );
+
+  app.get(
+    "/:videoId/related",
+    {
+      schema: {
+        tags: tags,
+        description: "Lấy dữ liệu các video liên quan",
+        params: GetRelatedVideosParams,
+        querystring: GetRelatedVideosQuerystring,
+      },
+      config: {
+        shouldSkipAuth: true,
+      },
+    },
+    async (req) => {
+      const res = await getRelatedVideos(req.params, req.query);
       return res;
     }
   );

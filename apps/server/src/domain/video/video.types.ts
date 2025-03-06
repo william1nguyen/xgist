@@ -79,10 +79,17 @@ export type GetVideoDetailParams = Static<typeof GetVideoDetailParams>;
 
 export const GetRelatedVideosParams = Type.Object({
   videoId: Type.String(),
-  page: Type.Optional(Type.Number()),
-  size: Type.Optional(Type.Number()),
 });
 export type GetRelatedVideosParams = Static<typeof GetRelatedVideosParams>;
+
+export const GetRelatedVideosQuerystring = Type.Object({
+  page: Type.Optional(Type.Number()),
+  size: Type.Optional(Type.Number()),
+  category: Category,
+});
+export type GetRelatedVideosQuerystring = Static<
+  typeof GetRelatedVideosQuerystring
+>;
 
 export const ToggleLikeParams = Type.Object({
   videoId: Type.String(),

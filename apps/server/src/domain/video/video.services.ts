@@ -1,4 +1,4 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, not } from "drizzle-orm";
 import _ from "lodash";
 import { db } from "~/drizzle/db";
 import {
@@ -15,13 +15,14 @@ import {
   VideoNotFoundError,
 } from "./video.errors";
 import {
-  GetRelatedVideosParams,
+  GetRelatedVideosQuerystring,
   ToggleBookmarkParams,
   ToggleLikeParams,
   GetVideoDetailParams,
   UploadVideoBody,
   SummarizeVideoBody,
   Transcripts,
+  GetRelatedVideosParams,
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
@@ -122,12 +123,16 @@ export const getVideoDetail = async (
   }
 };
 
-export const getRelatedVideos = async ({
-  page = 1,
-  size = 20,
-}: GetRelatedVideosParams) => {
+export const getRelatedVideos = async (
+  { videoId }: GetRelatedVideosParams,
+  { page = 1, size = 10, category }: GetRelatedVideosQuerystring
+) => {
   const offset = (page - 1) * size;
   const videos = await db.query.videoTable.findMany({
+    where: and(
+      eq(videoTable.category, category),
+      not(eq(videoTable.id, videoId))
+    ),
     with: {
       creator: true,
     },
