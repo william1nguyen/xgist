@@ -111,7 +111,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: edu
+      POSTGRES_DB: xgist
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
     ports:

@@ -1,2 +1,2 @@
 #!/bin/sh
-docker-compose -f docker-compose.dev.yml -p edu up -d
+docker-compose -f docker-compose.dev.yml -p xgist up -d
