@@ -1,4 +1,4 @@
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import _ from "lodash";
 import { db } from "~/drizzle/db";
 import {
@@ -20,17 +20,17 @@ import {
   ToggleLikeParams,
   GetVideoDetailParams,
   UploadVideoBody,
+  SummarizeVideoBody,
+  Transcripts,
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
-import { Buffer } from "buffer";
-import axios from "axios";
-import { env } from "~/env";
-import FormData from "form-data";
 import { prompting } from "~/infra/gemini";
+import { transcribe } from "~/infra/whisper";
+import { getVideoDurationInSeconds } from "get-video-duration";
 
 const uploadThumbnail = createUploader({
-  bucket: "thumbnail",
+  bucket: "thumbnails",
   allowedType: "image",
   shouldCompress: true,
 });
@@ -159,8 +159,9 @@ export const postVideo = async (
 
   const thumbnail = await uploadThumbnail(thumbnailFile);
   const video = await uploadVideo(videoFile);
-
-  await summaryQueue.add("summary", video);
+  const duration = Math.round(
+    (await getVideoDurationInSeconds(video.url)) * 1000
+  );
 
   const res = (
     await db
@@ -173,9 +174,19 @@ export const postVideo = async (
         category: category.value,
         userId,
         isSummarized: false,
+        duration,
       })
       .returning()
   )[0];
+
+  const videoBuffer = await videoFile.toBuffer();
+  const encodedData = Buffer.from(videoBuffer).toString("base64");
+
+  await summaryQueue.add("summary", {
+    ...video,
+    videoId: res.id,
+    encodedData,
+  });
 
   return res;
 };
@@ -303,46 +314,116 @@ export const getBookmarkedVideos = async (
   };
 };
 
-export const transcribe = async (buffer: Buffer, name: string) => {
-  try {
-    const form = new FormData();
+export const summarize = async (transcripts: Transcripts) => {
+  const fullText = transcripts.map((t) => t.transcript).join(" ");
+  const prompt = `
+    Summarize the following transcript concisely while preserving the key points and main message:
+    ${fullText}
+  `;
 
-    form.append("files", buffer, {
-      filename: name,
-      contentType: "video/mp4",
-      knownLength: buffer.length,
-    });
+  const res = await prompting(prompt);
+  return res;
+};
 
-    const res = await axios.post(`${env.WHISPERAI_URL}`, form, {
-      headers: {
-        ...form.getHeaders(),
-        Accept: "application/json",
-      },
-    });
-    const data = res.data;
+export const estimateReadTime = async (
+  transcripts: Transcripts
+): Promise<number> => {
+  const wordCount = transcripts.reduce((count, t) => {
+    return count + t.transcript.split(/\s+/).filter(Boolean).length;
+  }, 0);
 
-    return data.transcriptions[name];
-  } catch (err) {
-    logger.error(`Failed to transcribe: ${err}`);
+  const duration = transcripts.reduce((total, t) => {
+    return (
+      total +
+      ((typeof t.timestamp.end === "number"
+        ? t.timestamp.end
+        : t.timestamp.start) -
+        t.timestamp.start)
+    );
+  }, 0);
+
+  const prompt = `
+    Based on the following information about a transcript:
+    - Total word count: ${wordCount} words
+    - Total audio duration: ${Math.round(duration)} seconds
+    
+    Calculate the estimated reading time in minutes for an average reader (assuming 200-250 words per minute).
+    Return only a number representing minutes (rounded to one decimal place).
+  `;
+
+  const res = await prompting(prompt);
+
+  const readTimeMatch = res.match(/(\d+(\.\d+)?)/);
+  return readTimeMatch
+    ? parseFloat(readTimeMatch[0])
+    : Math.round(wordCount / 225);
+};
+
+export const extractMainIdeas = async (
+  transcript: Transcripts
+): Promise<string[]> => {
+  const fullText = transcript.map((t) => t.transcript).join(" ");
+
+  const prompt = `
+    Extract the 3-5 main ideas from the following transcript.
+    
+    Transcript:
+    ${fullText}
+    
+    Respond with a list of the main ideas only, one per line, with no numbering or bullet points.
+    Each main idea should be a concise statement.
+  `;
+
+  const res = await prompting(prompt);
+
+  return res
+    .split("\n")
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0);
+};
+
+export const extractKeyWords = async (
+  transcript: Transcripts
+): Promise<string[]> => {
+  const fullText = transcript.map((t) => t.transcript).join(" ");
+
+  const prompt = `
+    Extract the 10 most significant keywords or key phrases from the following transcript.
+    Transcript:
+    ${fullText}
+    Respond with a list of keywords or key phrases only, one per line, with no numbering or bullet points.
+  `;
+
+  const res = await prompting(prompt);
+
+  return res
+    .split("\n")
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0);
+};
+
+export const summarizeBuffer = async (buffer: Buffer) => {
+  const transcripts = await transcribe(buffer);
+  const summary = await summarize(transcripts);
+  const readingTime = await estimateReadTime(transcripts);
+  const keyPoints = await extractMainIdeas(transcripts);
+  const keywords = await extractKeyWords(transcripts);
+
+  return {
+    summary,
+    readingTime,
+    keyPoints,
+    keywords,
+    transcripts,
+  };
+};
+
+export const summarizeVideo = async ({ videoFile }: SummarizeVideoBody) => {
+  if (!videoFile) {
+    throw new VideoInvalidError();
   }
-};
 
-export const summarize = async (transcript: string) => {
-  const res = await prompting("");
-  return res;
-};
-
-export const estimateReadTime = async (transcript: string) => {
-  const res = await prompting("");
-  return res;
-};
-
-export const extractMainIdeas = async (transcript: string) => {
-  const res = await prompting("");
-  return res;
-};
-
-export const extractKeyWords = async (transcript: string) => {
-  const res = await prompting("");
+  const buffer = await videoFile.toBuffer();
+  const res = await summarize(buffer);
   return res;
 };

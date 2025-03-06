@@ -21,10 +21,19 @@ export const videoCategory = pgEnum("category", [
   "health",
 ]);
 
+export interface Transcript {
+  timestamp: {
+    start: number;
+    end: number;
+  };
+  transcript: string;
+}
+
 export type VideoMetadata = {
-  transcripts: string[];
-  mainIdeas: string[];
-  mainKeys: string[];
+  transcripts: Transcript[];
+  keyPoints: string[];
+  keywords: string[];
+  readingTime: number;
   summary: string;
 };
 

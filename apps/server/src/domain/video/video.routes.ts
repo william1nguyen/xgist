@@ -4,15 +4,17 @@ import {
   getBookmarkedVideos,
   getVideoDetail,
   getVideos,
+  postVideo,
+  summarizeVideo,
   toggleBookmark,
   toggleLike,
 } from "./video.services";
 import {
   GetVideoDetailParams,
-  GetVideoDetailResponse,
-  GetVideosResponse,
+  SummarizeVideoBody,
   ToggleBookmarkParams,
   ToggleLikeParams,
+  UploadVideoBody,
 } from "./video.types";
 
 const tags = ["video"];
@@ -31,7 +33,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
     async (req) => {
-      const res = await getVideos(req.query, req.principal.user.id);
+      const res = await getVideos(req.query, req.principal?.user?.id);
       return res;
     }
   );
@@ -49,7 +51,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
     async (req) => {
-      const res = await getVideoDetail(req.params, req.principal.user.id);
+      const res = await getVideoDetail(req.params, req.principal?.user?.id);
       return res;
     }
   );
@@ -65,6 +67,36 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await getBookmarkedVideos(req.query, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "",
+    {
+      schema: {
+        tags: tags,
+        description: "Đăng một video",
+        body: UploadVideoBody,
+      },
+    },
+    async (req) => {
+      const res = await postVideo(req.body, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/summarize",
+    {
+      schema: {
+        tags: tags,
+        description: "Tóm tắt một video",
+        body: SummarizeVideoBody,
+      },
+    },
+    async (req) => {
+      const res = await summarizeVideo(req.body);
       return res;
     }
   );

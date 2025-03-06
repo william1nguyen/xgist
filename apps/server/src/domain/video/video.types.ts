@@ -3,6 +3,7 @@ import {
   BaseModelSchema,
   createItemResponseSchema,
   createListResponseSchema,
+  OptionalDefaultNull,
 } from "~/infra/utils/schema";
 import { User } from "../user/user.types";
 import { createEnum } from "~/infra/utils/fns";
@@ -44,6 +45,18 @@ export const GeminiResponse = Type.Object({
 });
 export type GeminiResponse = Static<typeof GeminiResponse>;
 
+export const Transcript = Type.Object({
+  timestamp: Type.Object({
+    start: Type.Number(),
+    end: OptionalDefaultNull(Type.Number()),
+  }),
+  transcript: Type.String(),
+});
+export type Transcript = Static<typeof Transcript>;
+
+export const Transcripts = Type.Array(Transcript);
+export type Transcripts = Static<typeof Transcripts>;
+
 export const UploadVideoBody = Type.Object({
   videoFile: File,
   thumbnailFile: File,
@@ -52,17 +65,17 @@ export const UploadVideoBody = Type.Object({
   category: Type.Object({ value: Category }),
 });
 export type UploadVideoBody = Static<typeof UploadVideoBody>;
-
-export const GetVideosResponse = createListResponseSchema("videos", Video);
-export type GetVideosResponse = Static<typeof GetVideosResponse>;
+export const SummarizeVideoBody = Type.Object({
+  videoFile: File,
+  keywords: Type.Optional(Type.Boolean()),
+  mainIdeas: Type.Optional(Type.Boolean()),
+});
+export type SummarizeVideoBody = Static<typeof SummarizeVideoBody>;
 
 export const GetVideoDetailParams = Type.Object({
   videoId: Type.String(),
 });
 export type GetVideoDetailParams = Static<typeof GetVideoDetailParams>;
-
-export const GetVideoDetailResponse = createItemResponseSchema("video", Video);
-export type GetVideoDetailResponse = Static<typeof GetVideoDetailParams>;
 
 export const GetRelatedVideosParams = Type.Object({
   videoId: Type.String(),
