@@ -441,7 +441,7 @@ export const CreateSummaryPage: React.FC = () => {
                           Kéo thả video vào đây hoặc nhấp để chọn
                         </p>
                         <p className="text-sm text-gray-700">
-                          Hỗ trợ MP4, MOV, AVI - Tối đa 2GB
+                          Hỗ trợ MP4, MOV, AVI - Tối đa 50MB
                         </p>
                       </div>
                     ) : (
@@ -718,7 +718,7 @@ export const CreateSummaryPage: React.FC = () => {
                         Kéo thả video vào đây hoặc nhấp để chọn
                       </p>
                       <p className="text-sm text-gray-700">
-                        Hỗ trợ MP4, MOV, AVI - Tối đa 2GB
+                        Hỗ trợ MP4, MOV, AVI - Tối đa 50MB
                       </p>
                     </div>
                   ) : (
