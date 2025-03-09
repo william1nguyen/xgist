@@ -30,12 +30,14 @@ interface Category {
   name: string;
 }
 
-interface TranscriptEntry {
-  timestamp: {
-    start: number;
-    end: number;
-  };
-  transcript: string;
+export interface Chunk {
+  time: number;
+  text: string;
+}
+
+export interface Transcript {
+  text: string;
+  chunks: Chunk[];
 }
 
 interface SummaryData {
@@ -43,7 +45,7 @@ interface SummaryData {
   summary: string;
   keyPoints: string[];
   keywords?: string[];
-  transcripts: TranscriptEntry[];
+  transcripts: Transcript;
   originalDuration: string;
   readingTime: string;
 }
@@ -669,15 +671,13 @@ export const CreateSummaryPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 max-h-96 overflow-y-auto pr-3 pb-2 custom-scrollbar">
-                      {summaryData.transcripts.map(
-                        (entry: TranscriptEntry, index: number) => (
+                      {summaryData.transcripts.chunks.map(
+                        (entry: Chunk, index: number) => (
                           <div key={index} className="flex">
                             <span className="text-sm text-gray-500 w-16 flex-shrink-0 font-mono">
-                              {entry.timestamp.start.toFixed(2)}
+                              {entry.time.toFixed(2)}
                             </span>
-                            <p className="text-base text-black">
-                              {entry.transcript}
-                            </p>
+                            <p className="text-base text-black">{entry.text}</p>
                           </div>
                         )
                       )}

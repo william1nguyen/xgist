@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Clock,
@@ -25,9 +25,17 @@ import { env } from "../config/env";
 import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
 import { httpClient } from "../config/httpClient";
 
-interface VideoDetailProps {}
+export interface Chunk {
+  time: number;
+  text: string;
+}
 
-export const VideoDetailPage: React.FC<VideoDetailProps> = () => {
+export interface Transcript {
+  text: string;
+  chunks: Chunk[];
+}
+
+export const VideoDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [video, setVideo] = useState<VideoItem | null>(null);
@@ -38,7 +46,7 @@ export const VideoDetailPage: React.FC<VideoDetailProps> = () => {
   const [detailedSummary, setDetailedSummary] = useState<string>("");
   const [keyPoints, setKeyPoints] = useState<string[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
-  const [transcripts, setTranscripts] = useState<any[]>([]);
+  const [transcript, setTranscript] = useState<Transcript>();
   const [displayedTranscripts, setDisplayedTranscripts] = useState<number>(20);
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState<boolean>(false);
@@ -61,7 +69,7 @@ export const VideoDetailPage: React.FC<VideoDetailProps> = () => {
           setDetailedSummary(data.metadata.summary || "");
           setKeyPoints(data.metadata.keyPoints || []);
           setKeywords(data.metadata.keywords || []);
-          setTranscripts(data.metadata.transcripts || []);
+          setTranscript(data.metadata.transcripts);
         }
 
         try {
@@ -149,8 +157,8 @@ export const VideoDetailPage: React.FC<VideoDetailProps> = () => {
   };
 
   const formatTimestamp = (timestamp: any): string => {
-    if (!timestamp || timestamp.start === undefined) return "00:00";
-    const seconds = Math.floor(timestamp.start);
+    if (!timestamp) return "0:00";
+    const seconds = Math.floor(timestamp);
     const minutes = Math.floor(seconds / 60);
     const remainingSecs = seconds % 60;
     return `${minutes}:${remainingSecs < 10 ? "0" : ""}${remainingSecs}`;
@@ -543,7 +551,7 @@ export const VideoDetailPage: React.FC<VideoDetailProps> = () => {
                 </div>
               )}
 
-              {transcripts && transcripts.length > 0 && (
+              {transcript?.chunks && transcript.chunks.length > 0 && (
                 <div className="bg-white border border-indigo-100 rounded-lg shadow-sm mb-8 overflow-hidden">
                   <div className="border-b border-indigo-100">
                     <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
@@ -555,22 +563,22 @@ export const VideoDetailPage: React.FC<VideoDetailProps> = () => {
 
                     <div className="p-4">
                       <div className="space-y-3">
-                        {transcripts
+                        {transcript.chunks
                           .slice(0, displayedTranscripts)
-                          .map((transcript, index) => (
+                          .map((chunk, index) => (
                             <div
                               key={index}
                               className="flex border-b border-gray-100 pb-2 last:border-0"
                             >
                               <div className="w-16 text-xs font-medium text-gray-500 pt-1">
-                                {formatTimestamp(transcript.timestamp)}
+                                {formatTimestamp(chunk.time)}
                               </div>
                               <div className="flex-1 text-gray-700">
-                                {transcript.transcript}
+                                {chunk.text}
                               </div>
                             </div>
                           ))}
-                        {transcripts.length > displayedTranscripts &&
+                        {transcript.chunks.length > displayedTranscripts &&
                           isAuthenticated && (
                             <div className="text-center pt-2">
                               <button
@@ -584,7 +592,7 @@ export const VideoDetailPage: React.FC<VideoDetailProps> = () => {
                             </div>
                           )}
                         {displayedTranscripts > 20 &&
-                          transcripts.length > 20 &&
+                          transcript.chunks.length > 20 &&
                           isAuthenticated && (
                             <div className="text-center pt-2">
                               <button
