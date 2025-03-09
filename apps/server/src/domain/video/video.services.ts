@@ -21,7 +21,6 @@ import {
   GetVideoDetailParams,
   UploadVideoBody,
   SummarizeVideoBody,
-  Transcripts,
   GetRelatedVideosParams,
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
@@ -319,61 +318,22 @@ export const getBookmarkedVideos = async (
   };
 };
 
-export const summarize = async (transcripts: Transcripts) => {
-  const fullText = transcripts.map((t) => t.transcript).join(" ");
+export const summarize = async (text: string) => {
   const prompt = `
     Summarize the following transcript concisely while preserving the key points and main message:
-    ${fullText}
+    ${text}
   `;
 
   const res = await prompting(prompt);
   return res;
 };
 
-export const estimateReadTime = async (
-  transcripts: Transcripts
-): Promise<number> => {
-  const wordCount = transcripts.reduce((count, t) => {
-    return count + t.transcript.split(/\s+/).filter(Boolean).length;
-  }, 0);
-
-  const duration = transcripts.reduce((total, t) => {
-    return (
-      total +
-      ((typeof t.timestamp.end === "number"
-        ? t.timestamp.end
-        : t.timestamp.start) -
-        t.timestamp.start)
-    );
-  }, 0);
-
-  const prompt = `
-    Based on the following information about a transcript:
-    - Total word count: ${wordCount} words
-    - Total audio duration: ${Math.round(duration)} seconds
-    
-    Calculate the estimated reading time in minutes for an average reader (assuming 200-250 words per minute).
-    Return only a number representing minutes (rounded to one decimal place).
-  `;
-
-  const res = await prompting(prompt);
-
-  const readTimeMatch = res.match(/(\d+(\.\d+)?)/);
-  return readTimeMatch
-    ? parseFloat(readTimeMatch[0])
-    : Math.round(wordCount / 225);
-};
-
-export const extractMainIdeas = async (
-  transcript: Transcripts
-): Promise<string[]> => {
-  const fullText = transcript.map((t) => t.transcript).join(" ");
-
+export const extractMainIdeas = async (text: string): Promise<string[]> => {
   const prompt = `
     Extract the 3-5 main ideas from the following transcript.
     
     Transcript:
-    ${fullText}
+    ${text}
     
     Respond with a list of the main ideas only, one per line, with no numbering or bullet points.
     Each main idea should be a concise statement.
@@ -387,15 +347,11 @@ export const extractMainIdeas = async (
     .filter((line: string) => line.length > 0);
 };
 
-export const extractKeyWords = async (
-  transcript: Transcripts
-): Promise<string[]> => {
-  const fullText = transcript.map((t) => t.transcript).join(" ");
-
+export const extractKeyWords = async (text: string): Promise<string[]> => {
   const prompt = `
     Extract the 10 most significant keywords or key phrases from the following transcript.
     Transcript:
-    ${fullText}
+    ${text}
     Respond with a list of keywords or key phrases only, one per line, with no numbering or bullet points.
   `;
 
@@ -409,17 +365,16 @@ export const extractKeyWords = async (
 
 export const summarizeBuffer = async (buffer: Buffer) => {
   const transcripts = await transcribe(buffer);
+  const { text } = transcripts;
 
-  const [summary, readingTime, keyPoints, keywords] = await Promise.all([
-    summarize(transcripts),
-    estimateReadTime(transcripts),
-    extractMainIdeas(transcripts),
-    extractKeyWords(transcripts),
+  const [summary, keyPoints, keywords] = await Promise.all([
+    summarize(text),
+    extractMainIdeas(text),
+    extractKeyWords(text),
   ]);
 
   return {
     summary,
-    readingTime,
     keyPoints,
     keywords,
     transcripts,

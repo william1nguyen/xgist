@@ -45,17 +45,17 @@ export const GeminiResponse = Type.Object({
 });
 export type GeminiResponse = Static<typeof GeminiResponse>;
 
+export const Chunk = Type.Object({
+  time: Type.Number(),
+  text: Type.String(),
+});
+export type Chunk = Static<typeof Chunk>;
+
 export const Transcript = Type.Object({
-  timestamp: Type.Object({
-    start: Type.Number(),
-    end: OptionalDefaultNull(Type.Number()),
-  }),
-  transcript: Type.String(),
+  text: Type.String(),
+  chunks: Type.Array(Chunk),
 });
 export type Transcript = Static<typeof Transcript>;
-
-export const Transcripts = Type.Array(Transcript);
-export type Transcripts = Static<typeof Transcripts>;
 
 export const UploadVideoBody = Type.Object({
   videoFile: File,

@@ -14,7 +14,7 @@ export const transcribe = async (buffer: Buffer, filename = "filename.mp4") => {
   try {
     const form = new FormData();
 
-    form.append("files", buffer, {
+    form.append("file", buffer, {
       filename,
       contentType: "video/mp4",
       knownLength: buffer.length,
@@ -27,8 +27,8 @@ export const transcribe = async (buffer: Buffer, filename = "filename.mp4") => {
       },
     });
     const data = res.data;
-
-    return data.results;
+    console.log(data);
+    return data;
   } catch (err) {
     logger.error(`Failed to get transcript ${err}`);
     return null;
