@@ -11,6 +11,8 @@ uvicorn = "*"
 accelerate = ">=0.26.0"
 python-multipart = "*"
 ffmpeg = "*"
+numpy = "==2.1.0"
+assemblyai = "*"
 
 [dev-packages]
 
