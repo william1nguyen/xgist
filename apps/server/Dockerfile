@@ -6,21 +6,20 @@ COPY package.json ./
 
 #--
 
-FROM base AS deps
+FROM base AS pnpm
 COPY pnpm-lock.yaml ./
-RUN npm install -g pnpm@latest
+RUN npm install -g pnpm@9.7.1 && pnpm fetch
 
 #--
 
-FROM deps AS prod-deps
-RUN pnpm install --prod --ignore-scripts
+FROM pnpm AS prod-deps
+RUN pnpm install --prod --no-frozen-lockfile --ignore-scripts
 
 #--
 
-FROM deps AS build
+FROM pnpm AS build
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
 COPY . .
-RUN pnpm install --ignore-scripts
-RUN pnpm add -D tsup@latest
 RUN pnpm build
 
 #--

@@ -5,7 +5,7 @@ import { db } from "./db";
 export const runMigrations = async () => {
   logger.info("Running migrations...");
   await migrate(db, {
-    migrationsFolder: "./src/drizzle/migrations",
+    migrationsFolder: "./drizzle/migrations",
   });
   logger.info("Migrations completed successfully.");
 };
