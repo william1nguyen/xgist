@@ -4,11 +4,12 @@ LABEL author=vietanhhd03@gmail.com
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+RUN apt-get update && apt-get install -y ffmpeg
+
 COPY Pipfile Pipfile.lock ./
 RUN python -m pip install --upgrade pip
 RUN pip install pipenv
 
-# Force CPU-only PyTorch installation
 RUN pip uninstall -y torch
 RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 
