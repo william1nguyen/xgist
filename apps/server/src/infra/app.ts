@@ -13,7 +13,10 @@ import { queues } from "./jobs";
 const app = fastify({ logger: true });
 
 app.register(fastifyCors, {
-  origin: true,
+  origin: [
+    "http://localhost:5173",
+    "https://xgist.powerful.cuddly-succotash.online",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   exposedHeaders: ["Content-Type", "Authorization"],
