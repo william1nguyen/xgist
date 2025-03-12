@@ -2,7 +2,7 @@ name: CI/CD Workflow for Server
 
 on:
   push:
-    branches: [dev]
+    branches: [master]
 
 permissions: write-all
 
