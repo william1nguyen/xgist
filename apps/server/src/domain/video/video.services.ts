@@ -10,6 +10,7 @@ import logger from "~/infra/logger";
 import { itemResponse } from "~/infra/utils/fns";
 import type { GetQueryString } from "~/infra/utils/schema";
 import {
+  SummarizedFailedError,
   ThumbnailInvalidError,
   VideoInvalidError,
   VideoNotFoundError,
@@ -368,21 +369,26 @@ export const summarizeBuffer = async (
   isExtractKeyPoints = true,
   isExtractKeywords = true
 ) => {
-  const transcripts = await transcribe(buffer);
-  const { text } = transcripts;
+  try {
+    const transcripts = await transcribe(buffer);
+    const { text } = transcripts;
 
-  const [summary, keyPoints, keywords] = await Promise.all([
-    summarize(text),
-    isExtractKeyPoints ? extractKeyPoints(text) : null,
-    isExtractKeywords ? extractKeyWords(text) : null,
-  ]);
+    const [summary, keyPoints, keywords] = await Promise.all([
+      summarize(text),
+      isExtractKeyPoints ? extractKeyPoints(text) : null,
+      isExtractKeywords ? extractKeyWords(text) : null,
+    ]);
 
-  return {
-    summary,
-    keyPoints,
-    keywords,
-    transcripts,
-  };
+    return {
+      summary,
+      keyPoints,
+      keywords,
+      transcripts,
+    };
+  } catch (error) {
+    logger.error(error);
+    throw new SummarizedFailedError();
+  }
 };
 
 export const summarizeVideo = async ({
