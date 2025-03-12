@@ -27,7 +27,7 @@ import {
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
 import { prompting } from "~/infra/gemini";
-import { transcribe } from "~/infra/whisper";
+import { transcribe, transcribeStream } from "~/infra/whisper";
 import { getVideoDurationInSeconds } from "get-video-duration";
 
 const uploadThumbnail = createUploader({
@@ -86,6 +86,24 @@ export const getVideos = async (
     logger.error(`Failed to get videos: ${error}`);
     throw new VideoNotFoundError();
   }
+};
+
+export const getMyVideos = async (
+  { page = 1, size = 100 }: GetQueryString,
+  userId: string
+) => {
+  const videos = await db.query.videoTable.findMany({
+    where: eq(videoTable.userId, userId),
+  });
+  const total = (await db.select({ count: count() }).from(videoTable))[0].count;
+  return {
+    data: { videos },
+    metadata: {
+      page,
+      size,
+      total,
+    },
+  };
 };
 
 export const getVideoDetail = async (
@@ -370,7 +388,7 @@ export const summarizeBuffer = async (
   isExtractKeywords = true
 ) => {
   try {
-    const transcripts = await transcribe(buffer);
+    const transcripts = await transcribeStream(buffer);
     const { text } = transcripts;
 
     const [summary, keyPoints, keywords] = await Promise.all([

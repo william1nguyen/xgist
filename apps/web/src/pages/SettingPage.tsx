@@ -67,7 +67,7 @@ export const SettingsPage: React.FC = () => {
     try {
       if (activeTab === "uploads") {
         const response =
-          await httpClient.get<ApiResponse<VideosResponse>>("/v1/videos");
+          await httpClient.get<ApiResponse<VideosResponse>>("/v1/videos/me");
         setVideos(response.data.data.videos);
       } else {
         const [

@@ -2,6 +2,7 @@ import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { GetQueryString } from "~/infra/utils/schema";
 import {
   getBookmarkedVideos,
+  getMyVideos,
   getRelatedVideos,
   getVideoDetail,
   getVideos,
@@ -11,14 +12,22 @@ import {
   toggleLike,
 } from "./video.services";
 import {
+  ActivitiesResponse,
+  CategoryStatsResponse,
   GetRelatedVideosParams,
   GetRelatedVideosQuerystring,
   GetVideoDetailParams,
+  StatisticsResponse,
   SummarizeVideoBody,
   ToggleBookmarkParams,
   ToggleLikeParams,
   UploadVideoBody,
 } from "./video.types";
+import {
+  getCategoryStats,
+  getUserActivities,
+  getUserStatistics,
+} from "./stats.service";
 
 const tags = ["video"];
 
@@ -32,11 +41,26 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
         querystring: GetQueryString,
       },
       config: {
-        shouldSkipAuth: true,
+        shouldHanldeHybrid: true,
       },
     },
     async (req) => {
       const res = await getVideos(req.query, req.principal?.user?.id);
+      return res;
+    }
+  );
+
+  app.get(
+    "/me",
+    {
+      schema: {
+        tags: tags,
+        description: "Lấy dữ liệu videos của bản thân",
+        querystring: GetQueryString,
+      },
+    },
+    async (req) => {
+      const res = await getMyVideos(req.query, req.principal.user.id);
       return res;
     }
   );
@@ -50,7 +74,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
         params: GetVideoDetailParams,
       },
       config: {
-        shouldSkipAuth: true,
+        shouldHanldeHybrid: true,
       },
     },
     async (req) => {
@@ -93,6 +117,67 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     }
   );
 
+  app.get(
+    "/categories/stats",
+    {
+      schema: {
+        response: {
+          200: CategoryStatsResponse,
+        },
+      },
+    },
+    async (req) => {
+      const categories = await getCategoryStats(req.principal.user.id);
+
+      return {
+        success: true,
+        data: {
+          categories,
+        },
+      };
+    }
+  );
+
+  app.get(
+    "/user/activities",
+    {
+      schema: {
+        response: {
+          200: ActivitiesResponse,
+        },
+      },
+    },
+    async (req) => {
+      const activities = await getUserActivities(req.principal.user.id);
+
+      return {
+        success: true,
+        data: {
+          activities,
+        },
+      };
+    }
+  );
+
+  app.get(
+    "/me/statistics",
+    {
+      schema: {
+        response: {
+          200: StatisticsResponse,
+        },
+      },
+    },
+    async (req) => {
+      const statistics = await getUserStatistics(req.principal.user.id);
+
+      return {
+        success: true,
+        data: statistics,
+      };
+    }
+  );
+
   app.post(
     "",
     {
@@ -115,6 +200,9 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
         tags: tags,
         description: "Tóm tắt một video",
         body: SummarizeVideoBody,
+      },
+      config: {
+        shouldSkipAuth: true,
       },
     },
     async (req) => {

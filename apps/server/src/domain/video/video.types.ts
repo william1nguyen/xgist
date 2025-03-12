@@ -108,3 +108,45 @@ export const ToggleBookmarkParams = Type.Object({
   videoId: Type.String(),
 });
 export type ToggleBookmarkParams = Static<typeof ToggleBookmarkParams>;
+
+export const CategoryData = Type.Object({
+  name: Type.String(),
+  count: Type.Number(),
+  percentage: Type.Number(),
+});
+
+export const Activity = Type.Object({
+  id: Type.String(),
+  title: Type.String(),
+  timestamp: Type.String(),
+  iconName: Type.String(),
+  iconColor: Type.String(),
+});
+
+export const StatisticsData = Type.Object({
+  totalVideos: Type.Number(),
+  totalSummaries: Type.Number(),
+  totalDuration: Type.String(),
+  totalSavedTime: Type.String(),
+  uploadedThisMonth: Type.Number(),
+  summarizedThisMonth: Type.Number(),
+});
+
+export const CategoryStatsResponse = Type.Object({
+  success: Type.Boolean(),
+  data: Type.Object({
+    categories: Type.Array(CategoryData),
+  }),
+});
+
+export const ActivitiesResponse = Type.Object({
+  success: Type.Boolean(),
+  data: Type.Object({
+    activities: Type.Array(Activity),
+  }),
+});
+
+export const StatisticsResponse = Type.Object({
+  success: Type.Boolean(),
+  data: StatisticsData,
+});

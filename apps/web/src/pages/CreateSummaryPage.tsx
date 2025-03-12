@@ -195,6 +195,7 @@ export const CreateSummaryPage: React.FC = () => {
 
     try {
       const formData = new FormData();
+      const { keywords, keyPoints } = advancedOptions;
       formData.append("videoFile", videoFile);
       if (thumbnailFile) {
         formData.append("thumbnailFile", thumbnailFile);
@@ -202,7 +203,8 @@ export const CreateSummaryPage: React.FC = () => {
       formData.append("title", videoTitle);
       formData.append("description", videoDescription);
       formData.append("category", videoCategory);
-      formData.append("options", JSON.stringify(advancedOptions));
+      formData.append("keywords", keywords.toString());
+      formData.append("keyPoints", keyPoints.toString());
 
       const config = {
         headers: {
