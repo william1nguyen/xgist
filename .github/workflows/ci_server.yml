@@ -1,40 +1,13 @@
-name: CI/CD Workflow for Server
+name: Build and deploy Server
 
 on:
   push:
-    branches: [dev]
+    branches: [master]
 
 permissions: write-all
 
 jobs:
-  check-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      should_deploy: ${{ steps.filter.outputs.changes_detected }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Get changed files
-        id: changed-files
-        run: |
-          if git rev-parse --verify HEAD^ > /dev/null 2>&1; then
-            changed_files=$(git diff --name-only HEAD^ HEAD)
-          else
-            changed_files=$(git ls-tree --name-only -r HEAD)
-          fi
-          echo "::set-output name=changed_files::$changed_files"
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            changes_detected:
-              - '!apps/**'
-              - 'apps/server/**'
-
   deploy:
-    needs: check-changes
-    if: needs.check-changes.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
