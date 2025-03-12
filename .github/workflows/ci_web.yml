@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_deploy: ${{ steps.filter.outputs.changes_detected }}
+      run: |
+        echo "::set-output name=grepValue::$( git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -c '^proxy' )"
     steps:
       - uses: actions/checkout@v3
         with:
