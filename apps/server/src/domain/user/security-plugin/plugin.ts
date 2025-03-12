@@ -1,11 +1,11 @@
-import type {FastifyRequest} from 'fastify';
-import type {KeycloakPrincipal} from '../user.types';
-import {authJwtHandler} from './auth-jwt-handler';
+import type { FastifyRequest } from "fastify";
+import type { KeycloakPrincipal } from "../user.types";
+import { authJwtHandler } from "./auth-jwt-handler";
 
-import type {SecurityHandlerOptions} from './types';
+import type { SecurityHandlerOptions } from "./types";
 
 const createHandler =
-  ({shouldHandle, onHandle}: SecurityHandlerOptions) =>
+  ({ shouldHandle, onHandle }: SecurityHandlerOptions) =>
   async (req: FastifyRequest) => {
     if (await shouldHandle(req)) {
       await onHandle(req);
@@ -22,7 +22,7 @@ export const execSecurityHandlerChain = async (
   }
 };
 
-declare module 'fastify' {
+declare module "fastify" {
   export interface FastifyRequest {
     principal: KeycloakPrincipal;
   }
@@ -30,6 +30,7 @@ declare module 'fastify' {
   export interface FastifyContextConfig {
     rawBody?: boolean;
     shouldSkipAuth?: boolean;
+    shouldHanldeHybrid?: boolean;
     skipCache?: boolean;
     useAdminAuth?: boolean;
   }

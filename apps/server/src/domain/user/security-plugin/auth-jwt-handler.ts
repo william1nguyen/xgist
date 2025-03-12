@@ -9,6 +9,7 @@ import {
 import { getUserByKeycloakUserId } from "../user.services";
 import type { KeycloakPrincipal, User } from "../user.types";
 import type { SecurityHandlerOptions } from "./types";
+import logger from "~/infra/logger";
 
 const AUTH_HEADER_NAME = "authorization";
 const AUTH_HEADER_PREFIX = "Bearer ";
@@ -46,26 +47,33 @@ export const authJwtHandler: SecurityHandlerOptions = {
     return Boolean(accessToken) || !shouldSkipAuth;
   },
   onHandle: async (req) => {
-    const accessToken = extractAccessTokenOrThrow(req);
-    const { sub, exp } = await extractPayload(accessToken);
+    const shoudldHandleHybrid = req.routeOptions.config.shouldHanldeHybrid;
+    try {
+      const accessToken = extractAccessTokenOrThrow(req);
+      const { sub, exp } = await extractPayload(accessToken);
 
-    if (!sub) {
-      throw new InvalidAuthTokenError();
+      if (!sub) {
+        throw new InvalidAuthTokenError();
+      }
+
+      const expiratedTimeInMs = exp * 1000;
+      const now = new Date().getTime();
+
+      if (expiratedTimeInMs < now) {
+        throw new ExpiredTokenError();
+      }
+
+      const user = (await getUserByKeycloakUserId(sub)) as User;
+      const principal: KeycloakPrincipal = {
+        sub,
+        user,
+        token: accessToken,
+      };
+      req.principal = principal;
+    } catch (error) {
+      if (!shoudldHandleHybrid) {
+        throw new InvalidAuthTokenError();
+      }
     }
-
-    const expiratedTimeInMs = exp * 1000;
-    const now = new Date().getTime();
-
-    if (expiratedTimeInMs < now) {
-      throw new ExpiredTokenError();
-    }
-
-    const user = (await getUserByKeycloakUserId(sub)) as User;
-    const principal: KeycloakPrincipal = {
-      sub,
-      user,
-      token: accessToken,
-    };
-    req.principal = principal;
   },
 };
