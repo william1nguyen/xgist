@@ -1,7 +1,7 @@
 import os
 from tempfile import NamedTemporaryFile
 import time
-from fastapi import File, UploadFile
+from fastapi import File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
@@ -75,6 +75,7 @@ def filter(transcripts: Transcript):
     return transcripts
     
 
+
 async def transcribe(file: UploadFile = File(...)):
     start_time = time.time()
     with NamedTemporaryFile(delete=False) as tfile:
@@ -86,7 +87,31 @@ async def transcribe(file: UploadFile = File(...)):
         return filter(transcripts=transcripts)
         
     except Exception as e:
-        raise e
+        raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
     finally:
         os.remove(file_path)
-        print(f"__time__: {time.time() - start_time}")
+        print(f"__time__: {time.time() - start_time}, file_size: {len(content) if 'content' in locals() else 0}")
+
+async def transcribe_stream(request: Request):
+    start_time = time.time()
+    
+    with NamedTemporaryFile(delete=False, suffix=".mp4") as tfile:
+        file_size = 0
+        async for chunk in request.stream():
+            tfile.write(chunk)
+            file_size += len(chunk)
+        
+        file_path = tfile.name
+    
+    try:
+        if file_size == 0:
+            raise HTTPException(status_code=400, detail="Empty file received")
+        
+        transcripts = pipe(file_path)
+        return filter(transcripts=transcripts)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
+    finally:
+        os.remove(file_path)
+        print(f"__time__: {time.time() - start_time}, file_size: {file_size}")
