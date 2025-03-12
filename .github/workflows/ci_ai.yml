@@ -23,7 +23,9 @@ jobs:
           else
             changed_files=$(git ls-tree --name-only -r HEAD)
           fi
-          echo "::set-output name=changed_files::$changed_files"
+          echo "CHANGED_FILES<<EOF" >> $GITHUB_OUTPUT
+          echo "$changed_files" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       - uses: dorny/paths-filter@v2
         id: filter
         with:
