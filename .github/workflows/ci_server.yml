@@ -1,4 +1,4 @@
-name: CI/CD Workflow for Server
+name: Build and deploy Server
 
 on:
   push:

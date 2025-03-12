@@ -1,4 +1,4 @@
-name: CI/CD Workflow for Web
+name: Build and deploy Web Service
 
 on:
   push:
