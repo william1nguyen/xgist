@@ -1,12 +1,6 @@
 import { db } from "../db";
 import { videoTable } from "../schema/video";
-
-export type VideoMetadata = {
-  transcripts: string[];
-  mainIdeas: string[];
-  mainKeys: string[];
-  summary: string;
-};
+import type { VideoMetadata } from "../schema/video";
 
 export const seedVideoData = async () => {
   const videos = [
@@ -24,16 +18,34 @@ export const seedVideoData = async () => {
       isSummarized: true,
       metadata: {
         transcripts: [
-          "Chào mừng các bạn đến với video hướng dẫn về Drizzle ORM. Hôm nay chúng ta sẽ tìm hiểu cách sử dụng Drizzle ORM với PostgreSQL.",
-          "Trước tiên, hãy cài đặt các gói cần thiết: npm install drizzle-orm postgres",
+          {
+            text: "Chào mừng các bạn đến với video hướng dẫn về Drizzle ORM. Hôm nay chúng ta sẽ tìm hiểu cách sử dụng Drizzle ORM với PostgreSQL.",
+            chunks: [
+              {
+                time: 0,
+                text: "Chào mừng các bạn đến với video hướng dẫn về Drizzle ORM.",
+              },
+              {
+                time: 5,
+                text: "Hôm nay chúng ta sẽ tìm hiểu cách sử dụng Drizzle ORM với PostgreSQL.",
+              },
+            ],
+          },
+          {
+            text: "Trước tiên, hãy cài đặt các gói cần thiết: npm install drizzle-orm postgres",
+            chunks: [
+              { time: 10, text: "Trước tiên, hãy cài đặt các gói cần thiết:" },
+              { time: 13, text: "npm install drizzle-orm postgres" },
+            ],
+          },
         ],
-        mainIdeas: [
+        keyPoints: [
           "Cài đặt và cấu hình Drizzle ORM",
           "Tạo schema và định nghĩa quan hệ",
           "Thực hiện truy vấn cơ bản",
           "Xử lý migrations",
         ],
-        mainKeys: [
+        keywords: [
           "Drizzle ORM",
           "PostgreSQL",
           "Schema",
@@ -61,17 +73,37 @@ export const seedVideoData = async () => {
       isSummarized: true,
       metadata: {
         transcripts: [
-          "Quản lý tài chính cá nhân là một kỹ năng quan trọng mà mọi người nên học. Trong video này, tôi sẽ chia sẻ 10 cách hiệu quả.",
-          "Đầu tiên, hãy lập ngân sách chi tiêu hàng tháng và tuân thủ nó.",
+          {
+            text: "Quản lý tài chính cá nhân là một kỹ năng quan trọng mà mọi người nên học. Trong video này, tôi sẽ chia sẻ 10 cách hiệu quả.",
+            chunks: [
+              {
+                time: 0,
+                text: "Quản lý tài chính cá nhân là một kỹ năng quan trọng mà mọi người nên học.",
+              },
+              {
+                time: 7,
+                text: "Trong video này, tôi sẽ chia sẻ 10 cách hiệu quả.",
+              },
+            ],
+          },
+          {
+            text: "Đầu tiên, hãy lập ngân sách chi tiêu hàng tháng và tuân thủ nó.",
+            chunks: [
+              {
+                time: 15,
+                text: "Đầu tiên, hãy lập ngân sách chi tiêu hàng tháng và tuân thủ nó.",
+              },
+            ],
+          },
         ],
-        mainIdeas: [
+        keyPoints: [
           "Lập ngân sách chi tiêu",
           "Tiết kiệm tự động",
           "Đầu tư thông minh",
           "Quản lý và giảm nợ",
           "Xây dựng quỹ khẩn cấp",
         ],
-        mainKeys: [
+        keywords: [
           "Tài chính cá nhân",
           "Ngân sách",
           "Tiết kiệm",
@@ -116,17 +148,38 @@ export const seedVideoData = async () => {
       isSummarized: true,
       metadata: {
         transcripts: [
-          "Machine Learning là một nhánh của trí tuệ nhân tạo cho phép máy tính học từ dữ liệu và đưa ra dự đoán.",
-          "Có ba loại học máy chính: học có giám sát, học không giám sát và học tăng cường.",
+          {
+            text: "Machine Learning là một nhánh của trí tuệ nhân tạo cho phép máy tính học từ dữ liệu và đưa ra dự đoán.",
+            chunks: [
+              {
+                time: 0,
+                text: "Machine Learning là một nhánh của trí tuệ nhân tạo",
+              },
+              {
+                time: 5,
+                text: "cho phép máy tính học từ dữ liệu và đưa ra dự đoán.",
+              },
+            ],
+          },
+          {
+            text: "Có ba loại học máy chính: học có giám sát, học không giám sát và học tăng cường.",
+            chunks: [
+              { time: 12, text: "Có ba loại học máy chính:" },
+              {
+                time: 15,
+                text: "học có giám sát, học không giám sát và học tăng cường.",
+              },
+            ],
+          },
         ],
-        mainIdeas: [
+        keyPoints: [
           "Giới thiệu về Machine Learning",
           "Supervised Learning (Học có giám sát)",
           "Unsupervised Learning (Học không giám sát)",
           "Reinforcement Learning (Học tăng cường)",
           "Ứng dụng thực tế",
         ],
-        mainKeys: [
+        keywords: [
           "Machine Learning",
           "AI",
           "Supervised Learning",
@@ -154,17 +207,34 @@ export const seedVideoData = async () => {
       isSummarized: true,
       metadata: {
         transcripts: [
-          "CSS Grid và Flexbox là hai công cụ layout mạnh mẽ trong CSS hiện đại.",
-          "Grid phù hợp cho layout 2 chiều, trong khi Flexbox tối ưu cho layout 1 chiều.",
+          {
+            text: "CSS Grid và Flexbox là hai công cụ layout mạnh mẽ trong CSS hiện đại.",
+            chunks: [
+              {
+                time: 0,
+                text: "CSS Grid và Flexbox là hai công cụ layout mạnh mẽ trong CSS hiện đại.",
+              },
+            ],
+          },
+          {
+            text: "Grid phù hợp cho layout 2 chiều, trong khi Flexbox tối ưu cho layout 1 chiều.",
+            chunks: [
+              { time: 8, text: "Grid phù hợp cho layout 2 chiều," },
+              {
+                time: 12,
+                text: "trong khi Flexbox tối ưu cho layout 1 chiều.",
+              },
+            ],
+          },
         ],
-        mainIdeas: [
+        keyPoints: [
           "So sánh giữa CSS Grid và Flexbox",
           "Xây dựng layout cơ bản với Grid",
           "Tạo component linh hoạt với Flexbox",
           "Kết hợp Grid và Flexbox",
           "Responsive design với media queries",
         ],
-        mainKeys: [
+        keywords: [
           "CSS Grid",
           "Flexbox",
           "Responsive Design",
@@ -209,17 +279,32 @@ export const seedVideoData = async () => {
       isSummarized: true,
       metadata: {
         transcripts: [
-          "Miền Trung Việt Nam là nơi có nhiều di sản văn hóa thế giới và cảnh quan thiên nhiên tuyệt đẹp.",
-          "Hội An, Huế, Đà Nẵng là ba điểm đến không thể bỏ qua khi du lịch miền Trung.",
+          {
+            text: "Miền Trung Việt Nam là nơi có nhiều di sản văn hóa thế giới và cảnh quan thiên nhiên tuyệt đẹp.",
+            chunks: [
+              {
+                time: 0,
+                text: "Miền Trung Việt Nam là nơi có nhiều di sản văn hóa thế giới",
+              },
+              { time: 7, text: "và cảnh quan thiên nhiên tuyệt đẹp." },
+            ],
+          },
+          {
+            text: "Hội An, Huế, Đà Nẵng là ba điểm đến không thể bỏ qua khi du lịch miền Trung.",
+            chunks: [
+              { time: 12, text: "Hội An, Huế, Đà Nẵng là ba điểm đến" },
+              { time: 17, text: "không thể bỏ qua khi du lịch miền Trung." },
+            ],
+          },
         ],
-        mainIdeas: [
+        keyPoints: [
           "Phố cổ Hội An và đèn lồng",
           "Kinh đô Huế và các lăng tẩm",
           "Bãi biển Đà Nẵng và Bà Nà Hills",
           "Động Phong Nha-Kẻ Bàng",
           "Ẩm thực đặc trưng miền Trung",
         ],
-        mainKeys: [
+        keywords: [
           "Du lịch Việt Nam",
           "Miền Trung",
           "Hội An",

@@ -328,7 +328,7 @@ export const summarize = async (text: string) => {
   return res;
 };
 
-export const extractMainIdeas = async (text: string): Promise<string[]> => {
+export const extractKeyPoints = async (text: string): Promise<string[]> => {
   const prompt = `
     Extract the 3-5 main ideas from the following transcript.
     
@@ -363,14 +363,18 @@ export const extractKeyWords = async (text: string): Promise<string[]> => {
     .filter((line: string) => line.length > 0);
 };
 
-export const summarizeBuffer = async (buffer: Buffer) => {
+export const summarizeBuffer = async (
+  buffer: Buffer,
+  isExtractKeyPoints = true,
+  isExtractKeywords = true
+) => {
   const transcripts = await transcribe(buffer);
   const { text } = transcripts;
 
   const [summary, keyPoints, keywords] = await Promise.all([
     summarize(text),
-    extractMainIdeas(text),
-    extractKeyWords(text),
+    isExtractKeyPoints ? extractKeyPoints(text) : null,
+    isExtractKeywords ? extractKeyWords(text) : null,
   ]);
 
   return {
@@ -381,12 +385,16 @@ export const summarizeBuffer = async (buffer: Buffer) => {
   };
 };
 
-export const summarizeVideo = async ({ videoFile }: SummarizeVideoBody) => {
+export const summarizeVideo = async ({
+  videoFile,
+  keyPoints,
+  keywords,
+}: SummarizeVideoBody) => {
   if (!videoFile) {
     throw new VideoInvalidError();
   }
 
   const buffer = videoFile._buf;
-  const res = await summarizeBuffer(buffer);
+  const res = await summarizeBuffer(buffer, keyPoints?.value, keywords?.value);
   return res;
 };

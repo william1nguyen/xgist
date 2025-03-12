@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 
 interface AdvancedOptions {
   keywords: boolean;
-  mainIdeas: boolean;
+  keyPoints: boolean;
   [key: string]: boolean;
 }
 
@@ -56,7 +56,7 @@ export const CreateSummaryPage: React.FC = () => {
     useState<boolean>(false);
   const [advancedOptions, setAdvancedOptions] = useState<AdvancedOptions>({
     keywords: true,
-    mainIdeas: true,
+    keyPoints: true,
   });
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isComplete, setIsComplete] = useState<boolean>(false);
@@ -150,11 +150,14 @@ export const CreateSummaryPage: React.FC = () => {
 
     try {
       const formData = new FormData();
+      const { keywords, keyPoints } = advancedOptions;
       formData.append("videoFile", videoFile);
       if (thumbnailFile) {
         formData.append("thumbnailFile", thumbnailFile);
       }
-      formData.append("options", JSON.stringify(advancedOptions));
+
+      formData.append("keywords", keywords.toString());
+      formData.append("keyPoints", keyPoints.toString());
 
       const config = {
         headers: {
@@ -495,9 +498,9 @@ export const CreateSummaryPage: React.FC = () => {
                             <label className="flex items-center">
                               <input
                                 type="checkbox"
-                                checked={advancedOptions.mainIdeas}
+                                checked={advancedOptions.keyPoints}
                                 onChange={() =>
-                                  handleAdvancedOptionChange("mainIdeas")
+                                  handleAdvancedOptionChange("keyPoints")
                                 }
                                 className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                 disabled={isProcessing}
@@ -905,9 +908,9 @@ export const CreateSummaryPage: React.FC = () => {
                         <label className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={advancedOptions.mainIdeas}
+                            checked={advancedOptions.keyPoints}
                             onChange={() =>
-                              handleAdvancedOptionChange("mainIdeas")
+                              handleAdvancedOptionChange("keyPoints")
                             }
                             className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                             disabled={isProcessing}

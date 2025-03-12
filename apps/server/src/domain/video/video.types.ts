@@ -67,8 +67,16 @@ export const UploadVideoBody = Type.Object({
 export type UploadVideoBody = Static<typeof UploadVideoBody>;
 export const SummarizeVideoBody = Type.Object({
   videoFile: File,
-  keywords: Type.Optional(Type.Boolean()),
-  keyPoints: Type.Optional(Type.Boolean()),
+  keywords: Type.Optional(
+    Type.Object({
+      value: Type.Boolean(),
+    })
+  ),
+  keyPoints: Type.Optional(
+    Type.Object({
+      value: Type.Boolean(),
+    })
+  ),
 });
 export type SummarizeVideoBody = Static<typeof SummarizeVideoBody>;
 
