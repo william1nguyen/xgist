@@ -1,5 +1,9 @@
 import logger from "../logger";
-import { createPingWorker, pingQueue } from "./workers/pingGemini";
+import {
+  createPingWorker,
+  pingQueue,
+  startCronPingJob,
+} from "./workers/pingGemini";
 import { createSummaryWorker, summaryQueue } from "./workers/summarize";
 
 const initWorkers = () => {
@@ -11,6 +15,7 @@ const initWorkers = () => {
 
 export const setupBackgroundJobs = () => {
   initWorkers();
+  startCronPingJob();
 };
 
 export const queues = [pingQueue, summaryQueue];
