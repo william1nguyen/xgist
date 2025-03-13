@@ -11,6 +11,16 @@ export const GeminiHttpClient = axios.create({
   },
 });
 
+export const checkGeminiHealth = async () => {
+  try {
+    const res = await GeminiHttpClient.get("/healthz");
+    return res;
+  } catch (error) {
+    logger.error(error);
+    throw new Error(`Failed to prompting: ${error}`);
+  }
+};
+
 export const prompting = async (prompt: string) => {
   try {
     const data = {
