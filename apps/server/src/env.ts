@@ -40,6 +40,8 @@ const EnvSchema = Type.Object({
   BULL_BOARD_PASSWORD: Type.String(),
   BULL_REDIS_DB: Type.Number(),
   BULL_API_CALLBACK_URL: Type.String(),
+
+  X_API_KEY: Type.String(),
 });
 
 type Env = Static<typeof EnvSchema>;
@@ -96,6 +98,8 @@ const validateEnv = (): Env => {
     BULL_BOARD_PASSWORD: process.env.BULL_BOARD_PASSWORD,
     BULL_REDIS_DB: coerceInt(process.env.BULL_REDIS_DB),
     BULL_API_CALLBACK_URL: process.env.BULL_API_CALLBACK_URL,
+
+    X_API_KEY: process.env.X_API_KEY,
   };
 
   if (!validator.Check(env)) {

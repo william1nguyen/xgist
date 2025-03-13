@@ -8,6 +8,7 @@ export const GeminiHttpClient = axios.create({
   baseURL: env.GEMINI_URL,
   headers: {
     "Content-Type": "application/json",
+    "x-api-key": env.X_API_KEY,
   },
 });
 

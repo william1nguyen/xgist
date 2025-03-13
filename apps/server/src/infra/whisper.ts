@@ -6,6 +6,9 @@ export const whisperHttpClient = axios.create({
   timeout: 30 * 60 * 1000,
   maxBodyLength: Infinity,
   maxContentLength: Infinity,
+  headers: {
+    "x-api-key": env.X_API_KEY,
+  },
 });
 
 export const transcribe = async (buffer: Buffer, filename = "filename.mp4") => {
