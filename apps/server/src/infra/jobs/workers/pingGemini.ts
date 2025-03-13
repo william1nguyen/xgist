@@ -39,3 +39,16 @@ export const createPingWorker = (): Worker => {
   });
   return pingWorker;
 };
+
+export const startCronPingJob = async () => {
+  await pingQueue.add(
+    "ping",
+    {},
+    {
+      jobId: "ping",
+      repeat: {
+        pattern: "*/3 * * * *",
+      },
+    }
+  );
+};

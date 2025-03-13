@@ -1,7 +1,8 @@
-from fastapi import HTTPException, Request, UploadFile, File, APIRouter
+from fastapi import Depends, HTTPException, Request, UploadFile, File, APIRouter
 from models import whisper
+from infra.auth import validate_x_api_key
 
-transcribe_router = APIRouter()
+transcribe_router = APIRouter(dependencies=[Depends(validate_x_api_key)])
 
 @transcribe_router.post("/transcribe/", tags=["transcribe"])
 async def post(file: UploadFile = File(...)):
