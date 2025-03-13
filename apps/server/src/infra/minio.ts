@@ -39,7 +39,7 @@ export const uploadFileToMinio = async (
         "Content-Type": mimeType,
       }
     );
-    const httpProtocol = env.MINIO_USE_SSL ? "https" : "http";
+    const httpProtocol = env.NODE_ENV === "production" ? "https" : "http";
     const endpoint = env.MINIO_PORT
       ? `${env.MINIO_ENDPOINT}:${env.MINIO_PORT}`
       : `${env.MINIO_ENDPOINT}`;
