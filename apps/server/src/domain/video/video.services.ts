@@ -27,8 +27,7 @@ import {
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
 import { prompting } from "~/infra/gemini";
-import { transcribe, transcribeStream } from "~/infra/whisper";
-import { getVideoDurationInSeconds } from "get-video-duration";
+import { transcribeStream } from "~/infra/whisper";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnails",
@@ -182,9 +181,6 @@ export const postVideo = async (
 
   const thumbnail = await uploadThumbnail(thumbnailFile);
   const video = await uploadVideo(videoFile);
-  const duration = Math.round(
-    (await getVideoDurationInSeconds(video.url)) * 1000
-  );
 
   const res = (
     await db
@@ -197,7 +193,6 @@ export const postVideo = async (
         category: category.value,
         userId,
         isSummarized: false,
-        duration,
       })
       .returning()
   )[0];
