@@ -3,6 +3,8 @@ name: Build and deploy AI Service
 on:
   push:
     branches: [master]
+    paths:
+      - "!apps/gemini/**"
 
 permissions: write-all
 
