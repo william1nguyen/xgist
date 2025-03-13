@@ -4,7 +4,8 @@ on:
   push:
     branches: [master]
     paths:
-      - "!apps/gemini/**"
+      - ".github/workflows/ci_web.yml"
+      - "apps/web/**"
 
 permissions: write-all
 
