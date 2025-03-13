@@ -4,7 +4,6 @@ on:
   push:
     branches: [master]
     paths:
-      - "apps/**"
       - "!apps/gemini/**"
 
 permissions: write-all
