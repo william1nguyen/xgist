@@ -33,8 +33,8 @@ export interface Transcript {
 
 export type VideoMetadata = {
   transcripts: Transcript[];
-  keyPoints: string[];
-  keywords: string[];
+  keyPoints: string[] | null;
+  keywords: string[] | null;
   summary: string;
 };
 
