@@ -35,11 +35,11 @@ const generateMinioFileName = (fileName: string, folder?: string) => {
 };
 
 const getMinioFileUrl = (bucket: string, fileName: string) => {
-  const protocol = env.NODE_ENV === "production" ? "https" : "http";
-  const endpoint = env.MINIO_PORT
-    ? `${env.MINIO_ENDPOINT}:${env.MINIO_PORT}`
-    : `${env.MINIO_ENDPOINT}`;
-  const url = `${protocol}://${endpoint}/${bucket}/${fileName}`;
+  const prefix =
+    env.NODE_ENV === "production"
+      ? `https://${env.MINIO_API_ENDPOINT}`
+      : `http://${env.MINIO_ENDPOINT}:${env.MINIO_PORT}`;
+  const url = `${prefix}/${bucket}/${fileName}`;
   return url;
 };
 
