@@ -25,6 +25,7 @@ const EnvSchema = Type.Object({
   GOOGLE_API_KEY: Type.String(),
 
   MINIO_ENDPOINT: Type.String(),
+  MINIO_API_ENDPOINT: Type.String(),
   MINIO_PORT: OptionalDefaultNull(Type.Number({ integer: true })),
   MINIO_USE_SSL: Type.Boolean(),
   MINIO_ACCESS_KEY: Type.String(),
@@ -83,6 +84,7 @@ const validateEnv = (): Env => {
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
 
     MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
+    MINIO_API_ENDPOINT: process.env.MINIO_API_ENDPOINT,
     MINIO_PORT: coerceInt(process.env.MINIO_PORT),
     MINIO_USE_SSL: coerceBool(process.env.MINIO_USE_SSL),
     MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
