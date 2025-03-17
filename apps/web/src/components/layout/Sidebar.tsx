@@ -25,11 +25,25 @@ interface SidebarProps {
     | "settings"
     | "guide";
   categories: Category[];
+  onCategoryClick?: (categoryId: string) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeItem, categories }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeItem,
+  categories,
+  onCategoryClick,
+}) => {
   const { isAuthenticated, login, logout } = useKeycloakAuth();
   const navigate = useNavigate();
+
+  const handleCategoryClick = (categoryId: string) => {
+    if (onCategoryClick) {
+      onCategoryClick(categoryId);
+    } else {
+      navigate(`/explore?category=${categoryId}`);
+    }
+  };
+
   return (
     <div className="w-16 md:w-60 bg-slate-900 text-white flex flex-col">
       <button
@@ -97,15 +111,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem, categories }) => {
 
             <div className="mt-3 space-y-1">
               {categories.map((category) => (
-                <Link
+                <button
                   key={category.id}
-                  to={`/category/${category.id}`}
-                  className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white"
+                  onClick={() => handleCategoryClick(category.id)}
+                  className="w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white"
                 >
                   <span className="truncate hidden md:inline">
                     {category.label}
                   </span>
-                </Link>
+                </button>
               ))}
             </div>
           </div>
