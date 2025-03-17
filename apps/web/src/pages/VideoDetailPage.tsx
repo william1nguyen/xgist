@@ -5,14 +5,12 @@ import {
   ThumbsUp,
   Eye,
   Download,
-  Share,
   Bookmark,
   FastForward,
   ChevronLeft,
   Heart,
   Play,
   Link2,
-  MoreHorizontal,
   Loader2,
   FileText,
   Lock,
@@ -53,46 +51,55 @@ export const VideoDetailPage = () => {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const { user, isAuthenticated, login } = useKeycloakAuth();
 
-  useEffect(() => {
-    const fetchVideoDetails = async () => {
-      setLoading(true);
-      try {
-        const res = await httpClient.get(
-          `${env.VITE_BASE_URL}/v1/videos/${id}`
-        );
-        const data = res.data.data.video;
-        setVideo(data);
-        setIsLiked(data.isLiked?.state);
-        setIsBookmarked(data.isBookmarked?.state);
+  const fetchVideoDetails = async () => {
+    setLoading(true);
+    try {
+      const res = await httpClient.get(`${env.VITE_BASE_URL}/v1/videos/${id}`);
+      const data = res.data.data.video;
+      setVideo(data);
+      setIsLiked(data.isLiked?.state);
+      setIsBookmarked(data.isBookmarked?.state);
 
-        if (data.isSummarized && data.metadata) {
-          setDetailedSummary(data.metadata.summary || "");
-          setKeyPoints(data.metadata.keyPoints || []);
-          setKeywords(data.metadata.keywords || []);
-          setTranscript(data.metadata.transcripts);
-        }
-
-        try {
-          const relatedResponse = await httpClient.get<
-            ApiResponse<VideosResponse>
-          >(
-            `${env.VITE_BASE_URL}/v1/videos/${data.id}/related?category=${data.category}&page=1&size=8`
-          );
-          setRelatedVideos(relatedResponse.data.data.videos);
-        } catch (error) {
-          console.log(error);
-        }
-
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching video details:", err);
-        setError("Failed to load video details. Please try again later.");
-        setLoading(false);
+      if (data.isSummarized && data.metadata) {
+        setDetailedSummary(data.metadata.summary || "");
+        setKeyPoints(data.metadata.keyPoints || []);
+        setKeywords(data.metadata.keywords || []);
+        setTranscript(data.metadata.transcripts);
       }
-    };
 
+      try {
+        const relatedResponse = await httpClient.get<
+          ApiResponse<VideosResponse>
+        >(
+          `${env.VITE_BASE_URL}/v1/videos/${data.id}/related?category=${data.category}&page=1&size=8`
+        );
+        setRelatedVideos(relatedResponse.data.data.videos);
+      } catch (error) {
+        console.log(error);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching video details:", err);
+      setError("Failed to load video details. Please try again later.");
+      setLoading(false);
+    }
+  };
+
+  const updateVideoViews = async () => {
+    try {
+      await httpClient.post(`${env.VITE_BASE_URL}/v1/videos/views`, {
+        videoId: id,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
     if (id) {
       fetchVideoDetails();
+      updateVideoViews();
     }
   }, [id]);
 
@@ -109,7 +116,7 @@ export const VideoDetailPage = () => {
   };
 
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/video/${id}`;
+    const url = `${window.location.origin}/videos/${id}`;
     navigator.clipboard.writeText(url);
     alert("Đã sao chép liên kết vào clipboard!");
   };
@@ -362,10 +369,6 @@ export const VideoDetailPage = () => {
               <Download size={16} />
               <span>Tải xuống</span>
             </button>
-            <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
-              <Share size={16} />
-              <span>Chia sẻ</span>
-            </button>
             <button
               className={`flex items-center gap-1 px-3 py-1.5 border rounded-md text-sm 
     ${
@@ -390,9 +393,6 @@ export const VideoDetailPage = () => {
             >
               <Link2 size={16} />
               <span>Sao chép liên kết</span>
-            </button>
-            <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
-              <MoreHorizontal size={16} />
             </button>
           </div>
 
