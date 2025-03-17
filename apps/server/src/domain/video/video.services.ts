@@ -1,4 +1,4 @@
-import { and, count, eq, not } from "drizzle-orm";
+import { and, count, eq, like, not } from "drizzle-orm";
 import _ from "lodash";
 import { db } from "~/drizzle/db";
 import {
@@ -23,6 +23,8 @@ import {
   UploadVideoBody,
   SummarizeVideoBody,
   GetRelatedVideosParams,
+  GetVideosQueryString,
+  UpdateVideoViewsBody,
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
@@ -41,12 +43,13 @@ const uploadVideo = createUploader({
 });
 
 export const getVideos = async (
-  { page = 1, size = 100 }: GetQueryString,
+  { page = 1, size = 100, category }: GetVideosQueryString,
   userId?: string
 ) => {
   try {
     const offset = (page - 1) * size;
     const queryOptions: any = {
+      where: category ? eq(videoTable.category, category) : undefined,
       with: {
         creator: true,
       },
@@ -132,8 +135,23 @@ export const getVideoDetail = async (
         },
       };
     }
+
     const video = await db.query.videoTable.findFirst(queryOptions);
-    return itemResponse({ video });
+    const likes = (
+      await db.query.videoLikeTable.findMany({
+        where: and(
+          eq(videoLikeTable.videoId, videoId),
+          eq(videoLikeTable.state, true)
+        ),
+      })
+    ).length;
+
+    const videoWithLikes = {
+      ...video,
+      likes,
+    };
+
+    return itemResponse({ video: videoWithLikes });
   } catch (error) {
     logger.error(`Failed to get video ${videoId}: ${error}`);
     throw new VideoNotFoundError();
@@ -207,6 +225,26 @@ export const postVideo = async (
   });
 
   return res;
+};
+
+export const updateVideoViews = async ({ videoId }: UpdateVideoViewsBody) => {
+  const video = await db.query.videoTable.findFirst({
+    where: eq(videoTable.id, videoId),
+  });
+
+  if (!video) {
+    throw new VideoNotFoundError();
+  }
+
+  const res = await db
+    .update(videoTable)
+    .set({
+      views: video.views + 1,
+    })
+    .where(eq(videoTable.id, videoId))
+    .returning();
+
+  return res[0];
 };
 
 export const toggleLike = async (

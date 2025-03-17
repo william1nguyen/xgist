@@ -10,6 +10,7 @@ import {
   summarizeVideo,
   toggleBookmark,
   toggleLike,
+  updateVideoViews,
 } from "./video.services";
 import {
   ActivitiesResponse,
@@ -17,10 +18,12 @@ import {
   GetRelatedVideosParams,
   GetRelatedVideosQuerystring,
   GetVideoDetailParams,
+  GetVideosQueryString,
   StatisticsResponse,
   SummarizeVideoBody,
   ToggleBookmarkParams,
   ToggleLikeParams,
+  UpdateVideoViewsBody,
   UploadVideoBody,
 } from "./video.types";
 import {
@@ -38,7 +41,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
       schema: {
         tags: tags,
         description: "Lấy dữ liệu videos",
-        querystring: GetQueryString,
+        querystring: GetVideosQueryString,
       },
       config: {
         shouldHanldeHybrid: true,
@@ -189,6 +192,28 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await postVideo(req.body, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/views",
+    {
+      schema: {
+        tags: tags,
+        description: "Xem một video",
+        body: UpdateVideoViewsBody,
+      },
+      config: {
+        shouldSkipAuth: true,
+        rateLimit: {
+          max: 3,
+          timeWindow: "1hour",
+        },
+      },
+    },
+    async (req) => {
+      const res = await updateVideoViews(req.body);
       return res;
     }
   );

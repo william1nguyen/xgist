@@ -3,6 +3,7 @@ import {
   BaseModelSchema,
   createItemResponseSchema,
   createListResponseSchema,
+  GetQueryString,
   OptionalDefaultNull,
 } from "~/infra/utils/schema";
 import { User } from "../user/user.types";
@@ -80,6 +81,12 @@ export const SummarizeVideoBody = Type.Object({
 });
 export type SummarizeVideoBody = Static<typeof SummarizeVideoBody>;
 
+export const GetVideosQueryString = Type.Object({
+  category: Type.Optional(Category),
+  ...GetQueryString.properties,
+});
+export type GetVideosQueryString = Static<typeof GetVideosQueryString>;
+
 export const GetVideoDetailParams = Type.Object({
   videoId: Type.String(),
 });
@@ -98,6 +105,11 @@ export const GetRelatedVideosQuerystring = Type.Object({
 export type GetRelatedVideosQuerystring = Static<
   typeof GetRelatedVideosQuerystring
 >;
+
+export const UpdateVideoViewsBody = Type.Object({
+  videoId: Type.String(),
+});
+export type UpdateVideoViewsBody = Static<typeof UpdateVideoViewsBody>;
 
 export const ToggleLikeParams = Type.Object({
   videoId: Type.String(),
