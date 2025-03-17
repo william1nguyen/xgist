@@ -1,4 +1,5 @@
 import fastifyCors from "@fastify/cors";
+import FastifyRateLimit from "@fastify/rate-limit";
 import fastifyMultipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import scalar from "@scalar/fastify-api-reference";
@@ -21,6 +22,11 @@ app.register(fastifyCors, {
   allowedHeaders: ["Content-Type", "Authorization"],
   exposedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
+});
+
+app.register(FastifyRateLimit, {
+  max: 100,
+  timeWindow: "1 minute",
 });
 
 app.addHook("preHandler", execSecurityHandlerChain);

@@ -1,29 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FastForward,
-  Heart,
-  MoreHorizontal,
-  Eye,
-  Download,
-  Share,
-  Trash,
-} from "lucide-react";
+import { FastForward, Eye, Download, Share, Trash } from "lucide-react";
 import { VideoItem } from "../../types";
 
 interface VideoCardProps {
   item: VideoItem & {
-    formattedDuration?: string;
     formattedViews?: string;
     creatorName?: string;
     creatorAvatar?: string;
     summarized?: boolean;
-    readingTime?: string;
-    wordCount?: string;
     size?: string;
     format?: string;
     resolution?: string;
-    originalDuration?: string;
   };
   viewMode: "grid" | "list";
   isSelected: boolean;
@@ -80,11 +68,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             alt={item.title}
             className="w-full h-40 object-cover"
           />
-          <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-0.5 text-xs rounded">
-            {item.formattedDuration ||
-              (item.originalDuration &&
-                `${item.originalDuration} → ${item.readingTime}`)}
-          </div>
           {(item.summarized || item.isSummarized) && (
             <div className="absolute top-2 left-2 bg-indigo-600 text-white px-2 py-0.5 text-xs rounded-md flex items-center">
               <FastForward size={12} className="mr-1" />
@@ -123,30 +106,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
                 </span>
               </div>
             )}
-            {contentType === "summary" && item.wordCount && (
-              <div className="flex items-center text-xs text-gray-500">
-                <span>{item.wordCount}</span>
-              </div>
-            )}
-
-            <div
-              className="flex items-center space-x-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button className="text-gray-400 hover:text-red-500">
-                <Heart size={16} />
-              </button>
-              <button
-                className="text-gray-400 hover:text-red-500"
-                onClick={handleDelete}
-                title="Xóa"
-              >
-                <Trash size={16} />
-              </button>
-              <button className="text-gray-400 hover:text-gray-700">
-                <MoreHorizontal size={16} />
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -164,10 +123,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           alt={item.title}
           className="w-full h-28 object-cover"
         />
-        <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-1.5 py-0.5 text-xs rounded">
-          {item.formattedDuration ||
-            (item.originalDuration && `${item.originalDuration}`)}
-        </div>
         {(item.summarized || item.isSummarized) && (
           <div className="absolute top-2 left-2 bg-indigo-600 text-white px-1.5 py-0.5 text-xs rounded-md flex items-center">
             <FastForward size={10} className="mr-1" />
@@ -198,13 +153,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             <span>{item.format || "TXT"}</span>
           )}
           <span className="mx-2">•</span>
-          {contentType === "summary" && item.wordCount ? (
-            <span>{item.wordCount}</span>
-          ) : item.size ? (
-            <span>{item.size}</span>
-          ) : (
-            <span>--</span>
-          )}
+          {item.size ? <span>{item.size}</span> : <span>--</span>}
         </div>
 
         <div className="flex items-center justify-between">
@@ -222,17 +171,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               </span>
             </div>
           )}
-          {contentType === "summary" &&
-            item.originalDuration &&
-            item.readingTime && (
-              <div className="flex items-center text-xs text-gray-600">
-                <span>
-                  Video gốc: {item.originalDuration} → Tóm tắt:{" "}
-                  {item.readingTime}
-                </span>
-              </div>
-            )}
-
           <div
             className="flex items-center space-x-3"
             onClick={(e) => e.stopPropagation()}
