@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "summarize": "Tóm tắt Video",
+    "upload": "Đăng Video"
+  },
+  "page_title": {
+    "create": "Tạo tóm tắt video",
+    "upload": "Đăng video mới"
+  },
+  "heading": {
+    "ai_summary": "Tóm tắt video thông minh bằng AI"
+  },
+  "dropzone": {
+    "text": "Kéo thả video vào đây hoặc nhấp để chọn",
+    "formats": "Hỗ trợ MP4, MOV, AVI - Tối đa 50MB"
+  },
+  "advanced_options": {
+    "title": "Tùy chọn nâng cao",
+    "show": "Hiển thị tùy chọn",
+    "hide": "Ẩn tùy chọn",
+    "extract_keywords": "Trích xuất từ khóa",
+    "extract_key_points": "Trích xuất ý chính"
+  },
+  "summary_options": {
+    "title": "Tùy chọn tóm tắt",
+    "auto_summary": "Video của bạn sẽ được tự động tóm tắt bằng AI khi đăng lên"
+  },
+  "buttons": {
+    "cancel": "Hủy",
+    "create_summary": "Tạo tóm tắt",
+    "create_new": "Tạo tóm tắt mới",
+    "download_pdf": "Tải xuống PDF",
+    "share": "Chia sẻ",
+    "publish": "Đăng video"
+  },
+  "file": {
+    "selected": "Đã chọn video"
+  },
+  "progress": {
+    "uploading": "Đang tải lên video...",
+    "processing": "Đang xử lý video...",
+    "finishing": "Hoàn tất"
+  },
+  "loading": {
+    "title": "Đang xử lý video",
+    "please_wait": "Vui lòng đợi trong giây lát."
+  },
+  "results": {
+    "title": "Kết quả tóm tắt",
+    "your_video": "Video của bạn",
+    "original": "Video gốc",
+    "summary": "Tóm tắt"
+  },
+  "preview": {
+    "summary": "Tóm tắt",
+    "key_points": "Điểm chính",
+    "keywords": "Từ khóa chính",
+    "transcript": "Phiên bản gốc"
+  },
+  "upload": {
+    "title": "Đăng video mới",
+    "thumbnail": "Ảnh thumbnail",
+    "thumbnail_dropzone": "Kéo thả ảnh thumbnail hoặc nhấp để chọn",
+    "thumbnail_formats": "Khuyến nghị: JPG, PNG - Tỷ lệ 16:9",
+    "auto_thumbnail": "Nếu không tải lên thumbnail, hệ thống sẽ tự động tạo thumbnail từ video của bạn",
+    "video_title": "Tiêu đề video",
+    "title_placeholder": "Nhập tiêu đề video",
+    "description": "Mô tả",
+    "description_placeholder": "Mô tả nội dung video của bạn",
+    "category": "Danh mục"
+  },
+  "categories": {
+    "technology": "Công nghệ",
+    "education": "Giáo dục",
+    "productivity": "Năng suất",
+    "finance": "Tài chính",
+    "travel": "Du lịch",
+    "health": "Sức khỏe",
+    "other": "Khác"
+  },
+  "errors": {
+    "invalid_image": "Vui lòng chọn file hình ảnh hợp lệ (JPG, PNG, WebP)",
+    "summarize_failed": "Tóm tắt video thất bại. Vui lòng thử lại.",
+    "upload_failed": "Tải lên video thất bại. Vui lòng thử lại."
+  },
+  "messages": {
+    "upload_success": "Video đã được đăng thành công!",
+    "link_copied": "Đã sao chép đường dẫn tóm tắt vào clipboard"
+  }
+}

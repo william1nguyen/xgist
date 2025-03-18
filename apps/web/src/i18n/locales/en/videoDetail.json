@@ -1,0 +1,64 @@
+{
+  "tabs": {
+    "original": "Original Video",
+    "summary": "Summary"
+  },
+  "buttons": {
+    "go_back": "Go Back",
+    "watch_video": "Watch Video",
+    "watch_original": "Watch Original Video",
+    "like": "Like",
+    "liked": "Liked",
+    "download": "Download",
+    "bookmark": "Save",
+    "bookmarked": "Saved",
+    "copy_link": "Copy Link",
+    "login_now": "Login Now",
+    "view_more": "View More...",
+    "collapse": "Collapse"
+  },
+  "sections": {
+    "technical_info": "Technical Information",
+    "description": "Video Description",
+    "summary": "Summary",
+    "key_points": "Key Points",
+    "keywords": "Keywords",
+    "transcript": "Transcript",
+    "related_videos": "Related Videos"
+  },
+  "info": {
+    "category": "Category",
+    "status": "Status"
+  },
+  "status": {
+    "summarized": "Summarized",
+    "processing": "Processing Summary"
+  },
+  "metrics": {
+    "views": "views",
+    "likes": "likes"
+  },
+  "auth": {
+    "login_required": "Login Required",
+    "locked_content": "Summary Content Locked",
+    "login_message": "Login to view video summaries and save time understanding the content."
+  },
+  "error_page": {
+    "title": "Error"
+  },
+  "not_found": {
+    "title": "Video Not Found",
+    "description": "The video you are looking for does not exist or has been removed."
+  },
+  "default": {
+    "unknown_creator": "Unknown Creator",
+    "unknown_date": "Unknown date"
+  },
+  "alerts": {
+    "link_copied": "Link copied to clipboard!"
+  },
+  "errors": {
+    "fetch_failed": "Failed to load video details. Please try again later."
+  },
+  "original_date": "Original video posted on"
+}

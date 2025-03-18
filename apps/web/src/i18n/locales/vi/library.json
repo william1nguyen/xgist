@@ -1,0 +1,25 @@
+{
+  "page_title": "Thư viện - Đã lưu",
+  "tabs": {
+    "bookmarks": "Đã lưu"
+  },
+  "sorting": {
+    "recent": "Mới nhất",
+    "oldest": "Cũ nhất",
+    "title": "Tiêu đề A-Z"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm trong danh sách đã lưu..."
+  },
+  "buttons": {
+    "loading": "Đang tải...",
+    "reload": "Tải lại"
+  },
+  "empty": {
+    "title": "Chưa có nội dung nào được lưu",
+    "description": "Bạn chưa lưu nội dung nào"
+  },
+  "errors": {
+    "fetch_failed": "Không thể tải danh sách đã lưu. Vui lòng thử lại sau."
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Folder } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { VideoItem, TabItem, SortOption } from "../types";
 import { TabNavigation } from "../components/navigation/TabNavigation";
@@ -20,6 +21,7 @@ interface BookmarkItem {
 }
 
 export const LibraryPage: React.FC = () => {
+  const { t } = useTranslation(["common", "library"]);
   const [activeTab] = useState("bookmarks");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("recent");
@@ -29,12 +31,14 @@ export const LibraryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useKeycloakAuth();
 
-  const tabs: TabItem[] = [{ id: "bookmarks", label: "Đã lưu" }];
+  const tabs: TabItem[] = [
+    { id: "bookmarks", label: t("library:tabs.bookmarks") },
+  ];
 
   const sortOptions: SortOption[] = [
-    { id: "recent", label: "Mới nhất" },
-    { id: "oldest", label: "Cũ nhất" },
-    { id: "title", label: "Tiêu đề A-Z" },
+    { id: "recent", label: t("library:sorting.recent") },
+    { id: "oldest", label: t("library:sorting.oldest") },
+    { id: "title", label: t("library:sorting.title") },
   ];
 
   useEffect(() => {
@@ -65,7 +69,7 @@ export const LibraryPage: React.FC = () => {
       setLoading(false);
     } catch (err) {
       console.error("Error fetching bookmarks:", err);
-      setError("Không thể tải danh sách đã lưu. Vui lòng thử lại sau.");
+      setError(t("library:errors.fetch_failed"));
       setLoading(false);
     }
   };
@@ -144,7 +148,7 @@ export const LibraryPage: React.FC = () => {
   return (
     <Layout
       activeItem="library"
-      title="Thư viện - Đã lưu"
+      title={t("library:page_title")}
       headerContent={headerContent}
     >
       {error && (
@@ -156,7 +160,7 @@ export const LibraryPage: React.FC = () => {
       <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="w-full md:w-auto">
           <SearchBar
-            placeholder="Tìm kiếm trong danh sách đã lưu..."
+            placeholder={t("library:search.placeholder")}
             onSearch={handleSearch}
             fullWidth={true}
           />
@@ -177,7 +181,9 @@ export const LibraryPage: React.FC = () => {
             onClick={handleReload}
             disabled={loading}
           >
-            {loading ? "Đang tải..." : "Tải lại"}
+            {loading
+              ? t("library:buttons.loading")
+              : t("library:buttons.reload")}
           </Button>
         </div>
       </div>
@@ -186,8 +192,8 @@ export const LibraryPage: React.FC = () => {
         <VideoSkeleton viewMode={viewMode} count={6} />
       ) : displayData.length === 0 ? (
         <EmptyState
-          title="Chưa có nội dung nào được lưu"
-          description="Bạn chưa lưu nội dung nào"
+          title={t("library:empty.title")}
+          description={t("library:empty.description")}
           icon={<Folder className="text-gray-400" size={28} />}
         />
       ) : (

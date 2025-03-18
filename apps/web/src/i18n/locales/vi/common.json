@@ -1,0 +1,28 @@
+{
+  "app_name": "VideoSum.AI",
+  "loading": "Đang tải...",
+  "error": "Đã xảy ra lỗi",
+  "login": "Đăng nhập",
+  "logout": "Đăng xuất",
+  "settings": "Cài đặt",
+  "language": "Ngôn ngữ",
+  "theme": "Giao diện",
+  "get_started": "Bắt đầu sử dụng",
+
+  "cancel": "Hủy",
+  "delete": "Xóa",
+  "deleteConfirmation": {
+    "title": "Xác nhận xóa",
+    "message": "Bạn có chắc chắn muốn xóa {{count}} {{type}} đã chọn? Hành động này không thể hoàn tác."
+  },
+  "itemTypes": {
+    "video": "video",
+    "video_plural": "video",
+    "summary": "bản tóm tắt",
+    "summary_plural": "bản tóm tắt",
+    "comment": "bình luận",
+    "comment_plural": "bình luận",
+    "file": "tệp",
+    "file_plural": "tệp"
+  }
+}

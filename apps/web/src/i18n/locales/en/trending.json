@@ -1,0 +1,50 @@
+{
+  "title": "Trending",
+  "tabs": {
+    "trending": "Trending",
+    "popular": "Popular"
+  },
+  "search": {
+    "placeholder": "Search trending..."
+  },
+  "buttons": {
+    "loading": "Loading...",
+    "reload": "Reload"
+  },
+  "sorting": {
+    "popular": "Most Popular",
+    "newest": "Newest",
+    "most_liked": "Most Liked",
+    "most_viewed": "Most Viewed"
+  },
+  "time_range": {
+    "today": "Today",
+    "week": "This Week",
+    "month": "This Month",
+    "year": "This Year"
+  },
+  "categories": {
+    "title": "Trending Categories",
+    "all": "All",
+    "technology": "Technology",
+    "travel": "Travel",
+    "finance": "Finance",
+    "education": "Education",
+    "health": "Health",
+    "productivity": "Productivity"
+  },
+  "sections": {
+    "trending_videos": "Trending Videos {{time}}",
+    "rising": "Rising Trends",
+    "popular_videos": "Popular Videos {{time}}"
+  },
+  "empty": {
+    "trending_title": "No Trending Content Found",
+    "trending_description": "There is currently no trending content for the selected time period.",
+    "popular_title": "No Popular Content Found",
+    "popular_description": "There is currently no popular content for the selected time period."
+  },
+  "errors": {
+    "fetch_failed": "Unable to load trending videos. Please try again later."
+  }
+}

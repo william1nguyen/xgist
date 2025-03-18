@@ -1,0 +1,46 @@
+{
+  "title": "Khám phá",
+  "explore": {
+    "title": "Khám phá nội dung video đã được tóm tắt",
+    "description": "Tiết kiệm thời gian với VideoSum.AI - Nền tảng tóm tắt video thông minh bằng AI"
+  },
+  "buttons": {
+    "summarize_now": "Tóm tắt video ngay",
+    "view_guide": "Xem hướng dẫn",
+    "reload": "Tải lại",
+    "loading": "Đang tải...",
+    "view_all": "Xem tất cả video",
+    "load_more": "Tải thêm video",
+    "upload_video": "Đăng video",
+    "get_started": "Bắt đầu sử dụng"
+  },
+  "sorting": {
+    "recent": "Mới nhất",
+    "popular": "Phổ biến nhất",
+    "trending": "Xu hướng"
+  },
+  "categories": {
+    "all": "Tất cả",
+    "technology": "Công nghệ",
+    "education": "Giáo dục",
+    "productivity": "Năng suất",
+    "finance": "Tài chính",
+    "travel": "Du lịch",
+    "health": "Sức khỏe"
+  },
+  "messages": {
+    "no_videos": "Không tìm thấy video nào phù hợp",
+    "improve_productivity": "Nâng cao hiệu suất học tập và làm việc",
+    "save_time": "Tiết kiệm thời gian với VideoSum.AI - Tóm tắt bất kỳ video nào trong vài giây",
+    "powered_by_ai": "Powered by AI"
+  },
+  "demo": {
+    "conversion": "Video 30 phút → Tóm tắt 3 phút",
+    "key_points": "Trích xuất điểm chính tự động",
+    "time_saving": "Tiết kiệm 90% thời gian xem video"
+  },
+  "minutes": "{{count}}p",
+  "errors": {
+    "fetch_failed": "Không thể tải video. Vui lòng thử lại sau."
+  }
+}

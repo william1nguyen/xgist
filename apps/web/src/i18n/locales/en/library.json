@@ -1,0 +1,25 @@
+{
+  "page_title": "Library - Bookmarks",
+  "tabs": {
+    "bookmarks": "Bookmarks"
+  },
+  "sorting": {
+    "recent": "Most Recent",
+    "oldest": "Oldest First",
+    "title": "Title A-Z"
+  },
+  "search": {
+    "placeholder": "Search in bookmarks..."
+  },
+  "buttons": {
+    "loading": "Loading...",
+    "reload": "Reload"
+  },
+  "empty": {
+    "title": "No Bookmarks Yet",
+    "description": "You haven't saved any content"
+  },
+  "errors": {
+    "fetch_failed": "Unable to load bookmarks. Please try again later."
+  }
+}

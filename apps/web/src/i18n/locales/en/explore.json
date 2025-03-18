@@ -1,0 +1,46 @@
+{
+  "title": "Explore",
+  "explore": {
+    "title": "Explore Summarized Video Content",
+    "description": "Save time with VideoSum.AI - Smart AI-powered video summarization platform"
+  },
+  "buttons": {
+    "summarize_now": "Summarize Video Now",
+    "view_guide": "View Guide",
+    "reload": "Reload",
+    "loading": "Loading...",
+    "view_all": "View All Videos",
+    "load_more": "Load More Videos",
+    "upload_video": "Upload Video",
+    "get_started": "Get Started"
+  },
+  "sorting": {
+    "recent": "Most Recent",
+    "popular": "Most Popular",
+    "trending": "Trending"
+  },
+  "categories": {
+    "all": "All",
+    "technology": "Technology",
+    "education": "Education",
+    "productivity": "Productivity",
+    "finance": "Finance",
+    "travel": "Travel",
+    "health": "Health"
+  },
+  "messages": {
+    "no_videos": "No videos found",
+    "improve_productivity": "Enhance Learning and Work Efficiency",
+    "save_time": "Save time with VideoSum.AI - Summarize any video in seconds",
+    "powered_by_ai": "Powered by AI"
+  },
+  "demo": {
+    "conversion": "30-minute video → 3-minute summary",
+    "key_points": "Automatic key points extraction",
+    "time_saving": "Save 90% of video watching time"
+  },
+  "minutes": "{{count}}m",
+  "errors": {
+    "fetch_failed": "Unable to load videos. Please try again later."
+  }
+}

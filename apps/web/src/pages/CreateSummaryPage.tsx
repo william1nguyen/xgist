@@ -18,6 +18,7 @@ import { Button } from "../components/ui/Button";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { httpClient } from "../config/httpClient";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 interface AdvancedOptions {
   keywords: boolean;
@@ -51,6 +52,8 @@ interface SummaryData {
 }
 
 export const CreateSummaryPage: React.FC = () => {
+  const { t } = useTranslation(["common", "summary", "videos"]);
+
   const [activeTab, setActiveTab] = useState<string>("summarize");
   const [showAdvancedOptions, setShowAdvancedOptions] =
     useState<boolean>(false);
@@ -81,8 +84,8 @@ export const CreateSummaryPage: React.FC = () => {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   const tabs: TabItem[] = [
-    { id: "summarize", label: "Tóm tắt Video" },
-    { id: "upload", label: "Đăng Video" },
+    { id: "summarize", label: t("summary:tabs.summarize") },
+    { id: "upload", label: t("summary:tabs.upload") },
   ];
 
   const handleAdvancedOptionChange = (option: string): void => {
@@ -117,7 +120,7 @@ export const CreateSummaryPage: React.FC = () => {
         };
         reader.readAsDataURL(file);
       } else {
-        toast.error("Vui lòng chọn file hình ảnh hợp lệ (JPG, PNG, WebP)");
+        toast.error(t("summary:errors.invalid_image"));
       }
     }
   };
@@ -183,7 +186,7 @@ export const CreateSummaryPage: React.FC = () => {
     } catch (error) {
       console.error("Summarize failed:", error);
       setIsProcessing(false);
-      toast.error("Tóm tắt video thất bại. Vui lòng thử lại.");
+      toast.error(t("summary:errors.summarize_failed"));
     }
   };
 
@@ -224,7 +227,7 @@ export const CreateSummaryPage: React.FC = () => {
         setIsComplete(true);
         setSummaryData(response.data.result);
       } else {
-        toast.success("Video đã được đăng thành công!");
+        toast.success(t("summary:messages.upload_success"));
         resetForm();
       }
 
@@ -232,7 +235,7 @@ export const CreateSummaryPage: React.FC = () => {
     } catch (error) {
       console.error("Upload failed:", error);
       setIsProcessing(false);
-      toast.error("Tải lên video thất bại. Vui lòng thử lại.");
+      toast.error(t("summary:errors.upload_failed"));
     }
   };
 
@@ -274,15 +277,15 @@ export const CreateSummaryPage: React.FC = () => {
 
   const generatePreviewTabs = (): TabItem[] => {
     const tabs: TabItem[] = [
-      { id: "summary", label: "Tóm tắt" },
-      { id: "key-points", label: "Điểm chính" },
+      { id: "summary", label: t("summary:preview.summary") },
+      { id: "key-points", label: t("summary:preview.key_points") },
     ];
 
     if (advancedOptions.keywords && summaryData?.keywords) {
-      tabs.push({ id: "keywords", label: "Từ khóa" });
+      tabs.push({ id: "keywords", label: t("summary:preview.keywords") });
     }
 
-    tabs.push({ id: "transcript", label: "Phiên bản gốc" });
+    tabs.push({ id: "transcript", label: t("summary:preview.transcript") });
     return tabs;
   };
 
@@ -366,9 +369,11 @@ export const CreateSummaryPage: React.FC = () => {
             />
             <div className="flex justify-between text-xs text-gray-700 mt-2">
               <span className="font-medium">
-                {progress < 50 && "Đang tải lên video..."}
-                {progress >= 50 && progress < 95 && "Đang xử lý video..."}
-                {progress >= 95 && "Hoàn tất"}
+                {progress < 50 && t("summary:progress.uploading")}
+                {progress >= 50 &&
+                  progress < 95 &&
+                  t("summary:progress.processing")}
+                {progress >= 95 && t("summary:progress.finishing")}
               </span>
               <span className="font-medium">{progress}%</span>
             </div>
@@ -376,7 +381,7 @@ export const CreateSummaryPage: React.FC = () => {
         )}
 
         <div className="flex justify-between text-xs text-gray-700 mt-2">
-          <span>Đã chọn video</span>
+          <span>{t("summary:file.selected")}</span>
           <span className="font-medium">
             {(videoFile!.size / (1024 * 1024)).toFixed(2)} MB
           </span>
@@ -389,7 +394,7 @@ export const CreateSummaryPage: React.FC = () => {
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
         <h3 className="text-lg font-semibold text-black mb-4">
-          Đang xử lý video
+          {t("summary:loading.title")}
         </h3>
         <ProgressBar
           progress={progress}
@@ -399,11 +404,13 @@ export const CreateSummaryPage: React.FC = () => {
         />
         <div className="mt-3 text-sm text-gray-700">
           <p className="mb-1 font-medium">
-            {progress < 50 && "Đang tải lên video..."}
-            {progress >= 50 && progress < 95 && "Đang xử lý video..."}
-            {progress >= 95 && "Đang hoàn tất..."}
+            {progress < 50 && t("summary:progress.uploading")}
+            {progress >= 50 &&
+              progress < 95 &&
+              t("summary:progress.processing")}
+            {progress >= 95 && t("summary:progress.finishing")}
           </p>
-          <p>Vui lòng đợi trong giây lát.</p>
+          <p>{t("summary:loading.please_wait")}</p>
         </div>
       </div>
     </div>
@@ -412,7 +419,11 @@ export const CreateSummaryPage: React.FC = () => {
   return (
     <Layout
       activeItem="summarize"
-      title={activeTab === "summarize" ? "Tạo tóm tắt video" : "Đăng video mới"}
+      title={
+        activeTab === "summarize"
+          ? t("summary:page_title.create")
+          : t("summary:page_title.upload")
+      }
       headerContent={headerContent}
     >
       {isProcessing && renderLoadingIndicator()}
@@ -423,7 +434,7 @@ export const CreateSummaryPage: React.FC = () => {
             <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-black mb-6 border-b pb-3">
-                  Tóm tắt video thông minh bằng AI
+                  {t("summary:heading.ai_summary")}
                 </h2>
 
                 <form onSubmit={handleSummarizeSubmit} className="space-y-6">
@@ -445,10 +456,10 @@ export const CreateSummaryPage: React.FC = () => {
                           className="mx-auto text-blue-500 mb-4"
                         />
                         <p className="text-base text-black font-medium mb-2">
-                          Kéo thả video vào đây hoặc nhấp để chọn
+                          {t("summary:dropzone.text")}
                         </p>
                         <p className="text-sm text-gray-700">
-                          Hỗ trợ MP4, MOV, AVI - Tối đa 50MB
+                          {t("summary:dropzone.formats")}
                         </p>
                       </div>
                     ) : (
@@ -459,7 +470,7 @@ export const CreateSummaryPage: React.FC = () => {
                   <div className="mt-6">
                     <div className="flex items-center justify-between mb-3">
                       <label className="block text-base font-semibold text-black">
-                        Tùy chọn nâng cao
+                        {t("summary:advanced_options.title")}
                       </label>
                       <button
                         type="button"
@@ -470,8 +481,8 @@ export const CreateSummaryPage: React.FC = () => {
                         disabled={isProcessing}
                       >
                         {showAdvancedOptions
-                          ? "Ẩn tùy chọn"
-                          : "Hiển thị tùy chọn"}{" "}
+                          ? t("summary:advanced_options.hide")
+                          : t("summary:advanced_options.show")}{" "}
                         <ChevronDown size={16} className="ml-1" />
                       </button>
                     </div>
@@ -491,7 +502,7 @@ export const CreateSummaryPage: React.FC = () => {
                                 disabled={isProcessing}
                               />
                               <span className="ml-3 text-black">
-                                Trích xuất từ khóa
+                                {t("summary:advanced_options.extract_keywords")}
                               </span>
                             </label>
                           </div>
@@ -508,7 +519,9 @@ export const CreateSummaryPage: React.FC = () => {
                                 disabled={isProcessing}
                               />
                               <span className="ml-3 text-black">
-                                Trích xuất ý chính
+                                {t(
+                                  "summary:advanced_options.extract_key_points"
+                                )}
                               </span>
                             </label>
                           </div>
@@ -524,7 +537,7 @@ export const CreateSummaryPage: React.FC = () => {
                         onClick={resetForm}
                         type="button"
                       >
-                        Hủy
+                        {t("summary:buttons.cancel")}
                       </Button>
                     ) : (
                       <Button
@@ -532,7 +545,7 @@ export const CreateSummaryPage: React.FC = () => {
                         type="submit"
                         disabled={!videoFile}
                       >
-                        Tạo tóm tắt
+                        {t("summary:buttons.create_summary")}
                       </Button>
                     )}
                   </div>
@@ -545,10 +558,10 @@ export const CreateSummaryPage: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-2xl font-bold text-black">
-                      Kết quả tóm tắt
+                      {t("summary:results.title")}
                     </h2>
                     <p className="text-sm text-gray-700 mt-1">
-                      {videoFile?.name || "Video của bạn"}
+                      {videoFile?.name || t("summary:results.your_video")}
                     </p>
                   </div>
                   <div>
@@ -558,7 +571,7 @@ export const CreateSummaryPage: React.FC = () => {
                       onClick={resetForm}
                       type="button"
                     >
-                      Tạo tóm tắt mới
+                      {t("summary:buttons.create_new")}
                     </Button>
                   </div>
                 </div>
@@ -578,8 +591,10 @@ export const CreateSummaryPage: React.FC = () => {
                     <div className="flex items-center space-x-2 mb-5 pb-3 border-b border-gray-100">
                       <Clock size={18} className="text-gray-600" />
                       <span className="text-sm text-gray-700 font-medium">
-                        Video gốc: {summaryData.originalDuration || "N/A"} | Tóm
-                        tắt: {summaryData.readingTime || "N/A"}
+                        {t("summary:results.original")}:{" "}
+                        {summaryData.originalDuration || "N/A"} |{" "}
+                        {t("summary:results.summary")}:{" "}
+                        {summaryData.readingTime || "N/A"}
                       </span>
                     </div>
 
@@ -605,7 +620,7 @@ export const CreateSummaryPage: React.FC = () => {
                         }
                         type="button"
                       >
-                        Tải xuống PDF
+                        {t("summary:buttons.download_pdf")}
                       </Button>
                       <Button
                         variant="primary"
@@ -614,13 +629,11 @@ export const CreateSummaryPage: React.FC = () => {
                             window.location.origin +
                               `/summary/${summaryData.id}`
                           );
-                          toast.success(
-                            "Đã sao chép đường dẫn tóm tắt vào clipboard"
-                          );
+                          toast.success(t("summary:messages.link_copied"));
                         }}
                         type="button"
                       >
-                        Chia sẻ
+                        {t("summary:buttons.share")}
                       </Button>
                     </div>
                   </div>
@@ -629,7 +642,7 @@ export const CreateSummaryPage: React.FC = () => {
                 {previewMode === "key-points" && summaryData?.keyPoints && (
                   <div>
                     <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-100">
-                      Điểm chính
+                      {t("summary:preview.key_points")}
                     </h3>
                     <ul className="space-y-4">
                       {summaryData.keyPoints.map(
@@ -649,7 +662,7 @@ export const CreateSummaryPage: React.FC = () => {
                 {previewMode === "keywords" && summaryData?.keywords && (
                   <div>
                     <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-100">
-                      Từ khóa chính
+                      {t("summary:preview.keywords")}
                     </h3>
                     <div className="flex flex-wrap gap-3">
                       {summaryData.keywords.map(
@@ -670,7 +683,7 @@ export const CreateSummaryPage: React.FC = () => {
                   <div>
                     <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
                       <h3 className="text-lg font-semibold text-black">
-                        Phiên bản gốc
+                        {t("summary:preview.transcript")}
                       </h3>
                       <div className="flex items-center space-x-2"></div>
                     </div>
@@ -698,7 +711,7 @@ export const CreateSummaryPage: React.FC = () => {
           <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
             <div className="p-6">
               <h2 className="text-2xl font-bold text-black mb-6 border-b pb-3">
-                Đăng video mới
+                {t("summary:upload.title")}
               </h2>
 
               <div className="grid grid-cols-1 gap-6">
@@ -720,10 +733,10 @@ export const CreateSummaryPage: React.FC = () => {
                         className="mx-auto text-blue-500 mb-4"
                       />
                       <p className="text-base text-black font-medium mb-2">
-                        Kéo thả video vào đây hoặc nhấp để chọn
+                        {t("summary:dropzone.text")}
                       </p>
                       <p className="text-sm text-gray-700">
-                        Hỗ trợ MP4, MOV, AVI - Tối đa 50MB
+                        {t("summary:dropzone.formats")}
                       </p>
                     </div>
                   ) : (
@@ -733,7 +746,7 @@ export const CreateSummaryPage: React.FC = () => {
 
                 <div className="mt-2">
                   <label className="block text-base font-semibold text-black mb-3">
-                    Ảnh thumbnail
+                    {t("summary:upload.thumbnail")}
                   </label>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -751,10 +764,10 @@ export const CreateSummaryPage: React.FC = () => {
                         />
                         <ImageIcon size={36} className="text-blue-500 mb-3" />
                         <p className="text-sm text-black font-medium mb-1">
-                          Kéo thả ảnh thumbnail hoặc nhấp để chọn
+                          {t("summary:upload.thumbnail_dropzone")}
                         </p>
                         <p className="text-xs text-gray-700">
-                          Khuyến nghị: JPG, PNG - Tỷ lệ 16:9
+                          {t("summary:upload.thumbnail_formats")}
                         </p>
                       </div>
                     </div>
@@ -782,8 +795,7 @@ export const CreateSummaryPage: React.FC = () => {
 
                   {!thumbnailPreview && (
                     <p className="text-xs text-gray-700 mt-2">
-                      Nếu không tải lên thumbnail, hệ thống sẽ tự động tạo
-                      thumbnail từ video của bạn
+                      {t("summary:upload.auto_thumbnail")}
                     </p>
                   )}
                 </div>
@@ -794,7 +806,8 @@ export const CreateSummaryPage: React.FC = () => {
                       htmlFor="videoTitle"
                       className="block text-base font-semibold text-black mb-2"
                     >
-                      Tiêu đề video <span className="text-red-500">*</span>
+                      {t("summary:upload.video_title")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -803,7 +816,7 @@ export const CreateSummaryPage: React.FC = () => {
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         setVideoTitle(e.target.value)
                       }
-                      placeholder="Nhập tiêu đề video"
+                      placeholder={t("summary:upload.title_placeholder")}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                       required
                       disabled={isProcessing}
@@ -815,7 +828,7 @@ export const CreateSummaryPage: React.FC = () => {
                       htmlFor="videoDescription"
                       className="block text-base font-semibold text-black mb-2"
                     >
-                      Mô tả
+                      {t("summary:upload.description")}
                     </label>
                     <textarea
                       id="videoDescription"
@@ -823,7 +836,7 @@ export const CreateSummaryPage: React.FC = () => {
                       onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                         setVideoDescription(e.target.value)
                       }
-                      placeholder="Mô tả nội dung video của bạn"
+                      placeholder={t("summary:upload.description_placeholder")}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                       disabled={isProcessing}
@@ -835,7 +848,7 @@ export const CreateSummaryPage: React.FC = () => {
                       htmlFor="videoCategory"
                       className="block text-base font-semibold text-black mb-2"
                     >
-                      Danh mục
+                      {t("summary:upload.category")}
                     </label>
                     <select
                       id="videoCategory"
@@ -854,13 +867,27 @@ export const CreateSummaryPage: React.FC = () => {
                         ))
                       ) : (
                         <>
-                          <option value="technology">Công nghệ</option>
-                          <option value="education">Giáo dục</option>
-                          <option value="productivity">Năng suất</option>
-                          <option value="finance">Tài chính</option>
-                          <option value="travel">Du lịch</option>
-                          <option value="health">Sức khỏe</option>
-                          <option value="other">Khác</option>
+                          <option value="technology">
+                            {t("summary:categories.technology")}
+                          </option>
+                          <option value="education">
+                            {t("summary:categories.education")}
+                          </option>
+                          <option value="productivity">
+                            {t("summary:categories.productivity")}
+                          </option>
+                          <option value="finance">
+                            {t("summary:categories.finance")}
+                          </option>
+                          <option value="travel">
+                            {t("summary:categories.travel")}
+                          </option>
+                          <option value="health">
+                            {t("summary:categories.health")}
+                          </option>
+                          <option value="other">
+                            {t("summary:categories.other")}
+                          </option>
                         </>
                       )}
                     </select>
@@ -870,7 +897,7 @@ export const CreateSummaryPage: React.FC = () => {
                 <div className="mt-4 p-5 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base font-semibold text-black">
-                      Tùy chọn tóm tắt
+                      {t("summary:summary_options.title")}
                     </h3>
                     <button
                       type="button"
@@ -881,8 +908,8 @@ export const CreateSummaryPage: React.FC = () => {
                       disabled={isProcessing}
                     >
                       {showAdvancedOptions
-                        ? "Ẩn tùy chọn"
-                        : "Hiển thị tùy chọn"}{" "}
+                        ? t("summary:advanced_options.hide")
+                        : t("summary:advanced_options.show")}{" "}
                       <ChevronDown size={16} className="ml-1" />
                     </button>
                   </div>
@@ -901,7 +928,7 @@ export const CreateSummaryPage: React.FC = () => {
                             disabled={isProcessing}
                           />
                           <span className="ml-3 text-black">
-                            Trích xuất từ khóa
+                            {t("summary:advanced_options.extract_keywords")}
                           </span>
                         </label>
                       </div>
@@ -918,7 +945,7 @@ export const CreateSummaryPage: React.FC = () => {
                             disabled={isProcessing}
                           />
                           <span className="ml-3 text-black">
-                            Trích xuất ý chính
+                            {t("summary:advanced_options.extract_key_points")}
                           </span>
                         </label>
                       </div>
@@ -926,14 +953,14 @@ export const CreateSummaryPage: React.FC = () => {
                   )}
 
                   <p className="text-sm text-gray-700 mt-2">
-                    Video của bạn sẽ được tự động tóm tắt bằng AI khi đăng lên
+                    {t("summary:summary_options.auto_summary")}
                   </p>
                 </div>
 
                 <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
                   {isProcessing ? (
                     <Button variant="outline" onClick={resetForm} type="button">
-                      Hủy
+                      {t("summary:buttons.cancel")}
                     </Button>
                   ) : (
                     <Button
@@ -942,7 +969,7 @@ export const CreateSummaryPage: React.FC = () => {
                       disabled={!videoFile || !videoTitle}
                       type="button"
                     >
-                      Đăng video
+                      {t("summary:buttons.publish")}
                     </Button>
                   )}
                 </div>

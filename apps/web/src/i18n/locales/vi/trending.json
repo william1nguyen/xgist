@@ -1,0 +1,50 @@
+{
+  "title": "Xu hướng",
+  "tabs": {
+    "trending": "Xu hướng",
+    "popular": "Đang thịnh hành"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm xu hướng..."
+  },
+  "buttons": {
+    "loading": "Đang tải...",
+    "reload": "Tải lại"
+  },
+  "sorting": {
+    "popular": "Phổ biến nhất",
+    "newest": "Mới nhất",
+    "most_liked": "Nhiều lượt thích",
+    "most_viewed": "Nhiều lượt xem"
+  },
+  "time_range": {
+    "today": "Hôm nay",
+    "week": "Tuần này",
+    "month": "Tháng này",
+    "year": "Năm nay"
+  },
+  "categories": {
+    "title": "Danh mục thịnh hành",
+    "all": "Tất cả",
+    "technology": "Công nghệ",
+    "travel": "Du lịch",
+    "finance": "Tài chính",
+    "education": "Giáo dục",
+    "health": "Sức khỏe",
+    "productivity": "Năng suất"
+  },
+  "sections": {
+    "trending_videos": "Video thịnh hành {{time}}",
+    "rising": "Đang lên xu hướng",
+    "popular_videos": "Đang thịnh hành {{time}}"
+  },
+  "empty": {
+    "trending_title": "Không tìm thấy nội dung xu hướng",
+    "trending_description": "Hiện không có nội dung xu hướng nào trong thời gian đã chọn.",
+    "popular_title": "Không tìm thấy nội dung thịnh hành",
+    "popular_description": "Hiện không có nội dung thịnh hành nào trong thời gian đã chọn."
+  },
+  "errors": {
+    "fetch_failed": "Không thể tải video xu hướng. Vui lòng thử lại sau."
+  }
+}

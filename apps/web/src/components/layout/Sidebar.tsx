@@ -1,15 +1,18 @@
 import React from "react";
 import {
   FastForward,
-  TrendingUp,
-  Zap,
-  BookOpen,
   Settings,
   LogOut,
   Video,
+  Globe,
+  TrendingUp,
+  Zap,
+  BookOpen,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useKeycloakAuth } from "../../hooks/useKeycloakAuth";
+import { LanguageSelector } from "../i18n/LanguageSelector";
 
 export interface Category {
   id: string;
@@ -33,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   categories,
   onCategoryClick,
 }) => {
+  const { t } = useTranslation(["sidebar", "common"]);
   const { isAuthenticated, login, logout } = useKeycloakAuth();
   const navigate = useNavigate();
 
@@ -65,7 +69,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Video className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">Khám phá</span>
+            <span className="hidden md:inline">
+              {t("explore", { ns: "sidebar" })}
+            </span>
           </Link>
 
           <Link
@@ -77,7 +83,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <TrendingUp className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">Xu hướng</span>
+            <span className="hidden md:inline">
+              {t("trending", { ns: "sidebar" })}
+            </span>
           </Link>
 
           <Link
@@ -89,7 +97,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Zap className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">Tạo tóm tắt</span>
+            <span className="hidden md:inline">
+              {t("create_summary", { ns: "sidebar" })}
+            </span>
           </Link>
 
           <Link
@@ -101,12 +111,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <BookOpen className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">Thư viện</span>
+            <span className="hidden md:inline">
+              {t("library", { ns: "sidebar" })}
+            </span>
           </Link>
 
           <div className="pt-4 mt-4 border-t border-slate-700">
             <h3 className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:block">
-              Danh mục
+              {t("categories", { ns: "sidebar" })}
             </h3>
 
             <div className="mt-3 space-y-1">
@@ -117,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white"
                 >
                   <span className="truncate hidden md:inline">
-                    {category.label}
+                    {t(`category_${category.id}`, { ns: "sidebar" })}
                   </span>
                 </button>
               ))}
@@ -126,21 +138,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      <div className="p-4 border-t border-slate-700">
+      {/* Thêm Language Selector và các button khác vào phần footer */}
+      <div className="p-4 border-t border-slate-700 space-y-2">
+        <div className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300">
+          <Globe className="mr-3 h-5 w-5 text-slate-400" />
+          <span className="hidden md:inline">
+            {t("language", { ns: "common" })}
+          </span>
+          <div className="ml-auto">
+            <LanguageSelector compact={true} />
+          </div>
+        </div>
+
         <Link
           to="/settings"
-          className="flex items-center px-2 py-2 mb-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
+          className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
         >
           <Settings className="mr-3 h-5 w-5 text-slate-400" />
-          <span className="hidden md:inline">Cài đặt</span>
+          <span className="hidden md:inline">
+            {t("settings", { ns: "common" })}
+          </span>
         </Link>
+
         <button
           className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer w-full text-left"
           onClick={() => (isAuthenticated ? logout() : login())}
         >
           <LogOut className="mr-3 h-5 w-5 text-slate-400" />
           <span className="hidden md:inline">
-            {isAuthenticated ? "Đăng xuất" : "Đăng nhập"}
+            {isAuthenticated
+              ? t("logout", { ns: "common" })
+              : t("login", { ns: "common" })}
           </span>
         </button>
       </div>
