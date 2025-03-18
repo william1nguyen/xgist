@@ -1,0 +1,89 @@
+{
+  "pageTitle": "User Guide",
+  "goBack": "Go Back",
+  "header": {
+    "title": "VideoSum.AI User Guide",
+    "description": "Save time and quickly grasp video content with advanced AI summarization technology",
+    "tryNow": "Try Now"
+  },
+  "selectGuide": "Select Guide",
+  "guide1": {
+    "title": "Summarize YouTube Videos",
+    "description": "How to summarize videos from YouTube or other video platforms",
+    "step1": "Copy the video URL from YouTube, Vimeo, or other video platforms",
+    "step2": "Paste the URL into the input field on the summary page",
+    "step3": "Select the summary language (English or Vietnamese)",
+    "step4": "Click the 'Summarize Video' button and wait for processing",
+    "step5": "View the video summary with extracted key points"
+  },
+  "guide2": {
+    "title": "Summarize Uploaded Videos",
+    "description": "How to summarize video files already on your device",
+    "step1": "Click the 'Upload Video File' button on the summary page",
+    "step2": "Select the video file (supports MP4, AVI, MOV, WMV...)",
+    "step3": "Choose the summary language and desired detail level",
+    "step4": "Click 'Start Summary' and wait for processing to complete",
+    "step5": "View the video summary with key points and timestamps"
+  },
+  "guide3": {
+    "title": "Using Advanced Features",
+    "description": "Customize advanced settings for more suitable summary results",
+    "step1": "Open the 'Advanced Settings' menu on the summary page",
+    "step2": "Adjust summary length (concise, moderate, detailed)",
+    "step3": "Select summary style (overview, key-points focused, analytical)",
+    "step4": "Add keywords for AI to focus on specific topics",
+    "step5": "Enable important image extraction from video (Premium)"
+  },
+  "guide4": {
+    "title": "Managing and Sharing Summaries",
+    "description": "How to store, share, and publish your video summaries",
+    "step1": "Log in to your VideoSum.AI account",
+    "step2": "Access 'My Library' page to view all created summaries",
+    "step3": "Use the 'Share' button to send summaries via email or social media",
+    "step4": "Click 'Download' to save summaries as PDF or text",
+    "step5": "Embed summaries in your website or blog using embed code (Premium)"
+  },
+  "timeSaver": {
+    "title": "Save Time with VideoSum.AI",
+    "description": "VideoSum.AI users save an average of 90% of video viewing time. Summarizing a 30-minute video takes just seconds."
+  },
+  "tips": {
+    "title": "Helpful Tips",
+    "guide1": "For YouTube videos, you can focus on summarizing a specific section by adding start and end times.",
+    "guide2": "Customize summary detail based on video length. Videos longer than 1 hour should be summarized at the 'Overview' level.",
+    "guide3": "Use keywords to guide the AI to focus on specific topics important to you in the video.",
+    "guide4": "Export summaries to Google Docs or Notion for easy integration into your current workflow."
+  },
+  "buttons": {
+    "summarizeYoutube": "Summarize YouTube Video",
+    "uploadVideo": "Upload Video for Summary",
+    "exploreAdvanced": "Explore Advanced Features",
+    "goToLibrary": "Go to My Library",
+    "nextGuide": "Next Guide",
+    "startOver": "Start Over"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": {
+      "question": "1. What types of videos work with VideoSum.AI?",
+      "answer": "VideoSum.AI can summarize most types of videos with spoken content, including lectures, webinars, podcasts, news, etc. The system supports multiple languages."
+    },
+    "q2": {
+      "question": "2. Are video summaries accurate?",
+      "answer": "VideoSum.AI uses advanced AI technology to ensure high accuracy. However, best results are achieved with videos that have clear audio and minimal background noise."
+    },
+    "q3": {
+      "question": "3. Is my video data safe?",
+      "answer": "We value your privacy. Uploaded videos are only used to create summaries and will be deleted after 24 hours, unless you choose to save them to your personal library."
+    },
+    "q4": {
+      "question": "4. How do I get a Premium account?",
+      "answer": "You can upgrade to a Premium account from the account settings page. The Premium package offers many advanced features and unlimited video summaries."
+    }
+  },
+  "cta": {
+    "title": "Start Summarizing Your First Video",
+    "description": "Save video viewing time and quickly capture important information",
+    "button": "Summarize Video Now"
+  }
+}

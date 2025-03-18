@@ -2,6 +2,7 @@ import React from "react";
 import { Category } from "../../types";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
+import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
   categories?: Category[];
@@ -29,13 +30,15 @@ export const Layout: React.FC<LayoutProps> = ({
   headerContent,
   sidebarProps,
 }) => {
+  const { t } = useTranslation(["sidebar"]);
+
   const defaultCategories: Category[] = [
-    { id: "technology", label: "Công nghệ" },
-    { id: "education", label: "Giáo dục" },
-    { id: "productivity", label: "Năng suất" },
-    { id: "finance", label: "Tài chính" },
-    { id: "travel", label: "Du lịch" },
-    { id: "health", label: "Sức khỏe" },
+    { id: "technology", label: t("category_technology") },
+    { id: "education", label: t("category_education") },
+    { id: "productivity", label: t("category_productivity") },
+    { id: "finance", label: t("category_finance") },
+    { id: "travel", label: t("category_travel") },
+    { id: "health", label: t("category_health") },
   ];
 
   const categories = sidebarProps?.categories || defaultCategories;

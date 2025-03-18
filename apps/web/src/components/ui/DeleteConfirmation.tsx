@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
 import { Modal } from "./Modal";
+import { useTranslation } from "react-i18next";
 
 interface DeleteConfirmationProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
   itemCount,
   itemType,
 }) => {
+  const { t } = useTranslation(["common"]);
+
   const icon = (
     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
       <AlertTriangle className="text-red-600" size={24} />
@@ -29,13 +32,13 @@ export const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
         onClick={onClose}
         className="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50"
       >
-        Hủy
+        {t("cancel")}
       </button>
       <button
         onClick={onConfirm}
         className="px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700"
       >
-        Xóa
+        {t("delete")}
       </button>
     </>
   );
@@ -44,13 +47,15 @@ export const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Xác nhận xóa"
+      title={t("deleteConfirmation.title")}
       icon={icon}
       actions={actions}
     >
       <p className="text-center text-gray-500">
-        Bạn có chắc chắn muốn xóa {itemCount} {itemType} đã chọn? Hành động này
-        không thể hoàn tác.
+        {t("deleteConfirmation.message", {
+          count: itemCount,
+          type: t(`itemTypes.${itemType}`, { count: itemCount }),
+        })}
       </p>
     </Modal>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { Plus, TrendingUp, FastForward } from "lucide-react";
 import { VideoItem, SortOption, ApiResponse, VideosResponse } from "../types";
@@ -34,6 +35,8 @@ interface Category {
 }
 
 export const MainVideoPage: React.FC = () => {
+  const { t } = useTranslation(["common", "explore"]);
+
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -91,7 +94,7 @@ export const MainVideoPage: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error("Error fetching videos:", err);
-      setError("Không thể tải video. Vui lòng thử lại sau.");
+      setError(t("explore:errors.fetch_failed"));
     } finally {
       setLoading(false);
     }
@@ -192,19 +195,19 @@ export const MainVideoPage: React.FC = () => {
   };
 
   const categories: Category[] = [
-    { id: "all", label: "Tất cả" },
-    { id: "technology", label: "Công nghệ" },
-    { id: "education", label: "Giáo dục" },
-    { id: "productivity", label: "Năng suất" },
-    { id: "finance", label: "Tài chính" },
-    { id: "travel", label: "Du lịch" },
-    { id: "health", label: "Sức khỏe" },
+    { id: "all", label: t("explore:categories.all") },
+    { id: "technology", label: t("explore:categories.technology") },
+    { id: "education", label: t("explore:categories.education") },
+    { id: "productivity", label: t("explore:categories.productivity") },
+    { id: "finance", label: t("explore:categories.finance") },
+    { id: "travel", label: t("explore:categories.travel") },
+    { id: "health", label: t("explore:categories.health") },
   ];
 
   const sortOptions: SortOption[] = [
-    { id: "recent", label: "Mới nhất" },
-    { id: "popular", label: "Phổ biến nhất" },
-    { id: "trending", label: "Xu hướng" },
+    { id: "recent", label: t("explore:sorting.recent") },
+    { id: "popular", label: t("explore:sorting.popular") },
+    { id: "trending", label: t("explore:sorting.trending") },
   ];
 
   const sortedVideos = [...videos].sort((a, b) => {
@@ -260,7 +263,7 @@ export const MainVideoPage: React.FC = () => {
 
   const formatDuration = (durationInSeconds: number): string => {
     const minutes = Math.floor(durationInSeconds / 1000 / 60);
-    return `${minutes}m`;
+    return t("explore:minutes", { count: minutes });
   };
 
   const formatViews = (viewCount: number): string => {
@@ -286,7 +289,7 @@ export const MainVideoPage: React.FC = () => {
   return (
     <Layout
       activeItem="explore"
-      title="Khám phá"
+      title={t("explore:title")}
       sidebarProps={{
         categories: categories,
         onCategoryClick: handleCategoryChange,
@@ -334,11 +337,10 @@ export const MainVideoPage: React.FC = () => {
                 <>
                   <div className="md:w-1/2 mb-8 md:mb-0">
                     <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                      Khám phá nội dung video đã được tóm tắt
+                      {t("explore:explore.title")}
                     </h1>
                     <p className="text-lg mb-6 text-indigo-100">
-                      Tiết kiệm thời gian với VideoSum.AI - Nền tảng tóm tắt
-                      video thông minh bằng AI
+                      {t("explore:explore.description")}
                     </p>
                     <div className="flex flex-wrap gap-3">
                       <Button
@@ -347,7 +349,7 @@ export const MainVideoPage: React.FC = () => {
                         className="bg-indigo-500 hover:bg-indigo-600"
                         onClick={handleSummarizeClick}
                       >
-                        Tóm tắt video ngay
+                        {t("explore:buttons.summarize_now")}
                       </Button>
                       <Button
                         variant="outline"
@@ -355,7 +357,7 @@ export const MainVideoPage: React.FC = () => {
                         className="bg-white text-indigo-900 hover:bg-gray-100"
                         onClick={handleViewGuideClick}
                       >
-                        Xem hướng dẫn
+                        {t("explore:buttons.view_guide")}
                       </Button>
                     </div>
                   </div>
@@ -369,24 +371,24 @@ export const MainVideoPage: React.FC = () => {
                           <div className="ml-3">
                             <h3 className="font-semibold">VideoSum.AI</h3>
                             <p className="text-xs text-indigo-200">
-                              Powered by AI
+                              {t("explore:messages.powered_by_ai")}
                             </p>
                           </div>
                         </div>
                         <div className="space-y-3">
                           <div className="bg-indigo-700 bg-opacity-40 p-2 rounded">
                             <p className="text-sm">
-                              Video 30 phút → Tóm tắt 3 phút
+                              {t("explore:demo.conversion")}
                             </p>
                           </div>
                           <div className="bg-indigo-700 bg-opacity-40 p-2 rounded">
                             <p className="text-sm">
-                              Trích xuất điểm chính tự động
+                              {t("explore:demo.key_points")}
                             </p>
                           </div>
                           <div className="bg-indigo-700 bg-opacity-40 p-2 rounded">
                             <p className="text-sm">
-                              Tiết kiệm 90% thời gian xem video
+                              {t("explore:demo.time_saving")}
                             </p>
                           </div>
                         </div>
@@ -480,7 +482,9 @@ export const MainVideoPage: React.FC = () => {
                       onClick={handleReload}
                       disabled={loading}
                     >
-                      {loading ? "Đang tải..." : "Tải lại"}
+                      {loading
+                        ? t("explore:buttons.loading")
+                        : t("explore:buttons.reload")}
                     </Button>
                   </div>
                 </>
@@ -525,14 +529,14 @@ export const MainVideoPage: React.FC = () => {
           {sortedVideos.length === 0 && !loading && (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">
-                Không tìm thấy video nào phù hợp
+                {t("explore:messages.no_videos")}
               </p>
               <Button
                 variant="outline"
                 onClick={() => handleCategoryChange("all")}
                 className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
               >
-                Xem tất cả video
+                {t("explore:buttons.view_all")}
               </Button>
             </div>
           )}
@@ -545,14 +549,16 @@ export const MainVideoPage: React.FC = () => {
                 disabled={loading}
                 className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
               >
-                {loading ? "Đang tải..." : "Tải thêm video"}
+                {loading
+                  ? t("explore:buttons.loading")
+                  : t("explore:buttons.load_more")}
               </Button>
               <Button
                 variant="primary"
                 leftIcon={<Plus size={16} />}
                 onClick={handleUploadClick}
               >
-                Đăng video
+                {t("explore:buttons.upload_video")}
               </Button>
             </div>
           )}
@@ -561,18 +567,15 @@ export const MainVideoPage: React.FC = () => {
         <div className="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-10 px-6 mt-8 -mx-8 -mb-8">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-2xl font-bold mb-3">
-              Nâng cao hiệu suất học tập và làm việc
+              {t("explore:messages.improve_productivity")}
             </h2>
-            <p className="mb-6">
-              Tiết kiệm thời gian với VideoSum.AI - Tóm tắt bất kỳ video nào
-              trong vài giây
-            </p>
+            <p className="mb-6">{t("explore:messages.save_time")}</p>
             <Button
               variant="outline"
               className="bg-white text-indigo-900 hover:bg-gray-100"
               onClick={handleGetStartedClick}
             >
-              Bắt đầu sử dụng
+              {t("explore:buttons.get_started")}
             </Button>
           </div>
         </div>

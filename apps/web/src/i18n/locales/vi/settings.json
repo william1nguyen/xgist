@@ -1,0 +1,55 @@
+{
+  "title": "Cài đặt",
+  "heading": "Quản lý video của bạn",
+  "subtitle": "Xem và quản lý các video bạn đã đăng, kiểm tra số liệu thống kê và hiệu suất",
+  "tabs": {
+    "uploads": "Video đã đăng",
+    "statistics": "Thống kê"
+  },
+  "uploads": {
+    "title": "Video của bạn ({{count}})",
+    "description": "Quản lý các video bạn đã đăng lên hệ thống"
+  },
+  "sorting": {
+    "date": "Ngày",
+    "views": "Lượt xem",
+    "likes": "Lượt thích"
+  },
+  "buttons": {
+    "upload_new": "Đăng video mới",
+    "edit": "Chỉnh sửa"
+  },
+  "stats": {
+    "total_views": "Tổng lượt xem",
+    "from_videos": "Từ {{count}} video đã đăng",
+    "total_likes": "Tổng lượt thích",
+    "average": "Trung bình {{count}} mỗi video",
+    "total_duration": "Tổng thời lượng",
+    "saved_time": "Tiết kiệm {{time}} nhờ tóm tắt",
+    "distribution": "Phân bổ theo danh mục",
+    "most_popular": "Video phổ biến nhất",
+    "views": "lượt xem",
+    "likes": "lượt thích",
+    "video_count": "{{count}} video"
+  },
+  "storage": {
+    "title": "Thông tin kho lưu trữ",
+    "used": "Dung lượng đã sử dụng",
+    "video_count": "Số lượng video",
+    "summarized": "Đã tóm tắt",
+    "not_summarized": "Chưa tóm tắt",
+    "video_count_value": "{{count}} video"
+  },
+  "activities": {
+    "title": "Hoạt động gần đây"
+  },
+  "categories": {
+    "technology": "Công nghệ",
+    "education": "Giáo dục",
+    "productivity": "Năng suất",
+    "finance": "Tài chính",
+    "travel": "Du lịch",
+    "health": "Sức khỏe",
+    "other": "Khác"
+  }
+}

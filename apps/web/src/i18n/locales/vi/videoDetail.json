@@ -1,0 +1,64 @@
+{
+  "tabs": {
+    "original": "Video gốc",
+    "summary": "Tóm tắt"
+  },
+  "buttons": {
+    "go_back": "Quay lại",
+    "watch_video": "Xem video",
+    "watch_original": "Xem video gốc",
+    "like": "Thích",
+    "liked": "Đã thích",
+    "download": "Tải xuống",
+    "bookmark": "Lưu",
+    "bookmarked": "Đã lưu",
+    "copy_link": "Sao chép liên kết",
+    "login_now": "Đăng nhập ngay",
+    "view_more": "Xem thêm...",
+    "collapse": "Thu gọn"
+  },
+  "sections": {
+    "technical_info": "Thông tin kỹ thuật",
+    "description": "Mô tả video",
+    "summary": "Tóm tắt",
+    "key_points": "Điểm chính",
+    "keywords": "Từ khóa",
+    "transcript": "Bản ghi lời nói",
+    "related_videos": "Video liên quan"
+  },
+  "info": {
+    "category": "Thể loại",
+    "status": "Trạng thái"
+  },
+  "status": {
+    "summarized": "Đã tóm tắt",
+    "processing": "Đang xử lý tóm tắt"
+  },
+  "metrics": {
+    "views": "lượt xem",
+    "likes": "lượt thích"
+  },
+  "auth": {
+    "login_required": "Yêu cầu đăng nhập",
+    "locked_content": "Nội dung tóm tắt bị khóa",
+    "login_message": "Đăng nhập để xem tóm tắt video và tiết kiệm thời gian nắm bắt thông tin."
+  },
+  "error_page": {
+    "title": "Lỗi"
+  },
+  "not_found": {
+    "title": "Không tìm thấy video",
+    "description": "Video bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."
+  },
+  "default": {
+    "unknown_creator": "Unknown Creator",
+    "unknown_date": "Unknown date"
+  },
+  "alerts": {
+    "link_copied": "Đã sao chép liên kết vào clipboard!"
+  },
+  "errors": {
+    "fetch_failed": "Failed to load video details. Please try again later."
+  },
+  "original_date": "Video gốc đăng ngày"
+}

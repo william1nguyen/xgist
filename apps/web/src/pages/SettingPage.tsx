@@ -10,6 +10,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   VideoItem,
   StatisticsData,
@@ -27,6 +28,8 @@ import { DeleteConfirmation } from "../components/ui/DeleteConfirmation";
 import { httpClient } from "../config/httpClient";
 
 export const SettingsPage: React.FC = () => {
+  const { t } = useTranslation(["common", "settings"]);
+
   const [activeTab, setActiveTab] = useState<"uploads" | "statistics">(
     "uploads"
   );
@@ -221,22 +224,7 @@ export const SettingsPage: React.FC = () => {
   };
 
   const getCategoryLabel = (category: string): string => {
-    switch (category) {
-      case "technology":
-        return "Công nghệ";
-      case "education":
-        return "Giáo dục";
-      case "productivity":
-        return "Năng suất";
-      case "finance":
-        return "Tài chính";
-      case "travel":
-        return "Du lịch";
-      case "health":
-        return "Sức khỏe";
-      default:
-        return category;
-    }
+    return t(`settings:categories.${category}`);
   };
 
   const getCategoryColor = (category: string): string => {
@@ -259,16 +247,13 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <Layout activeItem="settings" title="Cài đặt">
+    <Layout activeItem="settings" title={t("settings:title")}>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Quản lý video của bạn
+          <h1 className="text-2xl font-bold text-black mb-2">
+            {t("settings:heading")}
           </h1>
-          <p className="text-gray-600">
-            Xem và quản lý các video bạn đã đăng, kiểm tra số liệu thống kê và
-            hiệu suất
-          </p>
+          <p className="text-black">{t("settings:subtitle")}</p>
         </div>
 
         <div className="flex border-b mb-6">
@@ -276,23 +261,23 @@ export const SettingsPage: React.FC = () => {
             className={`px-4 py-2 font-medium text-sm ${
               activeTab === "uploads"
                 ? "text-indigo-600 border-b-2 border-indigo-600"
-                : "text-gray-600 hover:text-gray-800"
+                : "text-black hover:text-black"
             }`}
             onClick={() => setActiveTab("uploads")}
           >
             <Upload size={16} className="inline mr-2" />
-            Video đã đăng
+            {t("settings:tabs.uploads")}
           </button>
           <button
             className={`px-4 py-2 font-medium text-sm ${
               activeTab === "statistics"
                 ? "text-indigo-600 border-b-2 border-indigo-600"
-                : "text-gray-600 hover:text-gray-800"
+                : "text-black hover:text-black"
             }`}
             onClick={() => setActiveTab("statistics")}
           >
             <BarChart3 size={16} className="inline mr-2" />
-            Thống kê
+            {t("settings:tabs.statistics")}
           </button>
         </div>
 
@@ -300,11 +285,11 @@ export const SettingsPage: React.FC = () => {
           <>
             <div className="flex flex-wrap items-center justify-between mb-6">
               <div className="mb-4 sm:mb-0">
-                <h2 className="text-lg font-medium text-gray-800">
-                  Video của bạn ({videos.length})
+                <h2 className="text-lg font-medium text-black">
+                  {t("settings:uploads.title", { count: videos.length })}
                 </h2>
-                <p className="text-sm text-gray-500">
-                  Quản lý các video bạn đã đăng lên hệ thống
+                <p className="text-sm text-black">
+                  {t("settings:uploads.description")}
                 </p>
               </div>
 
@@ -316,7 +301,7 @@ export const SettingsPage: React.FC = () => {
                     }`}
                     onClick={() => setSortBy("date")}
                   >
-                    Ngày
+                    {t("settings:sorting.date")}
                   </button>
                   <button
                     className={`px-3 py-1.5 text-sm ${
@@ -324,7 +309,7 @@ export const SettingsPage: React.FC = () => {
                     }`}
                     onClick={() => setSortBy("views")}
                   >
-                    Lượt xem
+                    {t("settings:sorting.views")}
                   </button>
                   <button
                     className={`px-3 py-1.5 text-sm ${
@@ -332,7 +317,7 @@ export const SettingsPage: React.FC = () => {
                     }`}
                     onClick={() => setSortBy("likes")}
                   >
-                    Lượt thích
+                    {t("settings:sorting.likes")}
                   </button>
                 </div>
 
@@ -395,7 +380,7 @@ export const SettingsPage: React.FC = () => {
                 leftIcon={<Upload size={16} />}
                 onClick={() => (window.location.href = "/summarize")}
               >
-                Đăng video mới
+                {t("settings:buttons.upload_new")}
               </Button>
             </div>
           </>
@@ -441,66 +426,71 @@ export const SettingsPage: React.FC = () => {
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <div className="flex items-center mb-2">
                       <Eye className="text-indigo-500 mr-2" size={20} />
-                      <span className="text-gray-500 text-sm">
-                        Tổng lượt xem
+                      <span className="text-black text-sm">
+                        {t("settings:stats.total_views")}
                       </span>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800">
+                    <h3 className="text-2xl font-bold text-black">
                       {videos
                         .reduce((sum, video) => sum + video.views, 0)
                         .toLocaleString()}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Từ {videos.length} video đã đăng
+                    <p className="text-sm text-black">
+                      {t("settings:stats.from_videos", {
+                        count: videos.length,
+                      })}
                     </p>
                   </div>
 
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <div className="flex items-center mb-2">
                       <ThumbsUp className="text-indigo-500 mr-2" size={20} />
-                      <span className="text-gray-500 text-sm">
-                        Tổng lượt thích
+                      <span className="text-black text-sm">
+                        {t("settings:stats.total_likes")}
                       </span>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800">
+                    <h3 className="text-2xl font-bold text-black">
                       {videos
                         .reduce((sum, video) => sum + video.likes, 0)
                         .toLocaleString()}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Trung bình{" "}
-                      {videos.length > 0
-                        ? Math.round(
-                            videos.reduce(
-                              (sum, video) => sum + video.likes,
-                              0
-                            ) / videos.length
-                          ).toLocaleString()
-                        : 0}{" "}
-                      mỗi video
+                    <p className="text-sm text-black">
+                      {t("settings:stats.average", {
+                        count:
+                          videos.length > 0
+                            ? Math.round(
+                                videos.reduce(
+                                  (sum, video) => sum + video.likes,
+                                  0
+                                ) / videos.length
+                              )
+                            : 0,
+                      })}
                     </p>
                   </div>
 
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <div className="flex items-center mb-2">
                       <Clock className="text-indigo-500 mr-2" size={20} />
-                      <span className="text-gray-500 text-sm">
-                        Tổng thời lượng
+                      <span className="text-black text-sm">
+                        {t("settings:stats.total_duration")}
                       </span>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800">
+                    <h3 className="text-2xl font-bold text-black">
                       {statistics.totalDuration}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Tiết kiệm {statistics.totalSavedTime} nhờ tóm tắt
+                    <p className="text-sm text-black">
+                      {t("settings:stats.saved_time", {
+                        time: statistics.totalSavedTime,
+                      })}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white rounded-lg shadow-sm p-6">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4">
-                      Phân bổ theo danh mục
+                    <h3 className="text-lg font-medium text-black mb-4">
+                      {t("settings:stats.distribution")}
                     </h3>
                     <div className="h-64 flex items-end space-x-6">
                       {categoryStats.map((category) => (
@@ -516,11 +506,13 @@ export const SettingsPage: React.FC = () => {
                             }}
                           ></div>
                           <div className="mt-2 text-xs text-center">
-                            <div className="font-medium">
+                            <div className="font-medium text-black">
                               {getCategoryLabel(category.name)}
                             </div>
-                            <div className="text-gray-500">
-                              {category.count} video
+                            <div className="text-black">
+                              {t("settings:stats.video_count", {
+                                count: category.count,
+                              })}
                             </div>
                           </div>
                         </div>
@@ -529,8 +521,8 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div className="bg-white rounded-lg shadow-sm p-6">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4">
-                      Video phổ biến nhất
+                    <h3 className="text-lg font-medium text-black mb-4">
+                      {t("settings:stats.most_popular")}
                     </h3>
                     {mostPopularVideo && (
                       <div className="flex items-start space-x-4">
@@ -545,16 +537,17 @@ export const SettingsPage: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-medium line-clamp-2">
+                          <h4 className="font-medium line-clamp-2 text-black">
                             {mostPopularVideo.title}
                           </h4>
-                          <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <div className="flex items-center text-sm text-black mt-1">
                             <Eye size={14} className="mr-1" />
-                            {formatViews(mostPopularVideo.views)} lượt xem
+                            {formatViews(mostPopularVideo.views)}{" "}
+                            {t("settings:stats.views")}
                           </div>
-                          <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <div className="flex items-center text-sm text-black mt-1">
                             <ThumbsUp size={14} className="mr-1" />
-                            {mostPopularVideo.likes} lượt thích
+                            {mostPopularVideo.likes} {t("settings:stats.likes")}
                           </div>
                           <Button
                             variant="outline"
@@ -565,7 +558,7 @@ export const SettingsPage: React.FC = () => {
                               (window.location.href = `/edit/${mostPopularVideo.id}`)
                             }
                           >
-                            Chỉnh sửa
+                            {t("settings:buttons.edit")}
                           </Button>
                         </div>
                       </div>
@@ -573,13 +566,13 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div className="bg-white rounded-lg shadow-sm p-6">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4">
-                      Thông tin kho lưu trữ
+                    <h3 className="text-lg font-medium text-black mb-4">
+                      {t("settings:storage.title")}
                     </h3>
                     <div className="flex items-center mb-4">
                       <Database size={18} className="text-indigo-500 mr-2" />
-                      <span className="text-gray-600">
-                        Dung lượng đã sử dụng
+                      <span className="text-black">
+                        {t("settings:storage.used")}
                       </span>
                     </div>
 
@@ -593,7 +586,7 @@ export const SettingsPage: React.FC = () => {
                         ></div>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">
+                        <span className="text-black">
                           {storageData.used.toFixed(2)} GB / {storageData.total}{" "}
                           GB
                         </span>
@@ -608,27 +601,37 @@ export const SettingsPage: React.FC = () => {
 
                     <div className="border-t pt-4">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Số lượng video</span>
+                        <span className="text-black">
+                          {t("settings:storage.video_count")}
+                        </span>
                         <span className="font-medium">{videos.length}</span>
                       </div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Đã tóm tắt</span>
+                        <span className="text-black">
+                          {t("settings:storage.summarized")}
+                        </span>
                         <span className="font-medium">
-                          {storageData.summarizedCount} video
+                          {t("settings:storage.video_count_value", {
+                            count: storageData.summarizedCount,
+                          })}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Chưa tóm tắt</span>
+                        <span className="text-black">
+                          {t("settings:storage.not_summarized")}
+                        </span>
                         <span className="font-medium">
-                          {storageData.nonSummarizedCount} video
+                          {t("settings:storage.video_count_value", {
+                            count: storageData.nonSummarizedCount,
+                          })}
                         </span>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-white rounded-lg shadow-sm p-6">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4">
-                      Hoạt động gần đây
+                    <h3 className="text-lg font-medium text-black mb-4">
+                      {t("settings:activities.title")}
                     </h3>
                     <div className="space-y-4">
                       {recentActivities.slice(0, 3).map((activity, index) => (
@@ -639,10 +642,10 @@ export const SettingsPage: React.FC = () => {
                             {activity.icon}
                           </div>
                           <div>
-                            <p className="text-sm font-medium">
+                            <p className="text-sm font-medium text-black">
                               {activity.title}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-black">
                               {activity.timestamp}
                             </p>
                           </div>

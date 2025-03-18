@@ -1,0 +1,89 @@
+{
+  "pageTitle": "Hướng dẫn sử dụng",
+  "goBack": "Quay lại",
+  "header": {
+    "title": "Hướng dẫn sử dụng VideoSum.AI",
+    "description": "Tiết kiệm thời gian và nắm bắt nội dung video nhanh chóng với công nghệ tóm tắt AI tiên tiến",
+    "tryNow": "Thử ngay"
+  },
+  "selectGuide": "Chọn hướng dẫn",
+  "guide1": {
+    "title": "Tóm tắt video YouTube",
+    "description": "Cách tóm tắt video từ YouTube hoặc các nền tảng video khác",
+    "step1": "Sao chép URL video từ YouTube, Vimeo hoặc các nền tảng video khác",
+    "step2": "Dán URL vào ô nhập liệu trên trang tóm tắt",
+    "step3": "Chọn ngôn ngữ tóm tắt (Tiếng Việt hoặc Tiếng Anh)",
+    "step4": "Nhấn nút 'Tóm tắt Video' và đợi kết quả được xử lý",
+    "step5": "Xem tóm tắt video với các điểm chính đã được trích xuất"
+  },
+  "guide2": {
+    "title": "Tóm tắt video đã tải lên",
+    "description": "Cách tóm tắt file video đã có sẵn trên thiết bị của bạn",
+    "step1": "Nhấn vào nút 'Tải lên File Video' trên trang tóm tắt",
+    "step2": "Chọn file video (hỗ trợ định dạng MP4, AVI, MOV, WMV...)",
+    "step3": "Chọn ngôn ngữ tóm tắt và độ chi tiết mong muốn",
+    "step4": "Nhấn nút 'Bắt đầu Tóm tắt' và đợi quá trình xử lý hoàn tất",
+    "step5": "Xem tóm tắt video kèm theo các điểm chính và phân đoạn thời gian"
+  },
+  "guide3": {
+    "title": "Sử dụng tính năng nâng cao",
+    "description": "Tùy chỉnh cài đặt nâng cao để có kết quả tóm tắt phù hợp hơn",
+    "step1": "Mở menu 'Cài đặt nâng cao' trên trang tóm tắt",
+    "step2": "Điều chỉnh độ dài tóm tắt (ngắn gọn, vừa phải, chi tiết)",
+    "step3": "Chọn kiểu tóm tắt (tổng quan, tập trung điểm chính, phân tích)",
+    "step4": "Thêm từ khóa để AI tập trung vào các chủ đề cụ thể",
+    "step5": "Bật tính năng trích xuất hình ảnh quan trọng từ video (Premium)"
+  },
+  "guide4": {
+    "title": "Quản lý và chia sẻ tóm tắt",
+    "description": "Cách lưu trữ, chia sẻ và xuất bản tóm tắt video của bạn",
+    "step1": "Đăng nhập vào tài khoản VideoSum.AI của bạn",
+    "step2": "Truy cập trang 'Thư viện của tôi' để xem tất cả tóm tắt đã tạo",
+    "step3": "Sử dụng nút 'Chia sẻ' để gửi tóm tắt qua email hoặc mạng xã hội",
+    "step4": "Nhấn 'Tải xuống' để lưu tóm tắt dưới dạng PDF hoặc văn bản",
+    "step5": "Nhúng tóm tắt vào website hoặc blog của bạn bằng mã nhúng (Premium)"
+  },
+  "timeSaver": {
+    "title": "Tiết kiệm thời gian với VideoSum.AI",
+    "description": "Người dùng VideoSum.AI tiết kiệm trung bình 90% thời gian xem video. Tóm tắt một video 30 phút chỉ mất vài giây."
+  },
+  "tips": {
+    "title": "Mẹo hữu ích",
+    "guide1": "Đối với video YouTube, bạn có thể chỉ tập trung tóm tắt một phần cụ thể bằng cách thêm thời gian bắt đầu và kết thúc.",
+    "guide2": "Tùy chỉnh độ chi tiết tóm tắt dựa trên độ dài của video. Video dài hơn 1 giờ nên được tóm tắt ở mức độ 'Tổng quan'.",
+    "guide3": "Sử dụng từ khóa để hướng AI tập trung vào các chủ đề cụ thể quan trọng với bạn trong video.",
+    "guide4": "Xuất tóm tắt sang Google Docs hoặc Notion để dễ dàng tích hợp vào quy trình làm việc hiện tại của bạn."
+  },
+  "buttons": {
+    "summarizeYoutube": "Tóm tắt video YouTube",
+    "uploadVideo": "Tải lên video để tóm tắt",
+    "exploreAdvanced": "Khám phá tính năng nâng cao",
+    "goToLibrary": "Đi đến thư viện của tôi",
+    "nextGuide": "Hướng dẫn tiếp theo",
+    "startOver": "Bắt đầu lại từ đầu"
+  },
+  "faq": {
+    "title": "Câu hỏi thường gặp",
+    "q1": {
+      "question": "1. VideoSum.AI hoạt động với những loại video nào?",
+      "answer": "VideoSum.AI có thể tóm tắt hầu hết các loại video có nội dung nói, bao gồm bài giảng, hội thảo, podcast, tin tức, v.v. Hệ thống hỗ trợ nhiều ngôn ngữ khác nhau."
+    },
+    "q2": {
+      "question": "2. Tóm tắt video có chính xác không?",
+      "answer": "VideoSum.AI sử dụng công nghệ AI tiên tiến để đảm bảo độ chính xác cao. Tuy nhiên, kết quả tốt nhất đạt được với video có âm thanh rõ ràng và không có nhiều tiếng ồn nền."
+    },
+    "q3": {
+      "question": "3. Dữ liệu video của tôi có an toàn không?",
+      "answer": "Chúng tôi coi trọng quyền riêng tư của bạn. Video được tải lên chỉ được sử dụng để tạo tóm tắt và sẽ được xóa sau 24 giờ, trừ khi bạn chọn lưu vào thư viện cá nhân."
+    },
+    "q4": {
+      "question": "4. Làm thế nào để có tài khoản Premium?",
+      "answer": "Bạn có thể nâng cấp lên tài khoản Premium từ trang cài đặt tài khoản. Gói Premium cung cấp nhiều tính năng nâng cao và không giới hạn số lượng video tóm tắt."
+    }
+  },
+  "cta": {
+    "title": "Bắt đầu tóm tắt video đầu tiên của bạn",
+    "description": "Tiết kiệm thời gian xem video và nắm bắt thông tin quan trọng nhanh chóng",
+    "button": "Tóm tắt video ngay"
+  }
+}

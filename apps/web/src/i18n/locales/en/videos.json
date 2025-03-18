@@ -1,0 +1,37 @@
+{
+  "explore": {
+    "title": "Explore Summarized Video Content",
+    "description": "Save time with VideoSum.AI - Smart AI-powered video summarization platform"
+  },
+  "buttons": {
+    "summarize_now": "Summarize Video Now",
+    "view_guide": "View Guide",
+    "reload": "Reload",
+    "view_all": "View All Videos",
+    "load_more": "Load More Videos",
+    "upload_video": "Upload Video"
+  },
+  "sorting": {
+    "recent": "Most Recent",
+    "popular": "Most Popular",
+    "trending": "Trending"
+  },
+  "messages": {
+    "no_videos": "No videos found",
+    "improve_productivity": "Enhance Learning and Work Efficiency",
+    "save_time": "Save time with VideoSum.AI - Summarize any video in seconds",
+    "powered_by_ai": "Powered by AI"
+  },
+  "card": {
+    "summarized": "Summarized",
+    "viewCount": "{{count}} view",
+    "viewCount_plural": "{{count}} views",
+    "minutes": "{{count}}m"
+  },
+  "actions": {
+    "view": "View",
+    "download": "Download",
+    "share": "Share",
+    "delete": "Delete"
+  }
+}

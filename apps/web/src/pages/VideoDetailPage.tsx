@@ -16,6 +16,7 @@ import {
   Lock,
   LogIn,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { VideoCard } from "../components/video/VideoCard";
 import { VideoItem, ApiResponse, VideosResponse } from "../types";
 
@@ -34,6 +35,7 @@ export interface Transcript {
 }
 
 export const VideoDetailPage = () => {
+  const { t } = useTranslation(["common", "videoDetail"]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [video, setVideo] = useState<VideoItem | null>(null);
@@ -81,7 +83,7 @@ export const VideoDetailPage = () => {
       setLoading(false);
     } catch (err) {
       console.error("Error fetching video details:", err);
-      setError("Failed to load video details. Please try again later.");
+      setError(t("videoDetail:errors.fetch_failed"));
       setLoading(false);
     }
   };
@@ -118,7 +120,7 @@ export const VideoDetailPage = () => {
   const handleCopyLink = () => {
     const url = `${window.location.origin}/videos/${id}`;
     navigator.clipboard.writeText(url);
-    alert("Đã sao chép liên kết vào clipboard!");
+    alert(t("videoDetail:alerts.link_copied"));
   };
 
   const handleLikeVideo = async () => {
@@ -212,13 +214,15 @@ export const VideoDetailPage = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-semibold mb-4">Lỗi</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          {t("videoDetail:error_page.title")}
+        </h2>
         <p className="mb-6">{error}</p>
         <button
           className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
           onClick={handleGoBack}
         >
-          Quay lại
+          {t("videoDetail:buttons.go_back")}
         </button>
       </div>
     );
@@ -227,15 +231,15 @@ export const VideoDetailPage = () => {
   if (!video) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-semibold mb-4">Không tìm thấy video</h2>
-        <p className="mb-6">
-          Video bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
-        </p>
+        <h2 className="text-2xl font-semibold mb-4">
+          {t("videoDetail:not_found.title")}
+        </h2>
+        <p className="mb-6">{t("videoDetail:not_found.description")}</p>
         <button
           className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
           onClick={handleGoBack}
         >
-          Quay lại
+          {t("videoDetail:buttons.go_back")}
         </button>
       </div>
     );
@@ -248,7 +252,7 @@ export const VideoDetailPage = () => {
         onClick={handleGoBack}
       >
         <ChevronLeft size={18} />
-        <span className="ml-1">Quay lại</span>
+        <span className="ml-1">{t("videoDetail:buttons.go_back")}</span>
       </button>
 
       <div className="flex border-b border-gray-200 mb-6">
@@ -260,7 +264,7 @@ export const VideoDetailPage = () => {
           }`}
           onClick={() => setActiveTab("video")}
         >
-          Video gốc
+          {t("videoDetail:tabs.original")}
         </button>
         {video.isSummarized && (
           <button
@@ -276,10 +280,10 @@ export const VideoDetailPage = () => {
             ) : (
               <Lock size={14} className="mr-1" />
             )}
-            Tóm tắt
+            {t("videoDetail:tabs.summary")}
             {!isAuthenticated && (
               <span className="text-xs ml-1 text-gray-400">
-                (Yêu cầu đăng nhập)
+                ({t("videoDetail:auth.login_required")})
               </span>
             )}
           </button>
@@ -306,7 +310,7 @@ export const VideoDetailPage = () => {
                   />
                   <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 mt-4 flex items-center mx-auto">
                     <Play size={18} className="mr-2" />
-                    Xem video
+                    {t("videoDetail:buttons.watch_video")}
                   </button>
                 </div>
               )}
@@ -322,7 +326,8 @@ export const VideoDetailPage = () => {
               </div>
               <div className="ml-3">
                 <h3 className="font-medium">
-                  {video.creator?.username || "Unknown Creator"}
+                  {video.creator?.username ||
+                    t("videoDetail:default.unknown_creator")}
                 </h3>
                 <p className="text-sm text-gray-500">
                   {video.createdTime
@@ -331,7 +336,7 @@ export const VideoDetailPage = () => {
                         month: "long",
                         day: "numeric",
                       })
-                    : "Unknown date"}
+                    : t("videoDetail:default.unknown_date")}
                 </p>
               </div>
             </div>
@@ -339,11 +344,11 @@ export const VideoDetailPage = () => {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center text-sm text-gray-500 mr-4">
                 <Eye size={16} className="mr-1" />
-                {video.views} lượt xem
+                {video.views} {t("videoDetail:metrics.views")}
               </span>
               <span className="inline-flex items-center text-sm text-gray-500 mr-4">
                 <ThumbsUp size={16} className="mr-1" />
-                {video.likes || 0} lượt thích
+                {video.likes || 0} {t("videoDetail:metrics.likes")}
               </span>
             </div>
           </div>
@@ -363,11 +368,15 @@ export const VideoDetailPage = () => {
                 className={isLiked ? "text-red-600" : "text-white-600"}
                 fill={isLiked ? "#DC2626" : "none"}
               />
-              <span>{isLiked ? "Đã thích" : "Thích"}</span>
+              <span>
+                {isLiked
+                  ? t("videoDetail:buttons.liked")
+                  : t("videoDetail:buttons.like")}
+              </span>
             </button>
             <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
               <Download size={16} />
-              <span>Tải xuống</span>
+              <span>{t("videoDetail:buttons.download")}</span>
             </button>
             <button
               className={`flex items-center gap-1 px-3 py-1.5 border rounded-md text-sm 
@@ -385,14 +394,18 @@ export const VideoDetailPage = () => {
                 className={isBookmarked ? "text-blue-600" : "text-white-600"}
                 fill={isBookmarked ? "#2563EB" : "none"}
               />
-              <span>{isBookmarked ? "Đã lưu" : "Lưu"}</span>
+              <span>
+                {isBookmarked
+                  ? t("videoDetail:buttons.bookmarked")
+                  : t("videoDetail:buttons.bookmark")}
+              </span>
             </button>
             <button
               className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
               onClick={handleCopyLink}
             >
               <Link2 size={16} />
-              <span>Sao chép liên kết</span>
+              <span>{t("videoDetail:buttons.copy_link")}</span>
             </button>
           </div>
 
@@ -401,7 +414,7 @@ export const VideoDetailPage = () => {
               <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
                 <h3 className="font-medium text-indigo-700 flex items-center">
                   <Clock size={16} className="mr-2" />
-                  Thông tin kỹ thuật
+                  {t("videoDetail:sections.technical_info")}
                 </h3>
               </div>
 
@@ -409,7 +422,7 @@ export const VideoDetailPage = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="bg-indigo-50/50 p-3 rounded-lg">
                     <p className="text-xs font-medium text-indigo-600 mb-1">
-                      Thể loại
+                      {t("videoDetail:info.category")}
                     </p>
                     <p className="font-medium text-gray-800 capitalize">
                       {video.category}
@@ -418,17 +431,17 @@ export const VideoDetailPage = () => {
 
                   <div className="bg-indigo-50/50 p-3 rounded-lg">
                     <p className="text-xs font-medium text-indigo-600 mb-1">
-                      Trạng thái
+                      {t("videoDetail:info.status")}
                     </p>
                     {video.isSummarized ? (
                       <p className="font-medium text-emerald-600 flex items-center">
                         <FastForward size={14} className="mr-1" />
-                        Đã tóm tắt
+                        {t("videoDetail:status.summarized")}
                       </p>
                     ) : (
                       <p className="font-medium text-amber-600 flex items-center">
                         <Loader2 size={14} className="mr-1 animate-spin" />
-                        Đang xử lý tóm tắt
+                        {t("videoDetail:status.processing")}
                       </p>
                     )}
                   </div>
@@ -440,7 +453,7 @@ export const VideoDetailPage = () => {
               <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
                 <h3 className="font-medium text-indigo-700 flex items-center">
                   <FileText size={16} className="mr-2" />
-                  Mô tả video
+                  {t("videoDetail:sections.description")}
                 </h3>
               </div>
 
@@ -464,18 +477,17 @@ export const VideoDetailPage = () => {
                     <Lock size={32} className="text-indigo-600" />
                   </div>
                   <h3 className="text-xl font-bold text-indigo-700 mb-2">
-                    Nội dung tóm tắt bị khóa
+                    {t("videoDetail:auth.locked_content")}
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    Đăng nhập để xem tóm tắt video và tiết kiệm thời gian nắm
-                    bắt thông tin.
+                    {t("videoDetail:auth.login_message")}
                   </p>
                   <button
                     onClick={handleLoginRedirect}
                     className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center mx-auto"
                   >
                     <LogIn size={18} className="mr-2" />
-                    Đăng nhập ngay
+                    {t("videoDetail:buttons.login_now")}
                   </button>
                 </div>
               </div>
@@ -488,7 +500,7 @@ export const VideoDetailPage = () => {
                   <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
                     <h3 className="font-medium text-indigo-700 flex items-center">
                       <FastForward size={16} className="mr-2" />
-                      Tóm tắt
+                      {t("videoDetail:sections.summary")}
                     </h3>
                   </div>
 
@@ -508,7 +520,7 @@ export const VideoDetailPage = () => {
                     <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
                       <h3 className="font-medium text-indigo-700 flex items-center">
                         <FileText size={16} className="mr-2" />
-                        Điểm chính
+                        {t("videoDetail:sections.key_points")}
                       </h3>
                     </div>
 
@@ -531,7 +543,7 @@ export const VideoDetailPage = () => {
                     <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
                       <h3 className="font-medium text-indigo-700 flex items-center">
                         <FileText size={16} className="mr-2" />
-                        Từ khóa
+                        {t("videoDetail:sections.keywords")}
                       </h3>
                     </div>
 
@@ -557,7 +569,7 @@ export const VideoDetailPage = () => {
                     <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
                       <h3 className="font-medium text-indigo-700 flex items-center">
                         <FileText size={16} className="mr-2" />
-                        Bản ghi lời nói
+                        {t("videoDetail:sections.transcript")}
                       </h3>
                     </div>
 
@@ -587,7 +599,7 @@ export const VideoDetailPage = () => {
                                   setDisplayedTranscripts((prev) => prev + 20)
                                 }
                               >
-                                Xem thêm...
+                                {t("videoDetail:buttons.view_more")}
                               </button>
                             </div>
                           )}
@@ -599,7 +611,7 @@ export const VideoDetailPage = () => {
                                 className="text-gray-500 text-sm hover:underline"
                                 onClick={() => setDisplayedTranscripts(20)}
                               >
-                                Thu gọn
+                                {t("videoDetail:buttons.collapse")}
                               </button>
                             </div>
                           )}
@@ -615,10 +627,11 @@ export const VideoDetailPage = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="font-medium">
-                    {video.creator?.username || "Unknown Creator"}
+                    {video.creator?.username ||
+                      t("videoDetail:default.unknown_creator")}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    Video gốc đăng ngày{" "}
+                    {t("videoDetail:original_date")}{" "}
                     {video.createdTime
                       ? new Date(video.createdTime).toLocaleDateString(
                           "vi-VN",
@@ -628,14 +641,15 @@ export const VideoDetailPage = () => {
                             day: "numeric",
                           }
                         )
-                      : "Unknown date"}
+                      : t("videoDetail:default.unknown_date")}
                   </p>
                 </div>
                 <button
                   className="ml-auto bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 text-sm flex items-center"
                   onClick={() => setActiveTab("video")}
                 >
-                  <Play size={16} className="mr-1" /> Xem video gốc
+                  <Play size={16} className="mr-1" />{" "}
+                  {t("videoDetail:buttons.watch_original")}
                 </button>
               </div>
             </div>
@@ -644,7 +658,9 @@ export const VideoDetailPage = () => {
       )}
 
       <div>
-        <h3 className="text-lg font-semibold mb-4">Video liên quan</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          {t("videoDetail:sections.related_videos")}
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {relatedVideos.map((relatedVideo) => (
             <VideoCard

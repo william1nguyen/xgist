@@ -1,0 +1,118 @@
+{
+  "navigation": {
+    "features": "Tính năng",
+    "how_it_works": "Cách thức",
+    "pricing": "Giá cả",
+    "faq": "FAQ"
+  },
+  "buttons": {
+    "free_trial": "Dùng thử miễn phí",
+    "login": "Đăng nhập",
+    "summarize_now": "Tóm tắt ngay",
+    "watch_demo": "Xem demo",
+    "get_started": "Bắt đầu ngay",
+    "pre_register": "Đăng ký trước",
+    "contact_us": "Liên hệ với chúng tôi",
+    "signup_free_trial": "Đăng ký dùng thử miễn phí"
+  },
+  "hero": {
+    "tagline": "AI-Powered Video Summarization",
+    "title": "Tiết kiệm thời gian xem video với AI tóm tắt thông minh",
+    "description": "VideoSum.AI sử dụng trí tuệ nhân tạo tiên tiến để tóm tắt bất kỳ video nào thành những điểm chính, giúp bạn nắm bắt thông tin nhanh chóng mà không bỏ lỡ chi tiết quan trọng.",
+    "demo": {
+      "original": "Video thời lượng 30 phút",
+      "summary": "Tóm tắt 3 phút"
+    }
+  },
+  "features": {
+    "title": "Tiết kiệm thời gian với VideoSum.AI",
+    "subtitle": "Sử dụng công nghệ AI tiên tiến để biến video dài thành nội dung ngắn gọn, dễ tiêu thụ",
+    "card1": {
+      "title": "Tóm tắt trong vài giây",
+      "description": "Tóm tắt bất kỳ video nào bất kể độ dài, nhận các điểm chính và thông tin thiết yếu tức thì."
+    },
+    "card2": {
+      "title": "AI hiểu ngữ cảnh",
+      "description": "Công nghệ AI của chúng tôi hiểu ngữ cảnh, chủ đề, và nhận diện thông tin quan trọng chính xác."
+    },
+    "card3": {
+      "title": "Điểm chính & ghi chú",
+      "description": "Nhận các điểm chính được cấu trúc, từ khóa quan trọng, và ghi chú chi tiết tùy chỉnh theo nhu cầu."
+    }
+  },
+  "how_it_works": {
+    "title": "Cách thức hoạt động",
+    "subtitle": "Quy trình đơn giản, kết quả mạnh mẽ",
+    "step1": {
+      "title": "Dán liên kết video",
+      "description": "Chỉ cần dán URL từ YouTube, Vimeo, hoặc tải lên video của bạn."
+    },
+    "step2": {
+      "title": "AI xử lý video",
+      "description": "Thuật toán AI của chúng tôi phân tích âm thanh, hình ảnh và ngữ cảnh."
+    },
+    "step3": {
+      "title": "Nhận tóm tắt",
+      "description": "Nhận tóm tắt ngắn gọn, các điểm chính và điểm nhấn trong vài giây."
+    }
+  },
+  "cta": {
+    "title": "Tiết kiệm 90% thời gian xem video",
+    "description": "Đừng lãng phí thời gian quý báu của bạn. VideoSum.AI có thể giúp bạn tiếp thu kiến thức nhanh hơn 10 lần."
+  },
+  "pricing": {
+    "title": "Gói dịch vụ đơn giản",
+    "subtitle": "Lựa chọn gói phù hợp với nhu cầu của bạn",
+    "per_month": "mỗi tháng",
+    "custom_solutions": "giải pháp tùy chỉnh",
+    "most_popular": "Phổ biến nhất",
+    "personal": {
+      "title": "Cá nhân",
+      "price": "199.000₫",
+      "feature1": "10 giờ video mỗi tháng",
+      "feature2": "Tóm tắt văn bản",
+      "feature3": "Trích xuất điểm chính",
+      "feature4": "Hỗ trợ email"
+    },
+    "professional": {
+      "title": "Chuyên nghiệp",
+      "price": "499.000₫",
+      "feature1": "30 giờ video mỗi tháng",
+      "feature2": "Tóm tắt văn bản & âm thanh",
+      "feature3": "Trích xuất từ khóa & chủ đề",
+      "feature4": "Hỗ trợ ưu tiên 24/7",
+      "feature5": "Xuất tệp PDF"
+    },
+    "business": {
+      "title": "Doanh nghiệp",
+      "price": "Liên hệ",
+      "feature1": "Không giới hạn video",
+      "feature2": "Tích hợp API đầy đủ",
+      "feature3": "Phân tích & báo cáo nâng cao",
+      "feature4": "Quản lý người dùng",
+      "feature5": "Tùy chỉnh thương hiệu"
+    }
+  },
+  "faq": {
+    "title": "Câu hỏi thường gặp",
+    "q1": "VideoSum.AI hoạt động với các video nào?",
+    "a1": "Chúng tôi hỗ trợ hầu hết các nền tảng video phổ biến như YouTube, Vimeo, Facebook, và nhiều nền tảng khác. Bạn cũng có thể tải lên video của riêng mình với nhiều định dạng phổ biến.",
+    "q2": "Tóm tắt có chính xác không?",
+    "a2": "Thuật toán AI của chúng tôi đã được huấn luyện trên hàng triệu video để đảm bảo độ chính xác cao. Tuy nhiên, chất lượng tóm tắt có thể phụ thuộc vào chất lượng âm thanh và độ phức tạp của nội dung.",
+    "q3": "Hỗ trợ những ngôn ngữ nào?",
+    "a3": "Hiện tại, chúng tôi hỗ trợ tiếng Việt, tiếng Anh và hơn 20 ngôn ngữ phổ biến khác. Chúng tôi liên tục mở rộng khả năng hỗ trợ ngôn ngữ của mình.",
+    "q4": "Dữ liệu của tôi có an toàn không?",
+    "a4": "Chúng tôi coi trọng quyền riêng tư của bạn. Tất cả video và tóm tắt đều được mã hóa và chỉ bạn mới có quyền truy cập. Chúng tôi không lưu trữ nội dung video của bạn lâu hơn mức cần thiết để tạo tóm tắt."
+  },
+  "final_cta": {
+    "title": "Bắt đầu tóm tắt video của bạn ngay hôm nay",
+    "description": "Tiết kiệm thời gian và tăng hiệu suất với công nghệ AI tóm tắt video hàng đầu"
+  },
+  "footer": {
+    "terms": "Điều khoản",
+    "privacy": "Chính sách riêng tư",
+    "help": "Trợ giúp",
+    "contact": "Liên hệ",
+    "copyright": "Bản quyền thuộc về VideoSum.AI."
+  }
+}

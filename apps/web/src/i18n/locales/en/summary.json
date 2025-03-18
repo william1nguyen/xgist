@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "summarize": "Summarize Video",
+    "upload": "Upload Video"
+  },
+  "page_title": {
+    "create": "Create Video Summary",
+    "upload": "Upload New Video"
+  },
+  "heading": {
+    "ai_summary": "AI-Powered Video Summarization"
+  },
+  "dropzone": {
+    "text": "Drag and drop your video here or click to browse",
+    "formats": "Supports MP4, MOV, AVI - Max 50MB"
+  },
+  "advanced_options": {
+    "title": "Advanced Options",
+    "show": "Show options",
+    "hide": "Hide options",
+    "extract_keywords": "Extract keywords",
+    "extract_key_points": "Extract key points"
+  },
+  "summary_options": {
+    "title": "Summary Options",
+    "auto_summary": "Your video will be automatically summarized by AI when uploaded"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "create_summary": "Create Summary",
+    "create_new": "Create New Summary",
+    "download_pdf": "Download PDF",
+    "share": "Share",
+    "publish": "Publish Video"
+  },
+  "file": {
+    "selected": "Video selected"
+  },
+  "progress": {
+    "uploading": "Uploading video...",
+    "processing": "Processing video...",
+    "finishing": "Finishing"
+  },
+  "loading": {
+    "title": "Processing Video",
+    "please_wait": "Please wait a moment."
+  },
+  "results": {
+    "title": "Summary Results",
+    "your_video": "Your video",
+    "original": "Original video",
+    "summary": "Summary"
+  },
+  "preview": {
+    "summary": "Summary",
+    "key_points": "Key Points",
+    "keywords": "Keywords",
+    "transcript": "Transcript"
+  },
+  "upload": {
+    "title": "Upload New Video",
+    "thumbnail": "Thumbnail",
+    "thumbnail_dropzone": "Drag and drop thumbnail image or click to browse",
+    "thumbnail_formats": "Recommended: JPG, PNG - 16:9 aspect ratio",
+    "auto_thumbnail": "If you don't upload a thumbnail, the system will automatically generate one from your video",
+    "video_title": "Video Title",
+    "title_placeholder": "Enter video title",
+    "description": "Description",
+    "description_placeholder": "Describe your video content",
+    "category": "Category"
+  },
+  "categories": {
+    "technology": "Technology",
+    "education": "Education",
+    "productivity": "Productivity",
+    "finance": "Finance",
+    "travel": "Travel",
+    "health": "Health",
+    "other": "Other"
+  },
+  "errors": {
+    "invalid_image": "Please select a valid image file (JPG, PNG, WebP)",
+    "summarize_failed": "Video summarization failed. Please try again.",
+    "upload_failed": "Video upload failed. Please try again."
+  },
+  "messages": {
+    "upload_success": "Video uploaded successfully!",
+    "link_copied": "Summary link copied to clipboard"
+  }
+}

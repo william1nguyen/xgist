@@ -1,0 +1,118 @@
+{
+  "navigation": {
+    "features": "Features",
+    "how_it_works": "How It Works",
+    "pricing": "Pricing",
+    "faq": "FAQ"
+  },
+  "buttons": {
+    "free_trial": "Free Trial",
+    "login": "Log In",
+    "summarize_now": "Summarize Now",
+    "watch_demo": "Watch Demo",
+    "get_started": "Get Started",
+    "pre_register": "Pre-Register",
+    "contact_us": "Contact Us",
+    "signup_free_trial": "Sign Up for Free Trial"
+  },
+  "hero": {
+    "tagline": "AI-Powered Video Summarization",
+    "title": "Save Time Watching Videos with Smart AI Summaries",
+    "description": "VideoSum.AI uses advanced artificial intelligence to summarize any video into key points, helping you quickly grasp information without missing important details.",
+    "demo": {
+      "original": "30-minute video",
+      "summary": "3-minute summary"
+    }
+  },
+  "features": {
+    "title": "Save Time with VideoSum.AI",
+    "subtitle": "Using advanced AI technology to turn long videos into concise, digestible content",
+    "card1": {
+      "title": "Summarize in Seconds",
+      "description": "Summarize any video regardless of length, get key points and essential information instantly."
+    },
+    "card2": {
+      "title": "Context-Aware AI",
+      "description": "Our AI technology understands context, topics, and accurately identifies important information."
+    },
+    "card3": {
+      "title": "Key Points & Notes",
+      "description": "Get structured key points, important keywords, and detailed notes customized to your needs."
+    }
+  },
+  "how_it_works": {
+    "title": "How It Works",
+    "subtitle": "Simple process, powerful results",
+    "step1": {
+      "title": "Paste Video Link",
+      "description": "Simply paste a URL from YouTube, Vimeo, or upload your own video."
+    },
+    "step2": {
+      "title": "AI Processes Video",
+      "description": "Our AI algorithm analyzes audio, visuals, and context."
+    },
+    "step3": {
+      "title": "Get Your Summary",
+      "description": "Receive concise summary, key points and highlights in seconds."
+    }
+  },
+  "cta": {
+    "title": "Save 90% of Your Video Watching Time",
+    "description": "Don't waste your valuable time. VideoSum.AI can help you absorb knowledge 10x faster."
+  },
+  "pricing": {
+    "title": "Simple Pricing Plans",
+    "subtitle": "Choose a plan that fits your needs",
+    "per_month": "per month",
+    "custom_solutions": "custom solutions",
+    "most_popular": "Most Popular",
+    "personal": {
+      "title": "Personal",
+      "price": "$9.99",
+      "feature1": "10 hours of video per month",
+      "feature2": "Text summaries",
+      "feature3": "Key points extraction",
+      "feature4": "Email support"
+    },
+    "professional": {
+      "title": "Professional",
+      "price": "$24.99",
+      "feature1": "30 hours of video per month",
+      "feature2": "Text & audio summaries",
+      "feature3": "Keywords & topics extraction",
+      "feature4": "Priority 24/7 support",
+      "feature5": "PDF export"
+    },
+    "business": {
+      "title": "Business",
+      "price": "Contact Us",
+      "feature1": "Unlimited videos",
+      "feature2": "Full API integration",
+      "feature3": "Advanced analytics & reporting",
+      "feature4": "User management",
+      "feature5": "Custom branding"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "What videos does VideoSum.AI work with?",
+    "a1": "We support most popular video platforms like YouTube, Vimeo, Facebook, and many others. You can also upload your own videos in many common formats.",
+    "q2": "How accurate are the summaries?",
+    "a2": "Our AI algorithm has been trained on millions of videos to ensure high accuracy. However, summary quality may depend on audio quality and content complexity.",
+    "q3": "What languages are supported?",
+    "a3": "Currently, we support English, Vietnamese, and over 20 other common languages. We are continuously expanding our language support capabilities.",
+    "q4": "Is my data safe?",
+    "a4": "We take your privacy seriously. All videos and summaries are encrypted and only accessible by you. We don't store your video content longer than necessary to create the summary."
+  },
+  "final_cta": {
+    "title": "Start Summarizing Your Videos Today",
+    "description": "Save time and boost productivity with leading AI video summarization technology"
+  },
+  "footer": {
+    "terms": "Terms",
+    "privacy": "Privacy Policy",
+    "help": "Help",
+    "contact": "Contact",
+    "copyright": "All rights reserved."
+  }
+}

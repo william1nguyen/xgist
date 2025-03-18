@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { TrendingUp, Clock, Activity } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { VideoItem, SortOption } from "../types";
 import { Layout } from "../components/layout/Layout";
 import { SearchBar } from "../components/filter/SearchBar";
@@ -16,6 +17,8 @@ type SortByType = "popular" | "newest" | "most-liked" | "most-viewed";
 type TimeRangeType = "today" | "week" | "month" | "year";
 
 export const TrendingPage: React.FC = () => {
+  const { t } = useTranslation(["common", "trending"]);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<ViewModeType>("grid");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -52,6 +55,7 @@ export const TrendingPage: React.FC = () => {
     } catch (err) {
       console.error("Error fetching trending videos:", err);
       setVideos([]);
+      setError(t("trending:errors.fetch_failed"));
     } finally {
       setLoading(false);
     }
@@ -77,17 +81,17 @@ export const TrendingPage: React.FC = () => {
   };
 
   const sortOptions: SortOption[] = [
-    { id: "popular", label: "Phổ biến nhất" },
-    { id: "newest", label: "Mới nhất" },
-    { id: "most-liked", label: "Nhiều lượt thích" },
-    { id: "most-viewed", label: "Nhiều lượt xem" },
+    { id: "popular", label: t("trending:sorting.popular") },
+    { id: "newest", label: t("trending:sorting.newest") },
+    { id: "most-liked", label: t("trending:sorting.most_liked") },
+    { id: "most-viewed", label: t("trending:sorting.most_viewed") },
   ];
 
   const timeRangeOptions: SortOption[] = [
-    { id: "today", label: "Hôm nay" },
-    { id: "week", label: "Tuần này" },
-    { id: "month", label: "Tháng này" },
-    { id: "year", label: "Năm nay" },
+    { id: "today", label: t("trending:time_range.today") },
+    { id: "week", label: t("trending:time_range.week") },
+    { id: "month", label: t("trending:time_range.month") },
+    { id: "year", label: t("trending:time_range.year") },
   ];
 
   const handleCategoryClick = (category: string): void => {
@@ -167,7 +171,7 @@ export const TrendingPage: React.FC = () => {
         }`}
         onClick={() => handleTabClick("trending")}
       >
-        Xu hướng
+        {t("trending:tabs.trending")}
       </button>
       <button
         className={`px-4 py-2 text-sm font-medium ${
@@ -177,7 +181,7 @@ export const TrendingPage: React.FC = () => {
         }`}
         onClick={() => handleTabClick("popular")}
       >
-        Đang thịnh hành
+        {t("trending:tabs.popular")}
       </button>
     </div>
   );
@@ -185,7 +189,7 @@ export const TrendingPage: React.FC = () => {
   return (
     <Layout
       activeItem="trending"
-      title="Xu hướng"
+      title={t("trending:title")}
       headerContent={headerContent}
     >
       {error && (
@@ -197,7 +201,7 @@ export const TrendingPage: React.FC = () => {
       <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="w-full md:w-auto">
           <SearchBar
-            placeholder="Tìm kiếm xu hướng..."
+            placeholder={t("trending:search.placeholder")}
             onSearch={handleSearch}
             fullWidth={true}
           />
@@ -229,7 +233,9 @@ export const TrendingPage: React.FC = () => {
             size="sm"
             disabled={loading}
           >
-            {loading ? "Đang tải..." : "Tải lại"}
+            {loading
+              ? t("trending:buttons.loading")
+              : t("trending:buttons.reload")}
           </Button>
         </div>
       </div>
@@ -238,7 +244,7 @@ export const TrendingPage: React.FC = () => {
         <div className="flex items-center space-x-2 mb-4">
           <TrendingUp className="text-indigo-600" size={18} />
           <h2 className="text-lg font-semibold text-slate-900">
-            Danh mục thịnh hành
+            {t("trending:categories.title")}
           </h2>
         </div>
 
@@ -248,49 +254,49 @@ export const TrendingPage: React.FC = () => {
             size="sm"
             onClick={() => handleCategoryClick("all")}
           >
-            Tất cả
+            {t("trending:categories.all")}
           </Button>
           <Button
             variant={activeCategory === "technology" ? "primary" : "outline"}
             size="sm"
             onClick={() => handleCategoryClick("technology")}
           >
-            Công nghệ
+            {t("trending:categories.technology")}
           </Button>
           <Button
             variant={activeCategory === "travel" ? "primary" : "outline"}
             size="sm"
             onClick={() => handleCategoryClick("travel")}
           >
-            Du lịch
+            {t("trending:categories.travel")}
           </Button>
           <Button
             variant={activeCategory === "finance" ? "primary" : "outline"}
             size="sm"
             onClick={() => handleCategoryClick("finance")}
           >
-            Tài chính
+            {t("trending:categories.finance")}
           </Button>
           <Button
             variant={activeCategory === "education" ? "primary" : "outline"}
             size="sm"
             onClick={() => handleCategoryClick("education")}
           >
-            Giáo dục
+            {t("trending:categories.education")}
           </Button>
           <Button
             variant={activeCategory === "health" ? "primary" : "outline"}
             size="sm"
             onClick={() => handleCategoryClick("health")}
           >
-            Sức khỏe
+            {t("trending:categories.health")}
           </Button>
           <Button
             variant={activeCategory === "productivity" ? "primary" : "outline"}
             size="sm"
             onClick={() => handleCategoryClick("productivity")}
           >
-            Năng suất
+            {t("trending:categories.productivity")}
           </Button>
         </div>
       </div>
@@ -301,10 +307,11 @@ export const TrendingPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               <Activity className="text-indigo-600" size={18} />
               <h2 className="text-lg font-semibold text-slate-900">
-                Video thịnh hành{" "}
-                {timeRangeOptions
-                  .find((opt) => opt.id === timeRange)
-                  ?.label.toLowerCase()}
+                {t("trending:sections.trending_videos", {
+                  time: timeRangeOptions
+                    .find((opt) => opt.id === timeRange)
+                    ?.label.toLowerCase(),
+                })}
               </h2>
             </div>
           </div>
@@ -313,8 +320,8 @@ export const TrendingPage: React.FC = () => {
             <VideoSkeleton viewMode={viewMode} count={6} />
           ) : sortedVideos.length === 0 ? (
             <EmptyState
-              title="Không tìm thấy nội dung xu hướng"
-              description="Hiện không có nội dung xu hướng nào trong thời gian đã chọn."
+              title={t("trending:empty.trending_title")}
+              description={t("trending:empty.trending_description")}
               icon={<TrendingUp className="text-gray-400" size={28} />}
             />
           ) : (
@@ -346,7 +353,7 @@ export const TrendingPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               <Clock className="text-indigo-600" size={18} />
               <h2 className="text-lg font-semibold text-slate-900">
-                Đang lên xu hướng
+                {t("trending:sections.rising")}
               </h2>
             </div>
           </div>
@@ -382,10 +389,11 @@ export const TrendingPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               <TrendingUp className="text-indigo-600" size={18} />
               <h2 className="text-lg font-semibold text-slate-900">
-                Đang thịnh hành{" "}
-                {timeRangeOptions
-                  .find((opt) => opt.id === timeRange)
-                  ?.label.toLowerCase()}
+                {t("trending:sections.popular_videos", {
+                  time: timeRangeOptions
+                    .find((opt) => opt.id === timeRange)
+                    ?.label.toLowerCase(),
+                })}
               </h2>
             </div>
           </div>
@@ -394,8 +402,8 @@ export const TrendingPage: React.FC = () => {
             <VideoSkeleton viewMode={viewMode} count={6} />
           ) : sortedVideos.length === 0 ? (
             <EmptyState
-              title="Không tìm thấy nội dung thịnh hành"
-              description="Hiện không có nội dung thịnh hành nào trong thời gian đã chọn."
+              title={t("trending:empty.popular_title")}
+              description={t("trending:empty.popular_description")}
               icon={<Activity className="text-gray-400" size={28} />}
             />
           ) : (

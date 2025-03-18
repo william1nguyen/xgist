@@ -1,0 +1,28 @@
+{
+  "app_name": "VideoSum.AI",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "login": "Login",
+  "logout": "Logout",
+  "settings": "Settings",
+  "language": "Language",
+  "theme": "Theme",
+  "get_started": "Get Started",
+
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "deleteConfirmation": {
+    "title": "Delete Confirmation",
+    "message": "Are you sure you want to delete the {{count}} selected {{type}}? This action cannot be undone."
+  },
+  "itemTypes": {
+    "video": "video",
+    "video_plural": "videos",
+    "summary": "summary",
+    "summary_plural": "summaries",
+    "comment": "comment",
+    "comment_plural": "comments",
+    "file": "file",
+    "file_plural": "files"
+  }
+}

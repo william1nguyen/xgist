@@ -1,0 +1,55 @@
+{
+  "title": "Settings",
+  "heading": "Manage Your Videos",
+  "subtitle": "View and manage your uploaded videos, check statistics and performance",
+  "tabs": {
+    "uploads": "Uploaded Videos",
+    "statistics": "Statistics"
+  },
+  "uploads": {
+    "title": "Your Videos ({{count}})",
+    "description": "Manage videos you've uploaded to the system"
+  },
+  "sorting": {
+    "date": "Date",
+    "views": "Views",
+    "likes": "Likes"
+  },
+  "buttons": {
+    "upload_new": "Upload New Video",
+    "edit": "Edit"
+  },
+  "stats": {
+    "total_views": "Total Views",
+    "from_videos": "From {{count}} uploaded videos",
+    "total_likes": "Total Likes",
+    "average": "Average {{count}} per video",
+    "total_duration": "Total Duration",
+    "saved_time": "Saved {{time}} thanks to summaries",
+    "distribution": "Category Distribution",
+    "most_popular": "Most Popular Video",
+    "views": "views",
+    "likes": "likes",
+    "video_count": "{{count}} videos"
+  },
+  "storage": {
+    "title": "Storage Information",
+    "used": "Used Storage",
+    "video_count": "Video Count",
+    "summarized": "Summarized",
+    "not_summarized": "Not Summarized",
+    "video_count_value": "{{count}} videos"
+  },
+  "activities": {
+    "title": "Recent Activities"
+  },
+  "categories": {
+    "technology": "Technology",
+    "education": "Education",
+    "productivity": "Productivity",
+    "finance": "Finance",
+    "travel": "Travel",
+    "health": "Health",
+    "other": "Other"
+  }
+}

@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FastForward, Eye, Download, Share, Trash } from "lucide-react";
 import { VideoItem } from "../../types";
+import { useTranslation } from "react-i18next";
 
 interface VideoCardProps {
   item: VideoItem & {
@@ -27,11 +28,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   onDelete,
 }) => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(["common", "videos"]);
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
+    return date.toLocaleDateString(i18n.language === "vi" ? "vi-VN" : "en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -56,6 +58,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     }
   };
 
+  const formatViewCount = () => {
+    if (item.formattedViews) return item.formattedViews;
+    if (item.views) return t("videos:card.viewCount", { count: item.views });
+    return "";
+  };
+
   if (viewMode === "grid") {
     return (
       <div
@@ -71,7 +79,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           {(item.summarized || item.isSummarized) && (
             <div className="absolute top-2 left-2 bg-indigo-600 text-white px-2 py-0.5 text-xs rounded-md flex items-center">
               <FastForward size={12} className="mr-1" />
-              Đã tóm tắt
+              {t("videos:card.summarized")}
             </div>
           )}
         </div>
@@ -84,7 +92,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           <div className="flex items-center text-xs text-gray-500 mb-2">
             {contentType === "video" && (item.formattedViews || item.views) && (
               <>
-                <span>{item.formattedViews || `${item.views} lượt xem`}</span>
+                <span>{formatViewCount()}</span>
                 <span className="mx-1">•</span>
               </>
             )}
@@ -126,7 +134,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         {(item.summarized || item.isSummarized) && (
           <div className="absolute top-2 left-2 bg-indigo-600 text-white px-1.5 py-0.5 text-xs rounded-md flex items-center">
             <FastForward size={10} className="mr-1" />
-            Đã tóm tắt
+            {t("videos:card.summarized")}
           </div>
         )}
       </div>
@@ -139,7 +147,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <div className="flex items-center text-xs text-gray-500 mb-2">
           {contentType === "video" && (item.formattedViews || item.views) && (
             <>
-              <span>{item.formattedViews || `${item.views} lượt xem`}</span>
+              <span>{formatViewCount()}</span>
               <span className="mx-2">•</span>
             </>
           )}
@@ -177,22 +185,22 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           >
             <button className="p-1.5 text-gray-400 hover:text-gray-700 flex items-center">
               <Eye size={16} className="mr-1" />
-              <span className="text-xs">Xem</span>
+              <span className="text-xs">{t("videos:actions.view")}</span>
             </button>
             <button className="p-1.5 text-gray-400 hover:text-gray-700 flex items-center">
               <Download size={16} className="mr-1" />
-              <span className="text-xs">Tải xuống</span>
+              <span className="text-xs">{t("videos:actions.download")}</span>
             </button>
             <button className="p-1.5 text-gray-400 hover:text-gray-700 flex items-center">
               <Share size={16} className="mr-1" />
-              <span className="text-xs">Chia sẻ</span>
+              <span className="text-xs">{t("videos:actions.share")}</span>
             </button>
             <button
               className="p-1.5 text-gray-400 hover:text-red-500 flex items-center"
               onClick={handleDelete}
             >
               <Trash size={16} className="mr-1" />
-              <span className="text-xs">Xóa</span>
+              <span className="text-xs">{t("videos:actions.delete")}</span>
             </button>
           </div>
         </div>
