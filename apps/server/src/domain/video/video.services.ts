@@ -10,6 +10,7 @@ import logger from "~/infra/logger";
 import { itemResponse } from "~/infra/utils/fns";
 import type { GetQueryString } from "~/infra/utils/schema";
 import {
+  GetNotificationsFailedError,
   SummarizedFailedError,
   ThumbnailInvalidError,
   VideoInvalidError,
@@ -47,28 +48,33 @@ export const getNotifications = async (
   { page = 1, size = 10 }: GetQueryString,
   userId: string
 ) => {
-  const pattern = `notifications:${userId}-*`;
-  const keys = await redisDefault.keys(pattern);
+  try {
+    const pattern = `notifications:${userId}-*`;
+    const keys = await redisDefault.keys(pattern);
 
-  const start = (page - 1) * size;
-  const end = start + size - 1;
+    const start = (page - 1) * size;
+    const end = start + size - 1;
 
-  const total = keys.length;
-  const notifications = (
-    await Promise.all(
-      keys.map(async (key) => {
-        const values = await redisDefault.lrange(key, 0, -1);
-        return values.map((value) => JSON.parse(value))[0];
-      })
-    )
-  ).slice(start, end);
+    const total = keys.length;
+    const notifications = (
+      await Promise.all(
+        keys.map(async (key) => {
+          const values = await redisDefault.lrange(key, 0, -1);
+          if (!values) return {};
+          return values.map((value) => JSON.parse(value))[0];
+        })
+      )
+    ).slice(start, end);
 
-  return {
-    notifications,
-    page,
-    size,
-    total,
-  };
+    return {
+      notifications,
+      page,
+      size,
+      total,
+    };
+  } catch (error) {
+    throw new GetNotificationsFailedError();
+  }
 };
 
 export const getVideos = async (
