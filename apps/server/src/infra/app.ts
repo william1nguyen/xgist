@@ -10,14 +10,15 @@ import { videoModule } from "~/domain/video/video.module";
 import { env } from "~/env";
 import { bullBoardPlugin } from "./bullboard";
 import { queues } from "./jobs";
+import { Server } from "socket.io";
+import { redisDefault } from "./redis";
+import { INotification } from "./jobs/workers/summarize";
+import logger from "./logger";
 
 const app = fastify({ logger: true });
 
 app.register(fastifyCors, {
-  origin: [
-    "http://localhost:5173",
-    "https://xgist.powerful.cuddly-succotash.online",
-  ],
+  origin: [env.APP_URL],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   exposedHeaders: ["Content-Type", "Authorization"],
@@ -50,6 +51,33 @@ if (env.NODE_ENV !== "production") {
   });
   app.register(scalar, { routePrefix: "/api-reference" });
 }
+
+export const io = new Server(app.server, {
+  cors: {
+    origin: env.APP_URL,
+    methods: ["GET", "POST"],
+    credentials: false,
+  },
+});
+
+io.on("connection", (socket) => {
+  socket.on("notification-readed", async (data) => {
+    try {
+      const key = data.key;
+      const values = await redisDefault.lrange(key, 0, -1);
+
+      if (!values) return;
+
+      const value = values[0];
+      const notification = JSON.parse(value) as INotification;
+      notification.read = true;
+
+      await redisDefault.set(key, JSON.stringify(notification));
+    } catch (error) {
+      logger.error(`Failed to update key : ${error}`);
+    }
+  });
+});
 
 app.register(bullBoardPlugin, { queues: queues, path: "/bullboard" });
 app.register(userModule);
