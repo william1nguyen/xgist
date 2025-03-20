@@ -3,6 +3,7 @@ import { GetQueryString } from "~/infra/utils/schema";
 import {
   getBookmarkedVideos,
   getMyVideos,
+  getNotifications,
   getRelatedVideos,
   getVideoDetail,
   getVideos,
@@ -35,6 +36,21 @@ import {
 const tags = ["video"];
 
 export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
+  app.get(
+    "/notifications",
+    {
+      schema: {
+        tags: tags,
+        description: "Lấy dữ liệu videos",
+        querystring: GetQueryString,
+      },
+    },
+    async (req) => {
+      const res = await getNotifications(req.query, req.principal.user.id);
+      return res;
+    }
+  );
+
   app.get(
     "",
     {

@@ -3,8 +3,14 @@ import { eq } from "drizzle-orm";
 import { summarizeBuffer } from "~/domain/video/video.services";
 import { db } from "~/drizzle/db";
 import { videoTable } from "~/drizzle/schema/video";
+import { io } from "~/infra/app";
 import logger from "~/infra/logger";
-import { redisForBullMq } from "~/infra/redis";
+import { redisDefault, redisForBullMq } from "~/infra/redis";
+
+export interface INotificationData {
+  userId: string;
+  videoName: string;
+}
 
 export interface ISummaryData {
   videoId: string;
@@ -13,6 +19,15 @@ export interface ISummaryData {
   mimeType: string;
   encodedData: string;
   size: number;
+  notification: INotificationData;
+}
+
+export interface INotification {
+  id: string;
+  key: string;
+  timestamp: string;
+  message: string;
+  read: boolean;
 }
 
 export const summaryQueue = new Queue<ISummaryData>("summary", {
@@ -43,6 +58,38 @@ const handleSummaryJob = async (job: Job) => {
   }
 };
 
+const sendNotification = async (job: Job) => {
+  try {
+    const { userId, videoName } = job.data.notification;
+    const { videoId } = job.data;
+    const date = Date.now().toString();
+
+    const key = `notifications:${userId}-${videoId}`;
+
+    const notification = {
+      id: job.id || `notification_${date}`,
+      key,
+      timestamp: date,
+      message: `Video ${videoName} is summarized!`,
+      read: false,
+    };
+
+    await redisDefault.lpush(key, JSON.stringify(notification));
+    await redisDefault.expire(key, 60 * 60 * 24 * 7);
+
+    io.socketsJoin(`users:${userId}`);
+    io.to(`users:${userId}`).emit("notification", notification);
+
+    logger.info({
+      msg: "Notification sent",
+      userId,
+      notification,
+    });
+  } catch (error) {
+    logger.error(`Failed to send notification from bullboard :${error}`);
+  }
+};
+
 export const createSummaryWorker = (): Worker => {
   const summaryWorker = new Worker<ISummaryData>(
     "summary",
@@ -54,8 +101,9 @@ export const createSummaryWorker = (): Worker => {
       concurrency: 1,
     }
   );
-  summaryWorker.on("completed", (job) => {
+  summaryWorker.on("completed", async (job) => {
     logger.info({ msg: "Job completed", jobId: job.id });
+    await sendNotification(job);
   });
 
   summaryWorker.on("failed", (job, err) => {

@@ -17,6 +17,8 @@ const EnvSchema = Type.Object({
     Type.Literal("silent"),
   ]),
 
+  APP_URL: Type.String(),
+
   JWKS_URI: Type.String(),
   DATABASE_URL: Type.String(),
 
@@ -37,9 +39,10 @@ const EnvSchema = Type.Object({
   REDIS_URL: Type.String(),
   REDIS_MAX_CONCURRENCY: Type.Number(),
 
+  BULL_REDIS_DB: Type.Number(),
+
   BULL_BOARD_USERNAME: Type.String(),
   BULL_BOARD_PASSWORD: Type.String(),
-  BULL_REDIS_DB: Type.Number(),
   BULL_API_CALLBACK_URL: Type.String(),
 
   X_API_KEY: Type.String(),
@@ -76,6 +79,8 @@ const validateEnv = (): Env => {
     NODE_ENV: process.env.NODE_ENV ?? "development",
     LOG_LEVEL: process.env.LOG_LEVEL,
 
+    APP_URL: process.env.APP_URL,
+
     JWKS_URI: process.env.JWKS_URI,
     DATABASE_URL: process.env.DATABASE_URL,
 
@@ -96,9 +101,10 @@ const validateEnv = (): Env => {
     REDIS_URL: process.env.REDIS_URL,
     REDIS_MAX_CONCURRENCY: coerceInt(process.env.REDIS_MAX_CONCURRENCY),
 
+    BULL_REDIS_DB: coerceInt(process.env.BULL_REDIS_DB),
+
     BULL_BOARD_USERNAME: process.env.BULL_BOARD_USERNAME,
     BULL_BOARD_PASSWORD: process.env.BULL_BOARD_PASSWORD,
-    BULL_REDIS_DB: coerceInt(process.env.BULL_REDIS_DB),
     BULL_API_CALLBACK_URL: process.env.BULL_API_CALLBACK_URL,
 
     X_API_KEY: process.env.X_API_KEY,

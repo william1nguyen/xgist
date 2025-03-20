@@ -30,6 +30,7 @@ import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
 import { prompting } from "~/infra/gemini";
 import { transcribeStream } from "~/infra/whisper";
+import { redisDefault } from "~/infra/redis";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnails",
@@ -41,6 +42,34 @@ const uploadVideo = createUploader({
   bucket: "videos",
   allowedType: "video",
 });
+
+export const getNotifications = async (
+  { page = 1, size = 10 }: GetQueryString,
+  userId: string
+) => {
+  const pattern = `notifications:${userId}-*`;
+  const keys = await redisDefault.keys(pattern);
+
+  const start = (page - 1) * size;
+  const end = start + size - 1;
+
+  const total = keys.length;
+  const notifications = (
+    await Promise.all(
+      keys.map(async (key) => {
+        const values = await redisDefault.lrange(key, 0, -1);
+        return values.map((value) => JSON.parse(value))[0];
+      })
+    )
+  ).slice(start, end);
+
+  return {
+    notifications,
+    page,
+    size,
+    total,
+  };
+};
 
 export const getVideos = async (
   { page = 1, size = 100, category }: GetVideosQueryString,
@@ -222,6 +251,10 @@ export const postVideo = async (
     ...video,
     videoId: res.id,
     encodedData,
+    notification: {
+      userId,
+      videoName: title.value,
+    },
   });
 
   return res;
