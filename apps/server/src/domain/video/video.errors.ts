@@ -8,6 +8,7 @@ enum ErrorCode {
   VideoInvalid = "VideoInvalid",
   ThumbnailInvalid = "ThumbnailInvalid",
   SummarizeFailed = "SummarizedFailed",
+  GetNotificationsFailed = "GetNotificationsFailed",
 }
 
 export const FileNotFoundError = createError(
@@ -49,5 +50,11 @@ export const ThumbnailInvalidError = createError(
 export const SummarizedFailedError = createError(
   ErrorCode.SummarizeFailed,
   "Lỗi khi tóm tắt video",
+  500
+);
+
+export const GetNotificationsFailedError = createError(
+  ErrorCode.GetNotificationsFailed,
+  "Lỗi khi lấy dữ liệu thông báo",
   500
 );
