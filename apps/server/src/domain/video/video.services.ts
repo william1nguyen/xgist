@@ -52,19 +52,36 @@ export const getNotifications = async (
     const pattern = `notifications:${userId}-*`;
     const keys = await redisDefault.keys(pattern);
 
-    const start = (page - 1) * size;
-    const end = start + size - 1;
+    keys.sort();
 
+    const start = (page - 1) * size;
+    const end = start + size;
     const total = keys.length;
-    const notifications = (
-      await Promise.all(
-        keys.map(async (key) => {
-          const values = await redisDefault.lrange(key, 0, -1);
-          if (!values) return {};
-          return values.map((value) => JSON.parse(value))[0];
-        })
-      )
-    ).slice(start, end);
+
+    const notifications = await Promise.all(
+      keys.slice(start, end).map(async (key) => {
+        const type = await redisDefault.type(key);
+        switch (type) {
+          case "list":
+            const values = await redisDefault.lrange(key, 0, -1);
+            if (values) return values.map((value) => JSON.parse(value))[0];
+            break;
+
+          case "string":
+            const value = await redisDefault.get(key);
+            if (value) return JSON.parse(value);
+            break;
+
+          case "hash":
+            const hashData = await redisDefault.hgetall(key);
+            if (hashData) return hashData;
+            break;
+
+          default:
+            return null;
+        }
+      })
+    );
 
     return {
       notifications,
@@ -73,6 +90,7 @@ export const getNotifications = async (
       total,
     };
   } catch (error) {
+    logger.info(error);
     throw new GetNotificationsFailedError();
   }
 };
