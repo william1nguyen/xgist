@@ -25,6 +25,7 @@ const EnvSchema = Type.Object({
   WHISPERAI_URL: Type.String(),
   GEMINI_URL: Type.String(),
   GOOGLE_API_KEY: Type.String(),
+  LMSTUDIO_URL: Type.String(),
 
   MINIO_ENDPOINT: Type.String(),
   MINIO_API_ENDPOINT: Type.String(),
@@ -87,6 +88,7 @@ const validateEnv = (): Env => {
     WHISPERAI_URL: process.env.WHISPERAI_URL,
     GEMINI_URL: process.env.GEMINI_URL,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    LMSTUDIO_URL: process.env.LMSTUDIO_URL,
 
     MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
     MINIO_API_ENDPOINT: process.env.MINIO_API_ENDPOINT,

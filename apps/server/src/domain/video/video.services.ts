@@ -29,9 +29,9 @@ import {
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
-import { prompting } from "~/infra/gemini";
 import { transcribeStream } from "~/infra/whisper";
 import { redisDefault } from "~/infra/redis";
+import { prompting } from "~/infra/models";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnails",

@@ -1,5 +1,5 @@
 import { Job, Queue, Worker } from "bullmq";
-import { checkGeminiHealth } from "~/infra/gemini";
+import { checkGeminiHealth } from "~/infra/models/gemini";
 
 import logger from "~/infra/logger";
 import { redisForBullMq } from "~/infra/redis";
