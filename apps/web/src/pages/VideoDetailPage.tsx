@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Clock,
-  ThumbsUp,
   Eye,
   Download,
   Bookmark,
@@ -10,15 +9,22 @@ import {
   ChevronLeft,
   Heart,
   Play,
+  Pause,
   Link2,
-  Loader2,
-  FileText,
   Lock,
   LogIn,
+  Volume2,
+  VolumeX,
+  Tag,
+  Share,
+  File,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { VideoCard } from "../components/video/VideoCard";
 import { VideoItem, ApiResponse, VideosResponse } from "../types";
+import { TabNavigation } from "../components/navigation/TabNavigation";
+import { Button } from "../components/ui/Button";
+import { toast } from "react-toastify";
 
 import { env } from "../config/env";
 import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
@@ -35,25 +41,36 @@ export interface Transcript {
 }
 
 export const VideoDetailPage = () => {
-  const { t } = useTranslation(["common", "videoDetail"]);
+  const { t } = useTranslation(["common", "videoDetail", "summary"]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [video, setVideo] = useState<VideoItem | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [relatedVideos, setRelatedVideos] = useState<VideoItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"video" | "summary">("video");
   const [detailedSummary, setDetailedSummary] = useState<string>("");
   const [keyPoints, setKeyPoints] = useState<string[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
-  const [transcript, setTranscript] = useState<Transcript>();
-  const [displayedTranscripts, setDisplayedTranscripts] = useState<number>(20);
+  const [transcript, setTranscript] = useState<Transcript | undefined>(
+    undefined
+  );
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const { user, isAuthenticated, login } = useKeycloakAuth();
 
-  const fetchVideoDetails = async () => {
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
+
+  const [summaryContentTab, setSummaryContentTab] = useState<string>("summary");
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const transcriptContainerRef = useRef<HTMLDivElement>(null);
+
+  const fetchVideoDetails = async (): Promise<void> => {
     setLoading(true);
     try {
       const res = await httpClient.get(`${env.VITE_BASE_URL}/v1/videos/${id}`);
@@ -77,7 +94,7 @@ export const VideoDetailPage = () => {
         );
         setRelatedVideos(relatedResponse.data.data.videos);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
 
       setLoading(false);
@@ -88,7 +105,7 @@ export const VideoDetailPage = () => {
     }
   };
 
-  const updateVideoViews = async () => {
+  const updateVideoViews = async (): Promise<void> => {
     try {
       await httpClient.post(`${env.VITE_BASE_URL}/v1/videos/views`, {
         videoId: id,
@@ -105,7 +122,7 @@ export const VideoDetailPage = () => {
     }
   }, [id]);
 
-  const toggleSelectItem = (id: string) => {
+  const toggleSelectItem = (id: string): void => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
     } else {
@@ -113,17 +130,17 @@ export const VideoDetailPage = () => {
     }
   };
 
-  const handleGoBack = () => {
+  const handleGoBack = (): void => {
     navigate(-1);
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = (): void => {
     const url = `${window.location.origin}/videos/${id}`;
     navigator.clipboard.writeText(url);
-    alert(t("videoDetail:alerts.link_copied"));
+    toast.success(t("videoDetail:alerts.link_copied"));
   };
 
-  const handleLikeVideo = async () => {
+  const handleLikeVideo = async (): Promise<void> => {
     if (!video) return;
 
     try {
@@ -142,7 +159,7 @@ export const VideoDetailPage = () => {
     }
   };
 
-  const handleBookmarkVideo = async () => {
+  const handleBookmarkVideo = async (): Promise<void> => {
     if (!video) return;
 
     try {
@@ -161,17 +178,123 @@ export const VideoDetailPage = () => {
     }
   };
 
-  const handleLoginRedirect = () => {
+  const handleLoginRedirect = (): void => {
     login();
   };
 
-  const formatTimestamp = (timestamp: any): string => {
-    if (!timestamp) return "0:00";
-    const seconds = Math.floor(timestamp);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSecs = seconds % 60;
-    return `${minutes}:${remainingSecs < 10 ? "0" : ""}${remainingSecs}`;
+  const togglePlayPause = (): void => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
+
+  const toggleMute = (): void => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleTimeUpdate = (): void => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+      highlightCurrentTranscript(videoRef.current.currentTime);
+    }
+  };
+
+  const jumpToTime = (time: number): void => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+      if (!isPlaying) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      }
+      highlightCurrentTranscript(time);
+    }
+  };
+
+  const highlightCurrentTranscript = (currentTime: number): void => {
+    if (
+      summaryContentTab === "transcript" &&
+      transcriptContainerRef.current &&
+      transcript?.chunks
+    ) {
+      const transcriptItems =
+        transcriptContainerRef.current.querySelectorAll(".transcript-item");
+      let activeIndex = -1;
+
+      for (let i = 0; i < transcript.chunks.length; i++) {
+        const nextIndex = i + 1;
+        const currentChunkTime = transcript.chunks[i].time;
+        const nextChunkTime =
+          nextIndex < transcript.chunks.length
+            ? transcript.chunks[nextIndex].time
+            : Infinity;
+
+        if (currentTime >= currentChunkTime && currentTime < nextChunkTime) {
+          activeIndex = i;
+          break;
+        }
+      }
+
+      transcriptItems.forEach((item, index) => {
+        if (index === activeIndex) {
+          item.classList.add("bg-indigo-50", "border-l-4", "border-indigo-500");
+
+          const itemRect = item.getBoundingClientRect();
+          const containerRect =
+            transcriptContainerRef.current?.getBoundingClientRect();
+
+          if (
+            containerRect &&
+            (itemRect.top < containerRect.top ||
+              itemRect.bottom > containerRect.bottom)
+          ) {
+            item.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        } else {
+          item.classList.remove(
+            "bg-indigo-50",
+            "border-l-4",
+            "border-indigo-500"
+          );
+        }
+      });
+    }
+  };
+
+  const handleLoadedMetadata = (): void => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  };
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const summaryTabs = [
+    { id: "summary", label: t("summary:preview.summary") },
+    { id: "key-points", label: t("summary:preview.key_points") },
+  ];
+
+  if (keywords && keywords.length > 0) {
+    summaryTabs.push({ id: "keywords", label: t("summary:preview.keywords") });
+  }
+
+  if (transcript) {
+    summaryTabs.push({
+      id: "transcript",
+      label: t("summary:preview.transcript"),
+    });
+  }
 
   if (loading) {
     return (
@@ -291,373 +414,453 @@ export const VideoDetailPage = () => {
       </div>
 
       {activeTab === "video" ? (
-        <>
-          <div className="aspect-video w-full bg-gray-900 rounded-lg mb-6 flex items-center justify-center">
-            <div className="text-center text-white w-full h-full">
-              {video.url ? (
-                <iframe
-                  src={video.url}
-                  title={video.title}
-                  className="w-full h-full"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center">
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="max-h-full object-contain"
-                  />
-                  <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 mt-4 flex items-center mx-auto">
-                    <Play size={18} className="mr-2" />
-                    {t("videoDetail:buttons.watch_video")}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+        <div>
+          <div className="relative aspect-video w-full mb-6">
+            <video
+              ref={videoRef}
+              src={video.url}
+              className="w-full h-full object-cover rounded-lg"
+              poster={video.thumbnail}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            ></video>
 
-          <h1 className="text-2xl font-bold mb-4">{video.title}</h1>
-
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div className="flex items-center">
-              <div className="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
-                {video.creator?.username?.charAt(0).toUpperCase() || "U"}
-              </div>
-              <div className="ml-3">
-                <h3 className="font-medium">
-                  {video.creator?.username ||
-                    t("videoDetail:default.unknown_creator")}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {video.createdTime
-                    ? new Date(video.createdTime).toLocaleDateString("vi-VN", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : t("videoDetail:default.unknown_date")}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center text-sm text-gray-500 mr-4">
-                <Eye size={16} className="mr-1" />
-                {video.views} {t("videoDetail:metrics.views")}
-              </span>
-              <span className="inline-flex items-center text-sm text-gray-500 mr-4">
-                <ThumbsUp size={16} className="mr-1" />
-                {video.likes || 0} {t("videoDetail:metrics.likes")}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-6">
-            <button
-              className={`flex items-center gap-1 px-3 py-1.5 border rounded-md text-sm 
-        ${
-          isLiked
-            ? "bg-red-50 border-red-300 text-red-600"
-            : "border-gray-300 hover:bg-gray-50 text-white-700"
-        }`}
-              onClick={isAuthenticated ? handleLikeVideo : handleLoginRedirect}
-            >
-              <Heart
-                size={16}
-                className={isLiked ? "text-red-600" : "text-white-600"}
-                fill={isLiked ? "#DC2626" : "none"}
-              />
-              <span>
-                {isLiked
-                  ? t("videoDetail:buttons.liked")
-                  : t("videoDetail:buttons.like")}
-              </span>
-            </button>
-            <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
-              <Download size={16} />
-              <span>{t("videoDetail:buttons.download")}</span>
-            </button>
-            <button
-              className={`flex items-center gap-1 px-3 py-1.5 border rounded-md text-sm 
-    ${
-      isBookmarked
-        ? "bg-blue-50 border-blue-300 text-blue-600"
-        : "border-gray-300 hover:bg-gray-50 text-white-700"
-    }`}
-              onClick={
-                isAuthenticated ? handleBookmarkVideo : handleLoginRedirect
-              }
-            >
-              <Bookmark
-                size={16}
-                className={isBookmarked ? "text-blue-600" : "text-white-600"}
-                fill={isBookmarked ? "#2563EB" : "none"}
-              />
-              <span>
-                {isBookmarked
-                  ? t("videoDetail:buttons.bookmarked")
-                  : t("videoDetail:buttons.bookmark")}
-              </span>
-            </button>
-            <button
-              className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
-              onClick={handleCopyLink}
-            >
-              <Link2 size={16} />
-              <span>{t("videoDetail:buttons.copy_link")}</span>
-            </button>
-          </div>
-
-          <div className="bg-white border border-indigo-100 rounded-lg shadow-sm mb-8 overflow-hidden">
-            <div className="border-b border-indigo-100">
-              <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
-                <h3 className="font-medium text-indigo-700 flex items-center">
-                  <Clock size={16} className="mr-2" />
-                  {t("videoDetail:sections.technical_info")}
-                </h3>
-              </div>
-
-              <div className="p-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-indigo-50/50 p-3 rounded-lg">
-                    <p className="text-xs font-medium text-indigo-600 mb-1">
-                      {t("videoDetail:info.category")}
-                    </p>
-                    <p className="font-medium text-gray-800 capitalize">
-                      {video.category}
-                    </p>
-                  </div>
-
-                  <div className="bg-indigo-50/50 p-3 rounded-lg">
-                    <p className="text-xs font-medium text-indigo-600 mb-1">
-                      {t("videoDetail:info.status")}
-                    </p>
-                    {video.isSummarized ? (
-                      <p className="font-medium text-emerald-600 flex items-center">
-                        <FastForward size={14} className="mr-1" />
-                        {t("videoDetail:status.summarized")}
-                      </p>
-                    ) : (
-                      <p className="font-medium text-amber-600 flex items-center">
-                        <Loader2 size={14} className="mr-1 animate-spin" />
-                        {t("videoDetail:status.processing")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
-                <h3 className="font-medium text-indigo-700 flex items-center">
-                  <FileText size={16} className="mr-2" />
-                  {t("videoDetail:sections.description")}
-                </h3>
-              </div>
-
-              <div className="p-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <p className="text-gray-700 leading-relaxed text-sm">
-                    {video.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="relative">
-            {!isAuthenticated && (
-              <div className="absolute inset-0 z-10 backdrop-blur-md bg-white/70 flex flex-col items-center justify-center rounded-lg p-8">
-                <div className="text-center max-w-md">
-                  <div className="mb-4 bg-indigo-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto">
-                    <Lock size={32} className="text-indigo-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-indigo-700 mb-2">
-                    {t("videoDetail:auth.locked_content")}
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    {t("videoDetail:auth.login_message")}
-                  </p>
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+              <div className="flex items-center justify-between text-white mb-2">
+                <div className="flex items-center space-x-4">
                   <button
-                    onClick={handleLoginRedirect}
-                    className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center mx-auto"
+                    onClick={togglePlayPause}
+                    className="hover:text-indigo-300"
                   >
-                    <LogIn size={18} className="mr-2" />
-                    {t("videoDetail:buttons.login_now")}
+                    {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                  </button>
+                  <button
+                    onClick={toggleMute}
+                    className="hover:text-indigo-300"
+                  >
+                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                  </button>
+                  <span className="text-sm">
+                    {formatTime(currentTime)} / {formatTime(duration)}
+                  </span>
+                </div>
+
+                <div className="flex space-x-2">
+                  {isAuthenticated ? (
+                    <>
+                      <button
+                        onClick={handleLikeVideo}
+                        className={`p-1 rounded-full ${
+                          isLiked
+                            ? "bg-indigo-600"
+                            : "bg-black/30 hover:bg-black/50"
+                        }`}
+                      >
+                        <Heart
+                          size={18}
+                          className={isLiked ? "fill-white" : ""}
+                        />
+                      </button>
+                      <button
+                        onClick={handleBookmarkVideo}
+                        className={`p-1 rounded-full ${
+                          isBookmarked
+                            ? "bg-indigo-600"
+                            : "bg-black/30 hover:bg-black/50"
+                        }`}
+                      >
+                        <Bookmark
+                          size={18}
+                          className={isBookmarked ? "fill-white" : ""}
+                        />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleLoginRedirect}
+                      className="flex items-center px-2 py-1 bg-indigo-600 rounded text-xs"
+                    >
+                      <LogIn size={14} className="mr-1" />
+                      {t("videoDetail:auth.login")}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCopyLink}
+                    className="p-1 rounded-full bg-black/30 hover:bg-black/50"
+                  >
+                    <Link2 size={18} />
                   </button>
                 </div>
               </div>
-            )}
 
-            {/* Summary content */}
-            <div className={`${!isAuthenticated ? "filter blur-sm" : ""}`}>
-              <div className="bg-white border border-indigo-100 rounded-lg shadow-sm mb-6 overflow-hidden">
-                <div className="border-b border-indigo-100">
-                  <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
-                    <h3 className="font-medium text-indigo-700 flex items-center">
-                      <FastForward size={16} className="mr-2" />
-                      {t("videoDetail:sections.summary")}
-                    </h3>
-                  </div>
-
-                  <div className="p-4">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <p className="text-gray-700 leading-relaxed">
-                        {detailedSummary}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {keyPoints && keyPoints.length > 0 && (
-                <div className="bg-white border border-indigo-100 rounded-lg shadow-sm mb-6 overflow-hidden">
-                  <div className="border-b border-indigo-100">
-                    <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
-                      <h3 className="font-medium text-indigo-700 flex items-center">
-                        <FileText size={16} className="mr-2" />
-                        {t("videoDetail:sections.key_points")}
-                      </h3>
-                    </div>
-
-                    <div className="p-4">
-                      <ul className="list-disc pl-5 space-y-2">
-                        {keyPoints.map((point, index) => (
-                          <li key={index} className="text-gray-700">
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {keywords && keywords.length > 0 && (
-                <div className="bg-white border border-indigo-100 rounded-lg shadow-sm mb-6 overflow-hidden">
-                  <div className="border-b border-indigo-100">
-                    <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
-                      <h3 className="font-medium text-indigo-700 flex items-center">
-                        <FileText size={16} className="mr-2" />
-                        {t("videoDetail:sections.keywords")}
-                      </h3>
-                    </div>
-
-                    <div className="p-4">
-                      <div className="flex flex-wrap gap-2">
-                        {keywords.map((keyword, index) => (
-                          <span
-                            key={index}
-                            className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {transcript?.chunks && transcript.chunks.length > 0 && (
-                <div className="bg-white border border-indigo-100 rounded-lg shadow-sm mb-8 overflow-hidden">
-                  <div className="border-b border-indigo-100">
-                    <div className="bg-gradient-to-r from-indigo-50 to-indigo-100/30 px-4 py-3 border-l-4 border-indigo-500">
-                      <h3 className="font-medium text-indigo-700 flex items-center">
-                        <FileText size={16} className="mr-2" />
-                        {t("videoDetail:sections.transcript")}
-                      </h3>
-                    </div>
-
-                    <div className="p-4">
-                      <div className="space-y-3">
-                        {transcript.chunks
-                          .slice(0, displayedTranscripts)
-                          .map((chunk, index) => (
-                            <div
-                              key={index}
-                              className="flex border-b border-gray-100 pb-2 last:border-0"
-                            >
-                              <div className="w-16 text-xs font-medium text-gray-500 pt-1">
-                                {formatTimestamp(chunk.time)}
-                              </div>
-                              <div className="flex-1 text-gray-700">
-                                {chunk.text}
-                              </div>
-                            </div>
-                          ))}
-                        {transcript.chunks.length > displayedTranscripts &&
-                          isAuthenticated && (
-                            <div className="text-center pt-2">
-                              <button
-                                className="text-indigo-600 text-sm hover:underline"
-                                onClick={() =>
-                                  setDisplayedTranscripts((prev) => prev + 20)
-                                }
-                              >
-                                {t("videoDetail:buttons.view_more")}
-                              </button>
-                            </div>
-                          )}
-                        {displayedTranscripts > 20 &&
-                          transcript.chunks.length > 20 &&
-                          isAuthenticated && (
-                            <div className="text-center pt-2">
-                              <button
-                                className="text-gray-500 text-sm hover:underline"
-                                onClick={() => setDisplayedTranscripts(20)}
-                              >
-                                {t("videoDetail:buttons.collapse")}
-                              </button>
-                            </div>
-                          )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6 mb-6 flex items-center bg-white p-4 border border-gray-200 rounded-lg">
-                <div className="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
-                  {video.creator?.username?.charAt(0).toUpperCase() || "U"}
-                </div>
-                <div className="ml-3">
-                  <h3 className="font-medium">
-                    {video.creator?.username ||
-                      t("videoDetail:default.unknown_creator")}
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    {t("videoDetail:original_date")}{" "}
-                    {video.createdTime
-                      ? new Date(video.createdTime).toLocaleDateString(
-                          "vi-VN",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )
-                      : t("videoDetail:default.unknown_date")}
-                  </p>
-                </div>
-                <button
-                  className="ml-auto bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 text-sm flex items-center"
-                  onClick={() => setActiveTab("video")}
-                >
-                  <Play size={16} className="mr-1" />{" "}
-                  {t("videoDetail:buttons.watch_original")}
-                </button>
+              <div
+                className="w-full bg-gray-600 rounded-full h-1 cursor-pointer"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickPos = e.clientX - rect.left;
+                  const percent = clickPos / rect.width;
+                  if (videoRef.current) {
+                    videoRef.current.currentTime = percent * duration;
+                  }
+                }}
+              >
+                <div
+                  className="bg-indigo-600 h-1 rounded-full"
+                  style={{ width: `${(currentTime / duration) * 100 || 0}%` }}
+                ></div>
               </div>
             </div>
           </div>
-        </>
+
+          <h1 className="text-2xl font-semibold mb-4">{video.title}</h1>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-indigo-600 rounded-full overflow-hidden mr-3 flex items-center justify-center text-white">
+                {video.creator?.username?.substring(0, 2).toUpperCase() || "U"}
+              </div>
+              <div>
+                <h3 className="font-medium">{video.creator?.username}</h3>
+                <div className="text-sm text-gray-500 flex items-center">
+                  <Eye size={14} className="mr-1" />
+                  {video.views} {t("videoDetail:labels.views")}
+                  <span className="mx-2">•</span>
+                  <Clock size={14} className="mr-1" />
+                  {video.duration}
+                </div>
+              </div>
+            </div>
+
+            <div className="text-black flex space-x-2">
+              <a
+                href={video.url}
+                className="flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm transition-colors"
+              >
+                <Download size={16} className="mr-1" />
+                {t("videoDetail:buttons.download")}
+              </a>
+              <div className="text-black flex items-center px-3 py-2 bg-gray-100 rounded-md text-sm">
+                <Tag size={16} className="mr-1" />
+                {video.category}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg mb-8">
+            <p className="whitespace-pre-line text-black">
+              {video.description}
+            </p>
+          </div>
+
+          {relatedVideos.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-semibold mb-4">
+                {t("videoDetail:related_videos.title")}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {relatedVideos.map((relatedVideo) => (
+                  <VideoCard
+                    key={relatedVideo.id}
+                    item={relatedVideo}
+                    viewMode="grid"
+                    isSelected={selectedItems.includes(relatedVideo.id)}
+                    onSelect={() => toggleSelectItem(relatedVideo.id)}
+                    contentType="video"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
+          <div className="p-6 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-black">
+                  {t("summary:results.title")}
+                </h2>
+                <p className="text-sm text-gray-700 mt-1">{video.title}</p>
+              </div>
+              <div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setActiveTab("video")}
+                  type="button"
+                >
+                  {t("videoDetail:buttons.view_original")}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {!isAuthenticated ? (
+            <div className="p-16 text-center">
+              <div className="mb-4 bg-indigo-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto">
+                <Lock size={32} className="text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-bold text-indigo-700 mb-2">
+                {t("videoDetail:auth.locked_content")}
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                {t("videoDetail:auth.login_message")}
+              </p>
+              <Button
+                variant="primary"
+                onClick={handleLoginRedirect}
+                type="button"
+                className="flex items-center mx-auto"
+              >
+                <LogIn size={18} className="mr-2" />
+                {t("videoDetail:buttons.login_now")}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row">
+              {/* Left panel - Video */}
+              <div className="w-full md:w-1/2 p-4">
+                <div className="relative rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+                  <video
+                    ref={videoRef}
+                    src={video.url}
+                    className="w-full h-auto max-h-96 object-contain bg-black"
+                    poster={video.thumbnail}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    muted={isMuted}
+                    controls={false}
+                  />
+
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                    {/* Video progress bar */}
+                    <div
+                      className="w-full h-2 bg-gray-700 rounded-full mb-2 cursor-pointer"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const clickPos = e.clientX - rect.left;
+                        const percent = clickPos / rect.width;
+                        if (videoRef.current) {
+                          videoRef.current.currentTime = percent * duration;
+                        }
+                      }}
+                    >
+                      <div
+                        className="h-full bg-indigo-500 rounded-full"
+                        style={{
+                          width: `${(currentTime / (duration || 1)) * 100}%`,
+                        }}
+                      ></div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={togglePlayPause}
+                          className="text-white hover:text-indigo-300 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+                          type="button"
+                        >
+                          {isPlaying ? <Pause size={22} /> : <Play size={22} />}
+                        </button>
+
+                        <button
+                          onClick={toggleMute}
+                          className="text-white hover:text-indigo-300 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+                          type="button"
+                        >
+                          {isMuted ? (
+                            <VolumeX size={22} />
+                          ) : (
+                            <Volume2 size={22} />
+                          )}
+                        </button>
+
+                        <span className="text-white text-sm">
+                          {formatTime(currentTime)} / {formatTime(duration)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <button
+                      className={`flex text-black items-center gap-1 px-3 py-1.5 border rounded-md text-sm 
+                ${
+                  isLiked
+                    ? "bg-red-50 border-red-300 text-red-600"
+                    : "border-gray-300 hover:bg-gray-50"
+                }`}
+                      onClick={handleLikeVideo}
+                    >
+                      <Heart
+                        size={16}
+                        className={isLiked ? "text-red-600" : ""}
+                        fill={isLiked ? "#DC2626" : "none"}
+                      />
+                      <span>
+                        {isLiked
+                          ? t("videoDetail:buttons.liked")
+                          : t("videoDetail:buttons.like")}
+                      </span>
+                    </button>
+                    <button
+                      className={`flex text-black items-center gap-1 px-3 py-1.5 border rounded-md text-sm 
+                ${
+                  isBookmarked
+                    ? "bg-blue-50 border-blue-300 text-blue-600"
+                    : "border-gray-300 hover:bg-gray-50"
+                }`}
+                      onClick={handleBookmarkVideo}
+                    >
+                      <Bookmark
+                        size={16}
+                        className={isBookmarked ? "text-blue-600" : ""}
+                        fill={isBookmarked ? "#2563EB" : "none"}
+                      />
+                      <span>
+                        {isBookmarked
+                          ? t("videoDetail:buttons.bookmarked")
+                          : t("videoDetail:buttons.bookmark")}
+                      </span>
+                    </button>
+                    <button
+                      className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm text-black hover:bg-gray-50"
+                      onClick={handleCopyLink}
+                    >
+                      <Link2 size={16} />
+                      <span>{t("videoDetail:buttons.copy_link")}</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Clock size={18} className="text-gray-600" />
+                    <span className="text-sm text-gray-700 font-medium">
+                      {t("summary:results.original")}: {video.duration || "N/A"}{" "}
+                      |{t("summary:results.summary")}:{" "}
+                      {video.metadata?.readingTime || "3-5 min"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right panel - Summary content */}
+              <div className="w-full md:w-1/2 p-4 border-l border-gray-200">
+                <div className="flex border-b border-gray-200 mb-4">
+                  <TabNavigation
+                    tabs={summaryTabs}
+                    activeTab={summaryContentTab}
+                    onTabChange={(tabId) => setSummaryContentTab(tabId)}
+                  />
+                </div>
+
+                <div
+                  className="h-96 overflow-y-auto pr-2 custom-scrollbar"
+                  ref={transcriptContainerRef}
+                >
+                  {summaryContentTab === "summary" && detailedSummary && (
+                    <div>
+                      <div className="prose max-w-none text-black">
+                        {detailedSummary.split("\n").map((paragraph, index) => (
+                          <p key={index} className="mb-4 leading-relaxed">
+                            {paragraph}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {summaryContentTab === "key-points" &&
+                    keyPoints &&
+                    keyPoints.length > 0 && (
+                      <div>
+                        <ul className="space-y-4">
+                          {keyPoints.map((point, index) => (
+                            <li key={index} className="flex items-start">
+                              <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 font-bold text-sm shadow-sm">
+                                {index + 1}
+                              </div>
+                              <span className="ml-4 text-black">{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {summaryContentTab === "keywords" &&
+                    keywords &&
+                    keywords.length > 0 && (
+                      <div>
+                        <div className="flex flex-wrap gap-3">
+                          {keywords.map((keyword, index) => (
+                            <span
+                              key={index}
+                              className="px-4 py-2 rounded-full bg-gray-100 text-black text-sm font-medium hover:bg-indigo-100 transition-colors shadow-sm"
+                            >
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {summaryContentTab === "transcript" && transcript && (
+                    <div>
+                      <div className="space-y-1">
+                        {transcript.chunks.map((entry, index) => (
+                          <div
+                            key={index}
+                            className="transcript-item flex p-2 rounded cursor-pointer hover:bg-gray-100 transition-colors"
+                            onClick={() => jumpToTime(entry.time)}
+                          >
+                            <span className="text-sm text-gray-500 w-16 flex-shrink-0 font-mono">
+                              {formatTime(entry.time)}
+                            </span>
+                            <p className="text-base text-black">{entry.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex space-x-4">
+                    <Button
+                      variant="outline"
+                      leftIcon={<File size={16} />}
+                      onClick={() =>
+                        window.open(
+                          `/v1/videos/summary/${video.id}/download/pdf`,
+                          "_blank"
+                        )
+                      }
+                      type="button"
+                    >
+                      {t("summary:buttons.download_pdf")}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      leftIcon={<Share size={16} />}
+                      onClick={handleCopyLink}
+                      type="button"
+                    >
+                      {t("summary:buttons.share")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
-      <div>
+      <div className="mt-10">
         <h3 className="text-lg font-semibold mb-4">
           {t("videoDetail:sections.related_videos")}
         </h3>
@@ -668,7 +871,7 @@ export const VideoDetailPage = () => {
               item={relatedVideo}
               viewMode="grid"
               isSelected={selectedItems.includes(relatedVideo.id)}
-              onSelect={toggleSelectItem}
+              onSelect={() => toggleSelectItem(relatedVideo.id)}
               contentType="video"
             />
           ))}

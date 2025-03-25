@@ -2,7 +2,7 @@ import axios from "axios";
 import _ from "lodash";
 import { GeminiResponse } from "~/domain/video/video.types";
 import { env } from "~/env";
-import logger from "./logger";
+import logger from "../logger";
 
 export const GeminiHttpClient = axios.create({
   baseURL: env.GEMINI_URL,
@@ -22,7 +22,7 @@ export const checkGeminiHealth = async () => {
   }
 };
 
-export const prompting = async (prompt: string) => {
+export const promptingv1 = async (prompt: string) => {
   try {
     const data = {
       contents: [
