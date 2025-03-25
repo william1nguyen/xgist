@@ -9,6 +9,8 @@ import {
   Database,
   ArrowUp,
   ArrowDown,
+  LogIn,
+  Lock,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,6 +28,7 @@ import { VideoCard } from "../components/video/VideoCard";
 import { Layout } from "../components/layout/Layout";
 import { DeleteConfirmation } from "../components/ui/DeleteConfirmation";
 import { httpClient } from "../config/httpClient";
+import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
 
 export const SettingsPage: React.FC = () => {
   const { t } = useTranslation(["common", "settings"]);
@@ -60,6 +63,7 @@ export const SettingsPage: React.FC = () => {
     nonSummarizedCount: 0,
   });
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const { isAuthenticated, login } = useKeycloakAuth();
 
   useEffect(() => {
     fetchData();
@@ -245,6 +249,33 @@ export const SettingsPage: React.FC = () => {
         return "#6b7280";
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="p-16 text-center bg-white rounded-lg shadow-md">
+          <div className="mb-4 bg-white border border-gray-200 h-16 w-16 rounded-full flex items-center justify-center mx-auto">
+            <Lock size={32} className="text-black" />
+          </div>
+          <h3 className="text-xl font-bold text-black mb-2">
+            {t("videoDetail:auth.locked_content")}
+          </h3>
+          <p className="text-gray-800 mb-6 max-w-md mx-auto">
+            {t("videoDetail:auth.login_message")}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => login()}
+            type="button"
+            className="flex items-center mx-auto border border-black text-black hover:bg-gray-100"
+          >
+            <LogIn size={18} className="mr-2" />
+            {t("videoDetail:buttons.login_now")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout activeItem="settings" title={t("settings:title")}>
