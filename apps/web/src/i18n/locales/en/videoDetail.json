@@ -15,7 +15,8 @@
     "copy_link": "Copy Link",
     "login_now": "Login Now",
     "view_more": "View More...",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "view_original": "View Original"
   },
   "sections": {
     "technical_info": "Technical Information",
@@ -60,5 +61,8 @@
   "errors": {
     "fetch_failed": "Failed to load video details. Please try again later."
   },
-  "original_date": "Original video posted on"
+  "original_date": "Original video posted on",
+  "transcript": {
+    "click_instruction": "Click on any part of the transcript to jump to that point in the video"
+  }
 }

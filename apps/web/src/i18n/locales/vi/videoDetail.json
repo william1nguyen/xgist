@@ -15,7 +15,8 @@
     "copy_link": "Sao chép liên kết",
     "login_now": "Đăng nhập ngay",
     "view_more": "Xem thêm...",
-    "collapse": "Thu gọn"
+    "collapse": "Thu gọn",
+    "view_original": "Xem Bản Gốc"
   },
   "sections": {
     "technical_info": "Thông tin kỹ thuật",
@@ -60,5 +61,8 @@
   "errors": {
     "fetch_failed": "Failed to load video details. Please try again later."
   },
-  "original_date": "Video gốc đăng ngày"
+  "original_date": "Video gốc đăng ngày",
+  "transcript": {
+    "click_instruction": "Nhấp vào bất kỳ phần nào của bản ghi để chuyển đến điểm đó trong video"
+  }
 }

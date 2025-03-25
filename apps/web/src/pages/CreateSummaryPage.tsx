@@ -1,6 +1,5 @@
 import React, { useState, useRef, ChangeEvent, FormEvent } from "react";
 import {
-  Clock,
   X,
   Upload,
   File,
@@ -19,6 +18,7 @@ import { ProgressBar } from "../components/ui/ProgressBar";
 import { httpClient } from "../config/httpClient";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { TwoPanelSummary } from "../components/TwoPanelSummary";
 
 interface AdvancedOptions {
   keywords: boolean;
@@ -68,7 +68,6 @@ export const CreateSummaryPage: React.FC = () => {
   const [videoTitle, setVideoTitle] = useState<string>("");
   const [videoDescription, setVideoDescription] = useState<string>("");
   const [videoCategory, setVideoCategory] = useState<string>("technology");
-  const [previewMode, setPreviewMode] = useState<string>("summary");
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [categories] = useState<Category[]>([]);
 
@@ -274,22 +273,6 @@ export const CreateSummaryPage: React.FC = () => {
     setIsPlaying(false);
     setIsMuted(false);
   };
-
-  const generatePreviewTabs = (): TabItem[] => {
-    const tabs: TabItem[] = [
-      { id: "summary", label: t("summary:preview.summary") },
-      { id: "key-points", label: t("summary:preview.key_points") },
-    ];
-
-    if (advancedOptions.keywords && summaryData?.keywords) {
-      tabs.push({ id: "keywords", label: t("summary:preview.keywords") });
-    }
-
-    tabs.push({ id: "transcript", label: t("summary:preview.transcript") });
-    return tabs;
-  };
-
-  const previewTabs: TabItem[] = generatePreviewTabs();
 
   const headerContent = (
     <TabNavigation
@@ -553,157 +536,13 @@ export const CreateSummaryPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
-              <div className="p-6 border-b border-gray-200 bg-gray-50">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-black">
-                      {t("summary:results.title")}
-                    </h2>
-                    <p className="text-sm text-gray-700 mt-1">
-                      {videoFile?.name || t("summary:results.your_video")}
-                    </p>
-                  </div>
-                  <div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={resetForm}
-                      type="button"
-                    >
-                      {t("summary:buttons.create_new")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex border-b border-gray-200 bg-gray-50">
-                <TabNavigation
-                  tabs={previewTabs}
-                  activeTab={previewMode}
-                  onTabChange={(tabId: string) => setPreviewMode(tabId)}
-                />
-              </div>
-
-              <div className="p-6">
-                {previewMode === "summary" && summaryData?.summary && (
-                  <div>
-                    <div className="flex items-center space-x-2 mb-5 pb-3 border-b border-gray-100">
-                      <Clock size={18} className="text-gray-600" />
-                      <span className="text-sm text-gray-700 font-medium">
-                        {t("summary:results.original")}:{" "}
-                        {summaryData.originalDuration || "N/A"} |{" "}
-                        {t("summary:results.summary")}:{" "}
-                        {summaryData.readingTime || "N/A"}
-                      </span>
-                    </div>
-
-                    <div className="prose max-w-none text-black">
-                      {summaryData.summary
-                        .split("\n")
-                        .map((paragraph: string, index: number) => (
-                          <p key={index} className="mb-4 leading-relaxed">
-                            {paragraph}
-                          </p>
-                        ))}
-                    </div>
-
-                    <div className="mt-8 flex space-x-4 pt-4 border-t border-gray-200">
-                      <Button
-                        variant="outline"
-                        leftIcon={<File size={16} />}
-                        onClick={() =>
-                          window.open(
-                            `/v1/videos/summary/${summaryData.id}/download/pdf`,
-                            "_blank"
-                          )
-                        }
-                        type="button"
-                      >
-                        {t("summary:buttons.download_pdf")}
-                      </Button>
-                      <Button
-                        variant="primary"
-                        onClick={() => {
-                          navigator.clipboard.writeText(
-                            window.location.origin +
-                              `/summary/${summaryData.id}`
-                          );
-                          toast.success(t("summary:messages.link_copied"));
-                        }}
-                        type="button"
-                      >
-                        {t("summary:buttons.share")}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {previewMode === "key-points" && summaryData?.keyPoints && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-100">
-                      {t("summary:preview.key_points")}
-                    </h3>
-                    <ul className="space-y-4">
-                      {summaryData.keyPoints.map(
-                        (point: string, index: number) => (
-                          <li key={index} className="flex items-start">
-                            <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold text-sm shadow-sm">
-                              {index + 1}
-                            </div>
-                            <span className="ml-4 text-black">{point}</span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                )}
-
-                {previewMode === "keywords" && summaryData?.keywords && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-100">
-                      {t("summary:preview.keywords")}
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {summaryData.keywords.map(
-                        (keyword: string, index: number) => (
-                          <span
-                            key={index}
-                            className="px-4 py-2 rounded-full bg-gray-100 text-black text-sm font-medium hover:bg-blue-100 transition-colors shadow-sm"
-                          >
-                            {keyword}
-                          </span>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {previewMode === "transcript" && summaryData?.transcripts && (
-                  <div>
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
-                      <h3 className="text-lg font-semibold text-black">
-                        {t("summary:preview.transcript")}
-                      </h3>
-                      <div className="flex items-center space-x-2"></div>
-                    </div>
-
-                    <div className="space-y-4 max-h-96 overflow-y-auto pr-3 pb-2 custom-scrollbar">
-                      {summaryData.transcripts.chunks.map(
-                        (entry: Chunk, index: number) => (
-                          <div key={index} className="flex">
-                            <span className="text-sm text-gray-500 w-16 flex-shrink-0 font-mono">
-                              {entry.time.toFixed(2)}
-                            </span>
-                            <p className="text-base text-black">{entry.text}</p>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <TwoPanelSummary
+              videoFile={videoFile}
+              videoPreviewUrl={videoPreviewUrl}
+              thumbnailPreview={thumbnailPreview}
+              summaryData={summaryData!}
+              onReset={resetForm}
+            />
           )}
         </div>
       ) : (
