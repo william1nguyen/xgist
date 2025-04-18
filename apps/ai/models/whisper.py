@@ -3,58 +3,72 @@ from tempfile import NamedTemporaryFile
 import time
 from fastapi import File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
-import torch
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+from faster_whisper import WhisperModel
 
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-model_id = "openai/whisper-tiny"
+model_size = "tiny"
+device = "cpu"
+compute_type = "float16" if device == "cuda" else "float32"
 
-model = AutoModelForSpeechSeq2Seq.from_pretrained(
-    model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True
-)
-model.to(device)
-
-processor = AutoProcessor.from_pretrained(model_id)
-
-pipe = pipeline(
-    "automatic-speech-recognition",
-    model=model,
-    tokenizer=processor.tokenizer,
-    feature_extractor=processor.feature_extractor,
-    torch_dtype=torch_dtype,
-    device=device,
-    chunk_length_s=20,
-    stride_length_s=0,
-    return_timestamps=True,
-    use_fast=True
-)
+model = WhisperModel(model_size, device=device, compute_type=compute_type)
 
 class Chunk(BaseModel):
-    timestamp: list[int]
+    timestamp: list[float]
     text: str
 
 class Transcript(BaseModel):
     text: str
     chunks: list[Chunk]
 
+def process_results(segments):
+    """
+    Process segments from faster-whisper into dictionary format 
+    that matches exactly what the transformers pipeline returned
+    """
+    full_text = ""
+    chunks = []
+    
+    for segment in segments:
+        start = segment.start
+        end = segment.end
+        text = segment.text.strip()
+        
+        if text:
+            full_text += text + " "
+            # Use dictionary format instead of Pydantic model
+            chunks.append({
+                "timestamp": [start, end],
+                "text": text
+            })
+    
+    # Return dictionary format instead of Pydantic model
+    return {
+        "text": full_text.strip(),
+        "chunks": chunks
+    }
 
-def is_chunk_valid(chunk: Chunk, start: float | None, end: float | None, text: str | None):
+def is_chunk_valid(chunk, start=None, end=None, text=None):
+    """Check if a chunk is valid"""
+    # Handle both dictionary and Pydantic model inputs
+    if isinstance(chunk, dict):
+        if start is None and end is None and text is None:
+            timestamp = chunk.get("timestamp", [None, None])
+            start, end = timestamp if len(timestamp) >= 2 else (None, None)
+            text = chunk.get("text", "")
+    
     if not text:
         return False
     
-    if not start or not end:
+    if start is None or end is None:
         return True
     
     return start < end
 
-def filter(transcripts: Transcript):
-    '''
-    Handle broken chunks
-    '''
-
+def filter(transcripts):
+    """
+    Handle broken chunks - format matches the original transformers implementation
+    """
     chunks = transcripts.get('chunks', [])
-    broken_chunk_start = -1 # Before first chunk start
+    broken_chunk_start = -1  # Before first chunk start
     valid_chunks = []
     
     for chunk in chunks:
@@ -66,15 +80,12 @@ def filter(transcripts: Transcript):
                 'time': max(broken_chunk_start, start),
                 'text': text
             })
-            broken_chunk_start = -1 # reset broken chunk start
-        
+            broken_chunk_start = -1  # reset broken chunk start
         else:
             broken_chunk_start = start
     
     transcripts['chunks'] = valid_chunks
     return transcripts
-    
-
 
 async def transcribe(file: UploadFile = File(...)):
     start_time = time.time()
@@ -83,8 +94,18 @@ async def transcribe(file: UploadFile = File(...)):
         tfile.write(content)
         file_path = tfile.name
     try:
-        transcripts = pipe(file_path)
-        return filter(transcripts=transcripts)
+        segments, info = model.transcribe(
+            file_path, 
+            beam_size=5,
+            word_timestamps=False,
+            vad_filter=True
+        )
+        
+        # Use the dictionary-based process_results and filter
+        transcripts = process_results(segments)
+        filtered_transcripts = filter(transcripts=transcripts)
+        
+        return filtered_transcripts
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
@@ -107,8 +128,18 @@ async def transcribe_stream(request: Request):
         if file_size == 0:
             raise HTTPException(status_code=400, detail="Empty file received")
         
-        transcripts = pipe(file_path)
-        return filter(transcripts=transcripts)
+        segments, info = model.transcribe(
+            file_path, 
+            beam_size=5,
+            word_timestamps=False,
+            vad_filter=True
+        )
+        
+        # Use the dictionary-based process_results and filter
+        transcripts = process_results(segments)
+        filtered_transcripts = filter(transcripts=transcripts)
+        
+        return filtered_transcripts
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
