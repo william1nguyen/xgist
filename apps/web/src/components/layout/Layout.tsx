@@ -17,7 +17,8 @@ interface LayoutProps {
     | "summarize"
     | "library"
     | "settings"
-    | "guide";
+    | "guide"
+    | "upload";
   title: string;
   headerContent?: React.ReactNode;
   sidebarProps?: SidebarProps;

@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Zap,
   BookOpen,
+  Upload,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -26,7 +27,8 @@ interface SidebarProps {
     | "summarize"
     | "library"
     | "settings"
-    | "guide";
+    | "guide"
+    | "upload";
   categories: Category[];
   onCategoryClick?: (categoryId: string) => void;
 }
@@ -103,6 +105,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </Link>
 
           <Link
+            to="/upload"
+            className={`flex items-center px-2 py-3 text-sm font-medium rounded-md ${
+              activeItem === "upload"
+                ? "bg-slate-800 text-white"
+                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <Upload className="mr-3 h-5 w-5 text-slate-400" />
+            <span className="hidden md:inline">
+              {t("upload_video", {
+                ns: "sidebar",
+                defaultValue: "Upload Video",
+              })}
+            </span>
+          </Link>
+
+          <Link
             to="/library"
             className={`flex items-center px-2 py-3 text-sm font-medium rounded-md ${
               activeItem === "library"
@@ -138,7 +157,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Thêm Language Selector và các button khác vào phần footer */}
       <div className="p-4 border-t border-slate-700 space-y-2">
         <div className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300">
           <Globe className="mr-3 h-5 w-5 text-slate-400" />

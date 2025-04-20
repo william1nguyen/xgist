@@ -1,9 +1,12 @@
+import json
 import os
 from tempfile import NamedTemporaryFile
 import time
 from fastapi import File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from faster_whisper import WhisperModel
+
+from services.gemini import prompting
 
 model_size = "tiny"
 device = "cpu"
@@ -34,13 +37,11 @@ def process_results(segments):
         
         if text:
             full_text += text + " "
-            # Use dictionary format instead of Pydantic model
             chunks.append({
                 "timestamp": [start, end],
                 "text": text
             })
     
-    # Return dictionary format instead of Pydantic model
     return {
         "text": full_text.strip(),
         "chunks": chunks
@@ -48,7 +49,6 @@ def process_results(segments):
 
 def is_chunk_valid(chunk, start=None, end=None, text=None):
     """Check if a chunk is valid"""
-    # Handle both dictionary and Pydantic model inputs
     if isinstance(chunk, dict):
         if start is None and end is None and text is None:
             timestamp = chunk.get("timestamp", [None, None])
@@ -68,7 +68,7 @@ def filter(transcripts):
     Handle broken chunks - format matches the original transformers implementation
     """
     chunks = transcripts.get('chunks', [])
-    broken_chunk_start = -1  # Before first chunk start
+    broken_chunk_start = -1
     valid_chunks = []
     
     for chunk in chunks:
@@ -80,7 +80,7 @@ def filter(transcripts):
                 'time': max(broken_chunk_start, start),
                 'text': text
             })
-            broken_chunk_start = -1  # reset broken chunk start
+            broken_chunk_start = -1
         else:
             broken_chunk_start = start
     
@@ -101,7 +101,6 @@ async def transcribe(file: UploadFile = File(...)):
             vad_filter=True
         )
         
-        # Use the dictionary-based process_results and filter
         transcripts = process_results(segments)
         filtered_transcripts = filter(transcripts=transcripts)
         
@@ -135,7 +134,6 @@ async def transcribe_stream(request: Request):
             vad_filter=True
         )
         
-        # Use the dictionary-based process_results and filter
         transcripts = process_results(segments)
         filtered_transcripts = filter(transcripts=transcripts)
         
@@ -146,3 +144,74 @@ async def transcribe_stream(request: Request):
     finally:
         os.remove(file_path)
         print(f"__time__: {time.time() - start_time}, file_size: {file_size}")
+
+async def transcribe_from_path(file_path: str):
+    start_time = time.time()
+    
+    try:
+        segments, info = model.transcribe(
+            file_path, 
+            beam_size=5,
+            word_timestamps=False,
+            vad_filter=True
+        )
+        
+        transcripts = process_results(segments)
+        filtered_transcripts = filter(transcripts=transcripts)
+        
+        return filtered_transcripts
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
+    finally:
+        print(f"__time__: {time.time() - start_time}, file_size: {os.path.getsize(file_path) if os.path.exists(file_path) else 0}")
+
+async def get_transcripts_with_support_sentences(transcripts, text, chunks):
+    prompt = f'''
+        Preserving the key points and main message, and identify supporting evidence for each transcripts.
+
+        Transcript:
+        {transcripts}
+
+        Time-stamped segments:
+        {chunks}
+
+        Return ONLY a valid JSON object with the following structure, without any additional text, code formatting, prefixes, or line numbers:
+
+        [
+        {{
+            "text": "The 'text' value from the first transcripts item in 'Transcript'",
+            "time": "The 'time' value from the first transcripts item in 'Transcript'",
+            "supporting_sentences": [
+            {{
+                "text": "The 'text' value from the first relevant item in 'Time-stamped segments'",
+                "time": "The 'time' value from the first relevant item in 'Time-stamped segments'"
+            }},
+            {{
+                "text": "The 'text' value from the second relevant item in 'Time-stamped segments'",
+                "time": "The 'time' value from the second relevant item in 'Time-stamped segments'"
+            }}
+            ]
+        }}
+        ]
+
+        IMPORTANT: 
+        1. Focus on preserving the key points and main message of the transcript
+        2. Make each summary point concise but informative
+        3. Do not include any text outside the JSON object
+        4. Do not add markdown code blocks, backticks, or any other formatting
+        5. Do not include numbering or bullet points
+        6. Ensure the response is a valid, parseable JSON object
+        7. Each summary point should be supported by relevant sentences from the transcript
+        8. Do not add any explanations before or after the JSON
+    '''
+
+    res = await prompting(prompt)
+    res = res.replace("```json", "").replace("```", "").strip()
+    try:
+        parsed_data = json.loads(res)
+        return parsed_data
+    except Exception as e:
+        return transcripts
+
+    

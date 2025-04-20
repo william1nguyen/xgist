@@ -1,8 +1,16 @@
 import axios from "axios";
 import { env } from "./env";
+import { toast } from "react-toastify";
 
 export const httpClient = axios.create({
   baseURL: env.VITE_BASE_URL,
+});
+
+export const aiHttpClient = axios.create({
+  baseURL: env.VITE_AI_BASE_URL,
+  headers: {
+    "x-api-key": env.VITE_AI_AUTH_KEY,
+  },
 });
 
 httpClient.interceptors.request.use((config) => {
@@ -19,7 +27,7 @@ httpClient.interceptors.request.use((config) => {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error("Error parsing OIDC storage:", error);
+      toast.error(`Error parsing OIDC storage: ${error}`);
     }
   }
   return config;

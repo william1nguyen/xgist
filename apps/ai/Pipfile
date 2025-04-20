@@ -13,6 +13,8 @@ ffmpeg = "*"
 numpy = "==2.1.0"
 assemblyai = "*"
 faster-whisper = "*"
+google-generativeai = "*"
+tenacity = "*"
 
 [dev-packages]
 

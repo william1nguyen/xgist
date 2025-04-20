@@ -9,6 +9,7 @@ import { TrendingPage } from "./pages/TrendingPage";
 import { SettingsPage } from "./pages/SettingPage";
 import { VideoDetailPage } from "./pages/VideoDetailPage";
 import { GuidePage } from "./pages/GuidePage";
+import { UploadVideoPage } from "./pages/UploadVideoPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/trending" element={<TrendingPage />} />
         <Route path="/summarize" element={<CreateSummaryPage />} />
+        <Route path="/upload" element={<UploadVideoPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/videos/:id" element={<VideoDetailPage />} />
