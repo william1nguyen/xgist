@@ -1,7 +1,6 @@
 import os
 import json
 import requests
-import time
 from fastapi import APIRouter, Depends, HTTPException, Request
 from infra.auth import validate_x_api_key
 from pydantic import BaseModel
@@ -12,6 +11,9 @@ did_router = APIRouter(dependencies=[Depends(validate_x_api_key)])
 DID_API_URL = os.getenv("DID_API_URL")
 DID_API_KEY = os.getenv("DID_API_KEY")
 
+AGENT_MALE_IMAGE_URL = os.getenv("AGENT_MALE_IMAGE_URL")
+AGENT_MALE_VOICE = os.getenv("AGENT_MALE_VOICE")
+
 class DidTalkItem(BaseModel):
     script_text: str
 
@@ -19,10 +21,14 @@ class DidTalkItem(BaseModel):
 async def create_talk(item: DidTalkItem):
     try:
         payload = json.dumps({
-            "source_url": os.getenv("AGENT_IMMAGE_URL"),
+            "source_url": AGENT_MALE_IMAGE_URL,
             "script": {
                 "type": "text",
-                "input": item.script_text
+                "input": item.script_text,
+                "provider":{
+                    "type":"microsoft",
+                    "voice_id": AGENT_MALE_VOICE
+                }
             },
         })
 
@@ -47,15 +53,6 @@ async def get_talk_by_id(request_data: dict):
     text = trans.get('text')
     chunks = trans.get("chunks")
 
-    # result_url = "https://cdn.discordapp.com/attachments/1159014510133252216/1363310565631459358/1745071700337.mp4?ex=68059167&is=68043fe7&hm=e647de91f0d8f98222a1b148157a609abfce317e7d85098c9755e558766afbc2&"
-    # transcripts = await whisper.transcribe_from_path(result_url)
-    # transcripts = await whisper.get_transcripts_with_support_sentences(transcripts, text, chunks)
-
-    # return {
-    #     "status": "done",
-    #     "result_url": result_url,
-    #     "transcripts": transcripts,
-    # }
     headers = {
         "Authorization": f"Basic {DID_API_KEY}",
         "accept": "application/json"

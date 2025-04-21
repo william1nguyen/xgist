@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.transcribe import transcribe_router
 from routes.did import did_router
 import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
