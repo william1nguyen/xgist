@@ -1,3 +1,4 @@
+import io
 import json
 import os
 from tempfile import NamedTemporaryFile
@@ -5,8 +6,8 @@ import time
 from fastapi import File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from faster_whisper import WhisperModel
-
 from services.gemini import prompting
+import aiohttp
 
 model_size = "tiny"
 device = "cpu"
@@ -165,6 +166,42 @@ async def transcribe_from_path(file_path: str):
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
     finally:
         print(f"__time__: {time.time() - start_time}, file_size: {os.path.getsize(file_path) if os.path.exists(file_path) else 0}")
+
+async def transcribe_from_url(url: str):
+    start_time = time.time()
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    raise HTTPException(status_code=response.status, 
+                                       detail=f"Failed to download file from URL: {response.reason}")
+                
+                audio_data = await response.read()
+                content_length = len(audio_data)
+                
+                audio_stream = io.BytesIO(audio_data)
+                
+                segments, info = model.transcribe(
+                    audio_stream,
+                    beam_size=5,
+                    word_timestamps=False,
+                    vad_filter=True
+                )
+        
+        transcripts = process_results(segments)
+        filtered_transcripts = filter(transcripts=transcripts)
+        
+        return filtered_transcripts
+    
+    except aiohttp.ClientError as e:
+        raise HTTPException(status_code=500, detail=f"Error downloading from URL: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
+    finally:
+        print(f"__time__: {time.time() - start_time}, file_size: {content_length if 'content_length' in locals() else 0}")
+
+                
 
 async def get_transcripts_with_support_sentences(transcripts, text, chunks):
     prompt = f'''

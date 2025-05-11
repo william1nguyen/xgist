@@ -17,6 +17,7 @@ google-generativeai = "*"
 tenacity = "*"
 python-dotenv = "*"
 nltk = "*"
+aiohttp = "*"
 
 [dev-packages]
 

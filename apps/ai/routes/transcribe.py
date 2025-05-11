@@ -36,3 +36,11 @@ class PathRequest(BaseModel):
 async def post_from_path(request: PathRequest):
     transcript = await whisper.transcribe_from_path(file_path=request.file_path)
     return transcript
+
+class UrlRequest(BaseModel):
+    url: str
+
+@transcribe_router.post("/transcribe-url", tags=["transcribe"])
+async def transcribe_url(request: UrlRequest):
+    transcript = await whisper.transcribe_from_url(request.url)
+    return transcript
