@@ -16,6 +16,7 @@ import { INotification } from "./jobs/workers/summarize";
 import logger from "./logger";
 import { videoV2Module } from "~/domain/videov2/videov2.module";
 import { agentModule } from "~/domain/agent/agent.module";
+import { uploadModule } from "~/domain/upload/upload.module";
 
 const app = fastify({ logger: true });
 
@@ -84,6 +85,7 @@ io.on("connection", (socket) => {
 app.register(bullBoardPlugin, { queues: queues, path: "/bullboard" });
 app.register(userModule);
 app.register(agentModule);
+app.register(uploadModule);
 app.register(videoModule);
 app.register(videoV2Module);
 
