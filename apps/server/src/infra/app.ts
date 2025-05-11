@@ -17,6 +17,7 @@ import logger from "./logger";
 import { videoV2Module } from "~/domain/videov2/videov2.module";
 import { agentModule } from "~/domain/agent/agent.module";
 import { uploadModule } from "~/domain/upload/upload.module";
+import { mediaModule } from "~/domain/media/media.module";
 
 const app = fastify({ logger: true });
 
@@ -86,6 +87,7 @@ app.register(bullBoardPlugin, { queues: queues, path: "/bullboard" });
 app.register(userModule);
 app.register(agentModule);
 app.register(uploadModule);
+app.register(mediaModule);
 app.register(videoModule);
 app.register(videoV2Module);
 

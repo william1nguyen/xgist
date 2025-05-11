@@ -15,6 +15,13 @@
       "when": 1746970596199,
       "tag": "0001_add_agent_table",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746989388774,
+      "tag": "0002_add_media_table",
+      "breakpoints": true
     }
   ]
 }
