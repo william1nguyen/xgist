@@ -97,3 +97,15 @@ export const UpdateMediaBody = Type.Object({
 });
 
 export type UpdateMediaBody = Static<typeof UpdateMediaBody>;
+
+export const ToggleLikeParams = Type.Object({
+  mediaId: Type.String(),
+});
+
+export type ToggleLikeParams = Static<typeof ToggleLikeParams>;
+
+export const ToggleBookmarkParams = Type.Object({
+  mediaId: Type.String(),
+});
+
+export type ToggleBookmarkParams = Static<typeof ToggleBookmarkParams>;

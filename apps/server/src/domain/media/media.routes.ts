@@ -8,12 +8,16 @@ import {
   GetSearchMediaHistoryResponse,
   SearchMediaQueryString,
   SearchMediaResponse,
+  ToggleBookmarkParams,
+  ToggleLikeParams,
 } from "./media.types";
 import {
   createMedia,
   getMediaDetail,
   getSearchMediaHistory,
   searchMedia,
+  toggleBookmark,
+  toggleLike,
 } from "./media.services";
 
 const tags = ["media"];
@@ -87,6 +91,36 @@ export const mediaRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await createMedia(req.body, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/:mediaId/toggle-bookmark",
+    {
+      schema: {
+        tags: tags,
+        description: "Toggle bookmark a media",
+        params: ToggleBookmarkParams,
+      },
+    },
+    async (req) => {
+      const res = await toggleBookmark(req.params, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/:mediaId/toggle-like",
+    {
+      schema: {
+        tags: tags,
+        description: "Toggle like a video",
+        params: ToggleLikeParams,
+      },
+    },
+    async (req) => {
+      const res = await toggleLike(req.params, req.principal.user.id);
       return res;
     }
   );

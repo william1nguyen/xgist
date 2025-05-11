@@ -4,11 +4,18 @@ import {
   GetMediaDetailParams,
   GetSearchMediaHistoryQueryString,
   SearchMediaQueryString,
+  ToggleBookmarkParams,
+  ToggleLikeParams,
   UpdateMediaBody,
 } from "./media.types";
 import { searchHistoryTable } from "~/drizzle/schema/search";
-import { eq, like } from "drizzle-orm";
-import { mediaInfoTable, mediaTable } from "~/drizzle/schema/media";
+import { and, eq, like } from "drizzle-orm";
+import {
+  mediaBookmarkTable,
+  mediaInfoTable,
+  mediaLikeTable,
+  mediaTable,
+} from "~/drizzle/schema/media";
 import _ from "lodash";
 import { CreateMediaFailedError, MediaNotFoundError } from "./media.errors";
 
@@ -117,6 +124,100 @@ export const createMedia = async (
   return {
     data: media,
   };
+};
+
+export const toggleLike = async (
+  { mediaId }: ToggleLikeParams,
+  userId: string
+) => {
+  const media = await db.query.mediaTable.findFirst({
+    where: eq(mediaTable.id, mediaId),
+  });
+
+  if (!media) {
+    throw new MediaNotFoundError();
+  }
+
+  const like = await db.query.mediaLikeTable.findFirst({
+    where: and(
+      eq(mediaLikeTable.mediaId, mediaId),
+      eq(mediaLikeTable.userId, userId)
+    ),
+  });
+
+  if (!like) {
+    const res = await db
+      .insert(mediaLikeTable)
+      .values({
+        mediaId,
+        userId,
+        state: true,
+      })
+      .returning();
+    return res;
+  }
+
+  const state = !like.state;
+  const res = await db
+    .update(mediaLikeTable)
+    .set({
+      state,
+    })
+    .where(
+      and(
+        eq(mediaLikeTable.mediaId, mediaId),
+        eq(mediaLikeTable.userId, userId)
+      )
+    )
+    .returning();
+  return res;
+};
+
+export const toggleBookmark = async (
+  { mediaId }: ToggleBookmarkParams,
+  userId: string
+) => {
+  const media = await db.query.mediaTable.findFirst({
+    where: eq(mediaTable.id, mediaId),
+  });
+
+  if (!media) {
+    throw new MediaNotFoundError();
+  }
+
+  const bookmark = await db.query.mediaBookmarkTable.findFirst({
+    where: and(
+      eq(mediaBookmarkTable.mediaId, mediaId),
+      eq(mediaBookmarkTable.userId, userId)
+    ),
+  });
+
+  if (!bookmark) {
+    const res = await db
+      .insert(mediaBookmarkTable)
+      .values({
+        mediaId,
+        userId,
+        state: true,
+      })
+      .returning();
+    return res;
+  }
+
+  const state = !bookmark.state;
+  const res = await db
+    .update(mediaBookmarkTable)
+    .set({
+      state,
+    })
+    .where(
+      and(
+        eq(mediaBookmarkTable.mediaId, mediaId),
+        eq(mediaBookmarkTable.userId, userId)
+      )
+    )
+    .returning();
+  return res;
 };
 
 export const updateMediaInfo = async ({
