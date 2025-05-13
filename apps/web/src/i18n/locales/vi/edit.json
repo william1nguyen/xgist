@@ -1,0 +1,79 @@
+{
+  "title": "Chỉnh Sửa Video",
+  "heading": "Chỉnh Sửa Nội Dung Video",
+  "subtitle": "Sửa đổi từ khóa, điểm chính, tóm tắt video, phiên âm và bật Người Thuyết Trình AI.",
+  "loading": "Đang tải dữ liệu video...",
+  "loading_title": "Đang tải thông tin...",
+
+  "tabs": {
+    "content": "Nội dung",
+    "transcript": "Phiên âm"
+  },
+
+  "sections": {
+    "keywords": "Từ Khóa",
+    "keypoints": "Điểm Chính",
+    "summary": "Tóm Tắt",
+    "ai_presenter": "Người Thuyết Trình AI",
+    "full_transcript": "Phiên âm đầy đủ",
+    "transcript_chunks": "Đoạn phiên âm theo thời gian"
+  },
+
+  "descriptions": {
+    "keywords": "Thêm các từ khóa liên quan để giúp phân loại và làm cho video của bạn dễ được tìm thấy hơn.",
+    "keypoints": "Thêm các điểm chính nêu bật các chủ đề chính được đề cập trong video của bạn.",
+    "summary": "Chỉnh sửa tóm tắt video cung cấp tổng quan về nội dung.",
+    "ai_presenter": "Tạo người thuyết trình AI cho video của bạn, người sẽ kể lại nội dung dựa trên tóm tắt và điểm chính của bạn.",
+    "transcript": "Chỉnh sửa phiên âm của video để đảm bảo độ chính xác của nội dung."
+  },
+
+  "placeholders": {
+    "keyword": "Nhập từ khóa",
+    "keypoint": "Nhập điểm chính",
+    "summary": "Viết tóm tắt nội dung video của bạn...",
+    "transcript": "Nhập hoặc chỉnh sửa phiên âm của video..."
+  },
+
+  "buttons": {
+    "add": "Thêm",
+    "save": "Lưu Thay Đổi",
+    "saving": "Đang lưu...",
+    "cancel": "Hủy",
+    "back": "Quay Lại Video",
+    "login_now": "Đăng Nhập Ngay",
+    "edit": "Chỉnh sửa"
+  },
+
+  "labels": {
+    "ai_presenter_enabled": "Đã Bật Người Thuyết Trình AI",
+    "ai_presenter_disabled": "Đã Tắt Người Thuyết Trình AI"
+  },
+
+  "messages": {
+    "save_success": "Đã lưu thành công các thay đổi!",
+    "ai_presenter_info": "Người Thuyết Trình AI sẽ được tạo sau khi lưu. Quá trình này có thể mất vài phút. Bạn sẽ được thông báo khi hoàn tất."
+  },
+
+  "errors": {
+    "fetch_failed": "Không thể tải dữ liệu video. Vui lòng thử lại.",
+    "save_failed": "Không thể lưu thay đổi. Vui lòng thử lại.",
+    "presenter_generation_failed": "Đã lưu thay đổi, nhưng có vấn đề khi tạo Người Thuyết Trình AI. Đội ngũ đã được thông báo."
+  },
+
+  "auth": {
+    "locked_content": "Yêu Cầu Xác Thực",
+    "login_message": "Bạn cần đăng nhập để chỉnh sửa nội dung video."
+  },
+
+  "video_info": {
+    "duration": "Thời lượng",
+    "category": "Thể loại"
+  },
+
+  "transcript": {
+    "jump_to_time": "Nhảy đến thời điểm này",
+    "edit_chunk": "Chỉnh sửa đoạn này",
+    "save_chunk": "Lưu đoạn",
+    "cancel_edit": "Hủy chỉnh sửa"
+  }
+}

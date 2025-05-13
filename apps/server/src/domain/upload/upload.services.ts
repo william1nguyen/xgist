@@ -4,10 +4,17 @@ import { v4 as uuidv4 } from "uuid";
 import { env } from "~/env";
 import { minioClient } from "~/infra/minio";
 import {
+  ContentInvalidError,
   FileTypeCompressionNotSupportedError,
   FileTypeNotAllowedError,
 } from "./upload.errors";
 import type { File } from "./upload.types";
+import { prompting } from "~/infra/gemini";
+import { transcribeUrl } from "~/infra/whisper";
+import { keywordQueue } from "~/infra/jobs/workers/keyword";
+import { keypointQueue } from "~/infra/jobs/workers/keypoint";
+import { summaryQueue } from "~/infra/jobs/workers/summary";
+import { Transcript } from "../media/media.types";
 
 export interface FileBuffer {
   mimetype: string;
@@ -98,6 +105,37 @@ export interface UploadOptions extends UploaderOptions {
   uniqueName?: boolean;
 }
 
+export const validateMediaContent = async (transcript: string) => {
+  const prompt = `
+    Please evaluate whether the following content is **appropriate** or not.
+
+    The content is considered "inappropriate" if it includes any of the following:
+      - Offensive or vulgar language
+      - Profanity or obscenity
+      - Pornographic or sexually explicit content
+      - Racism or discriminatory remarks
+      - Violence or promotion of war
+      - Terrorism or hate speech
+      - Harmful misinformation
+
+    Return:
+      - "true" if the content is fully appropriate (none of the inappropriate elements are present)
+      - "false" if the content is inappropriate
+
+    Content to evaluate:
+    ${transcript}
+  `;
+
+  const res = await prompting(prompt);
+  return res;
+};
+
+export const precheckMediaContent = async (url: string) => {
+  const transcript = await transcribeUrl(url);
+  const validated = await validateMediaContent(transcript.text);
+  return validated ? transcript : validated;
+};
+
 export const upload = async ({
   bucket,
   folder,
@@ -135,11 +173,21 @@ export const upload = async ({
 
   const url = getMinioFileUrl(bucket, minioFilename);
 
+  let transcript = null;
+
+  if (validateFileType(mimeType, ["audio", "video"])) {
+    transcript = await precheckMediaContent(url);
+    console.log(transcript);
+
+    if (!transcript) throw new ContentInvalidError();
+  }
+
   return {
     url,
     fileName,
     mimeType,
     size: fileBuffer.length,
+    transcript,
   };
 };
 

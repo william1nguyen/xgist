@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { Plus, TrendingUp, FastForward } from "lucide-react";
+import { Plus, TrendingUp, FastForward, Search } from "lucide-react";
 import { VideoItem, SortOption, ApiResponse, VideosResponse } from "../types";
 import { Button } from "../components/ui/Button";
 import { SortingMenu } from "../components/filter/SortingMenu";
@@ -41,6 +41,7 @@ export const MainVideoPage: React.FC = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const categoryParam = queryParams.get("category");
+  const searchQuery = queryParams.get("q");
 
   const { user } = useAuth() as { user: User | null };
   const [activeCategory, setActiveCategory] = useState<string>(
@@ -55,13 +56,15 @@ export const MainVideoPage: React.FC = () => {
   const [size, setSize] = useState<number>(8);
   const [total, setTotal] = useState<number>(0);
   const [likedVideos, setLikedVideos] = useState<Record<string, boolean>>({});
+  const [searchTerm, setSearchTerm] = useState<string>(searchQuery || "");
 
   const env = import.meta.env;
 
   const fetchVideos = async (
     pageNum: number = 1,
     pageSize: number = 20,
-    category?: string
+    category?: string,
+    query?: string
   ): Promise<void> => {
     setLoading(true);
     try {
@@ -72,6 +75,7 @@ export const MainVideoPage: React.FC = () => {
             page: pageNum,
             size: pageSize,
             category: category !== "all" ? category : undefined,
+            q: query || undefined,
           },
         }
       );
@@ -101,18 +105,19 @@ export const MainVideoPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchVideos(1, size, activeCategory);
+    fetchVideos(1, size, activeCategory, searchTerm);
   }, []);
 
   useEffect(() => {
-    if (categoryParam) {
-      setActiveCategory(categoryParam);
-      fetchVideos(1, size, categoryParam);
+    if (categoryParam || searchQuery) {
+      setActiveCategory(categoryParam || "all");
+      setSearchTerm(searchQuery || "");
+      fetchVideos(1, size, categoryParam || "all", searchQuery || "");
     }
-  }, [categoryParam]);
+  }, [categoryParam, searchQuery]);
 
   const handleReload = (): void => {
-    fetchVideos(1, size, activeCategory);
+    fetchVideos(1, size, activeCategory, searchTerm);
     window.scrollTo(0, 0);
   };
 
@@ -135,8 +140,58 @@ export const MainVideoPage: React.FC = () => {
   const handleCategoryChange = (category: string): void => {
     setActiveCategory(category);
     setPage(1);
-    fetchVideos(1, size, category);
-    navigate(`/explore${category !== "all" ? `?category=${category}` : ""}`);
+
+    // Maintain search query when changing category
+    const queryString = new URLSearchParams();
+    if (category !== "all") {
+      queryString.set("category", category);
+    }
+    if (searchTerm) {
+      queryString.set("q", searchTerm);
+    }
+
+    fetchVideos(1, size, category, searchTerm);
+    navigate(
+      `/explore${queryString.toString() ? `?${queryString.toString()}` : ""}`
+    );
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent): void => {
+    e.preventDefault();
+    setPage(1);
+
+    // Maintain category when searching
+    const queryString = new URLSearchParams();
+    if (activeCategory !== "all") {
+      queryString.set("category", activeCategory);
+    }
+    if (searchTerm) {
+      queryString.set("q", searchTerm);
+    }
+
+    fetchVideos(1, size, activeCategory, searchTerm);
+    navigate(
+      `/explore${queryString.toString() ? `?${queryString.toString()}` : ""}`
+    );
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleClearSearch = (): void => {
+    setSearchTerm("");
+
+    // Remove search parameter but maintain category
+    const queryString = new URLSearchParams();
+    if (activeCategory !== "all") {
+      queryString.set("category", activeCategory);
+    }
+
+    fetchVideos(1, size, activeCategory, "");
+    navigate(
+      `/explore${queryString.toString() ? `?${queryString.toString()}` : ""}`
+    );
   };
 
   const handleLikeVideo = async (id: string): Promise<void> => {
@@ -236,6 +291,7 @@ export const MainVideoPage: React.FC = () => {
             page: nextPage,
             size: size,
             category: activeCategory !== "all" ? activeCategory : undefined,
+            q: searchTerm || undefined,
           },
         }
       );
@@ -369,7 +425,7 @@ export const MainVideoPage: React.FC = () => {
                             <FastForward size={20} />
                           </div>
                           <div className="ml-3">
-                            <h3 className="font-semibold">VideoSum.AI</h3>
+                            <h3 className="font-semibold">MediaSum.AI</h3>
                             <p className="text-xs text-indigo-200">
                               {t("explore:messages.powered_by_ai")}
                             </p>
@@ -402,6 +458,54 @@ export const MainVideoPage: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto">
+          {/* Search Form */}
+          <div className="mb-6">
+            <form onSubmit={handleSearchSubmit} className="flex">
+              <div className="relative flex-grow">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={18} className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder={
+                    t("explore:search.placeholder") || "Search videos..."
+                  }
+                  className="text-gray-800 block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <span className="text-gray-400 hover:text-gray-500">✕</span>
+                  </button>
+                )}
+              </div>
+              <Button type="submit" variant="primary" className="ml-2">
+                {t("explore:search.button") || "Search"}
+              </Button>
+            </form>
+          </div>
+
+          {/* Search Results Information */}
+          {searchTerm && (
+            <div className="mb-4">
+              <p className="text-gray-600">
+                {loading
+                  ? t("explore:search.searching")
+                  : videos.length > 0
+                    ? t("explore:search.results", {
+                        count: total,
+                        query: searchTerm,
+                      })
+                    : t("explore:search.no_results", { query: searchTerm })}
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
             {loading ? (
               <>
@@ -529,15 +633,27 @@ export const MainVideoPage: React.FC = () => {
           {sortedVideos.length === 0 && !loading && (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">
-                {t("explore:messages.no_videos")}
+                {searchTerm
+                  ? t("explore:search.try_different")
+                  : t("explore:messages.no_videos")}
               </p>
-              <Button
-                variant="outline"
-                onClick={() => handleCategoryChange("all")}
-                className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
-              >
-                {t("explore:buttons.view_all")}
-              </Button>
+              {searchTerm ? (
+                <Button
+                  variant="outline"
+                  onClick={handleClearSearch}
+                  className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
+                >
+                  {t("explore:search.clear")}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => handleCategoryChange("all")}
+                  className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
+                >
+                  {t("explore:buttons.view_all")}
+                </Button>
+              )}
             </div>
           )}
 

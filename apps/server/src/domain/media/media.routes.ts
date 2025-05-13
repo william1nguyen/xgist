@@ -2,6 +2,7 @@ import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import {
   CreateMediaBody,
   CreateMediaResponse,
+  DeleteMediaParams,
   GetMediaDetailParams,
   GetMediaDetailResponse,
   GetSearchMediaHistoryQueryString,
@@ -10,14 +11,18 @@ import {
   SearchMediaResponse,
   ToggleBookmarkParams,
   ToggleLikeParams,
+  UpdateMediaBody,
 } from "./media.types";
 import {
   createMedia,
+  deleteMedia,
   getMediaDetail,
   getSearchMediaHistory,
   searchMedia,
+  searchMyMedia,
   toggleBookmark,
   toggleLike,
+  updateMedia,
 } from "./media.services";
 
 const tags = ["media"];
@@ -42,15 +47,27 @@ export const mediaRoutes: FastifyPluginAsyncTypebox = async (app) => {
   );
 
   app.get(
+    "/me",
+    {
+      schema: {
+        tags,
+        description: "Get my medias",
+        querystring: SearchMediaQueryString,
+      },
+    },
+    async (req) => {
+      const res = await searchMyMedia(req.query, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.get(
     "/:mediaId",
     {
       schema: {
         tags,
         description: "Get media detail",
         params: GetMediaDetailParams,
-        response: {
-          200: GetMediaDetailResponse,
-        },
       },
     },
     async (req) => {
@@ -95,6 +112,21 @@ export const mediaRoutes: FastifyPluginAsyncTypebox = async (app) => {
     }
   );
 
+  app.put(
+    "",
+    {
+      schema: {
+        tags,
+        description: "Update media",
+        body: UpdateMediaBody,
+      },
+    },
+    async (req) => {
+      const res = await updateMedia(req.body, req.principal.user.id);
+      return res;
+    }
+  );
+
   app.post(
     "/:mediaId/toggle-bookmark",
     {
@@ -121,6 +153,21 @@ export const mediaRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await toggleLike(req.params, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.delete(
+    "/:mediaId",
+    {
+      schema: {
+        tags,
+        description: "Remove media",
+        params: DeleteMediaParams,
+      },
+    },
+    async (req) => {
+      const res = await deleteMedia(req.params, req.principal.user.id);
       return res;
     }
   );

@@ -2,7 +2,16 @@
   "title": "Khám phá",
   "explore": {
     "title": "Khám phá nội dung video đã được tóm tắt",
-    "description": "Tiết kiệm thời gian với VideoSum.AI - Nền tảng tóm tắt video thông minh bằng AI"
+    "description": "Tiết kiệm thời gian với MediaSum.AI - Nền tảng tóm tắt video thông minh bằng AI"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm bằng tên...",
+    "button": "Tìm kiếm",
+    "searching": "Đang tìm kiếm...",
+    "results": "Tìm thấy {{count}} kết quả cho \"{{query}}\"",
+    "no_results": "Không tìm thấy kết quả nào cho \"{{query}}\"",
+    "try_different": "Thử từ khóa tìm kiếm khác",
+    "clear": "Xóa tìm kiếm"
   },
   "buttons": {
     "summarize_now": "Tóm tắt video ngay",
@@ -31,7 +40,7 @@
   "messages": {
     "no_videos": "Không tìm thấy video nào phù hợp",
     "improve_productivity": "Nâng cao hiệu suất học tập và làm việc",
-    "save_time": "Tiết kiệm thời gian với VideoSum.AI - Tóm tắt bất kỳ video nào trong vài giây",
+    "save_time": "Tiết kiệm thời gian với MediaSum.AI - Tóm tắt bất kỳ video nào trong vài giây",
     "powered_by_ai": "Powered by AI"
   },
   "demo": {

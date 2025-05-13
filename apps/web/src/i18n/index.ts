@@ -13,6 +13,7 @@ import enExplore from "./locales/en/explore.json";
 import enSettings from "./locales/en/settings.json";
 import enTrending from "./locales/en/trending.json";
 import enVideoDetail from "./locales/en/videoDetail.json";
+import enEdit from "./locales/en/edit.json";
 
 import viCommon from "./locales/vi/common.json";
 import viSidebar from "./locales/vi/sidebar.json";
@@ -25,6 +26,7 @@ import viExplore from "./locales/vi/explore.json";
 import viSettings from "./locales/vi/settings.json";
 import viTrending from "./locales/vi/trending.json";
 import viVideoDetail from "./locales/vi/videoDetail.json";
+import viEdit from "./locales/vi/edit.json";
 
 export default i18n
   .use(LanguageDetector)
@@ -43,6 +45,7 @@ export default i18n
         settings: enSettings,
         trending: enTrending,
         videoDetail: enVideoDetail,
+        edit: enEdit,
       },
       vi: {
         common: viCommon,
@@ -56,6 +59,7 @@ export default i18n
         settings: viSettings,
         trending: viTrending,
         videoDetail: viVideoDetail,
+        edit: viEdit,
       },
     },
     fallbackLng: "en",

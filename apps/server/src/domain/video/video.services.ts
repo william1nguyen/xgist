@@ -31,7 +31,7 @@ import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
 import { transcribeStream } from "~/infra/whisper";
 import { redisDefault } from "~/infra/redis";
-import { prompting } from "~/infra/models";
+import { prompting } from "~/infra/gemini";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnails",
@@ -96,13 +96,16 @@ export const getNotifications = async (
 };
 
 export const getVideos = async (
-  { page = 1, size = 100, category }: GetVideosQueryString,
+  { q, page = 1, size = 100, category }: GetVideosQueryString,
   userId?: string
 ) => {
   try {
     const offset = (page - 1) * size;
     const queryOptions: any = {
-      where: category ? eq(videoTable.category, category) : undefined,
+      where: and(
+        category ? eq(videoTable.category, category) : undefined,
+        q ? like(videoTable.title, q) : undefined
+      ),
       with: {
         creator: true,
       },

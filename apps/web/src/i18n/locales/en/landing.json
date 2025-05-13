@@ -18,14 +18,14 @@
   "hero": {
     "tagline": "AI-Powered Video Summarization",
     "title": "Save Time Watching Videos with Smart AI Summaries",
-    "description": "VideoSum.AI uses advanced artificial intelligence to summarize any video into key points, helping you quickly grasp information without missing important details.",
+    "description": "MediaSum.AI uses advanced artificial intelligence to summarize any video into key points, helping you quickly grasp information without missing important details.",
     "demo": {
       "original": "30-minute video",
       "summary": "3-minute summary"
     }
   },
   "features": {
-    "title": "Save Time with VideoSum.AI",
+    "title": "Save Time with MediaSum.AI",
     "subtitle": "Using advanced AI technology to turn long videos into concise, digestible content",
     "card1": {
       "title": "Summarize in Seconds",
@@ -58,7 +58,7 @@
   },
   "cta": {
     "title": "Save 90% of Your Video Watching Time",
-    "description": "Don't waste your valuable time. VideoSum.AI can help you absorb knowledge 10x faster."
+    "description": "Don't waste your valuable time. MediaSum.AI can help you absorb knowledge 10x faster."
   },
   "pricing": {
     "title": "Simple Pricing Plans",
@@ -95,7 +95,7 @@
   },
   "faq": {
     "title": "Frequently Asked Questions",
-    "q1": "What videos does VideoSum.AI work with?",
+    "q1": "What videos does MediaSum.AI work with?",
     "a1": "We support most popular video platforms like YouTube, Vimeo, Facebook, and many others. You can also upload your own videos in many common formats.",
     "q2": "How accurate are the summaries?",
     "a2": "Our AI algorithm has been trained on millions of videos to ensure high accuracy. However, summary quality may depend on audio quality and content complexity.",

@@ -186,7 +186,7 @@ async def transcribe_from_url(url: str):
                     audio_stream,
                     beam_size=5,
                     word_timestamps=False,
-                    vad_filter=True
+                    vad_filter=True,
                 )
         
         transcripts = process_results(segments)

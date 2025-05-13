@@ -1,0 +1,1 @@
+ALTER TABLE "chunk" ALTER COLUMN "time" SET DATA TYPE double precision;

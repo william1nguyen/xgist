@@ -29,6 +29,41 @@
       "when": 1746993374563,
       "tag": "0003_add_media_like_bookmark",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747136646371,
+      "tag": "0004_add_summary_info",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747149381918,
+      "tag": "0005_add_keyword_keypoint_extract",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1747153009064,
+      "tag": "0006_add_on_delete_cascade",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1747153083661,
+      "tag": "0007_add_on_delete_cascade",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1747156501689,
+      "tag": "0008_time_to_double",
+      "breakpoints": true
     }
   ]
 }

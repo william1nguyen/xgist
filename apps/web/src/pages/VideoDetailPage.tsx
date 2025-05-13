@@ -298,7 +298,7 @@ export const VideoDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 bg-white text-black">
         <div className="animate-pulse">
           <div className="h-8 w-32 bg-gray-200 rounded mb-6"></div>
           <div className="aspect-video w-full bg-gray-200 rounded-lg mb-6"></div>
@@ -336,7 +336,7 @@ export const VideoDetailPage = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+      <div className="max-w-7xl mx-auto px-4 py-12 text-center bg-white text-black">
         <h2 className="text-2xl font-semibold mb-4">
           {t("videoDetail:error_page.title")}
         </h2>
@@ -353,7 +353,7 @@ export const VideoDetailPage = () => {
 
   if (!video) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+      <div className="max-w-7xl mx-auto px-4 py-12 text-center bg-white text-black">
         <h2 className="text-2xl font-semibold mb-4">
           {t("videoDetail:not_found.title")}
         </h2>
@@ -369,7 +369,7 @@ export const VideoDetailPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-4 py-6 bg-white text-black">
       <button
         className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
         onClick={handleGoBack}
@@ -455,7 +455,7 @@ export const VideoDetailPage = () => {
                         className={`p-1 rounded-full ${
                           isLiked
                             ? "bg-indigo-600"
-                            : "bg-black/30 hover:bg-black/50"
+                            : "bg-gray-100/30 hover:bg-gray-100/50"
                         }`}
                       >
                         <Heart
@@ -468,7 +468,7 @@ export const VideoDetailPage = () => {
                         className={`p-1 rounded-full ${
                           isBookmarked
                             ? "bg-indigo-600"
-                            : "bg-black/30 hover:bg-black/50"
+                            : "bg-gray-100/30 hover:bg-gray-100/50"
                         }`}
                       >
                         <Bookmark
@@ -488,7 +488,7 @@ export const VideoDetailPage = () => {
                   )}
                   <button
                     onClick={handleCopyLink}
-                    className="p-1 rounded-full bg-black/30 hover:bg-black/50"
+                    className="p-1 rounded-full bg-gray-100/30 hover:bg-gray-100/50"
                   >
                     <Link2 size={18} />
                   </button>
@@ -548,38 +548,18 @@ export const VideoDetailPage = () => {
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg mb-8">
-            <p className="whitespace-pre-line text-black">
+          <div className="bg-gray-50 p-4 rounded-lg mb-8 border border-gray-200">
+            <p className="whitespace-pre-line text-black text-black">
               {video.description}
             </p>
           </div>
-
-          {relatedVideos.length > 0 && (
-            <div className="mt-10">
-              <h2 className="text-xl font-semibold mb-4">
-                {t("videoDetail:related_videos.title")}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {relatedVideos.map((relatedVideo) => (
-                  <VideoCard
-                    key={relatedVideo.id}
-                    item={relatedVideo}
-                    viewMode="grid"
-                    isSelected={selectedItems.includes(relatedVideo.id)}
-                    onSelect={() => toggleSelectItem(relatedVideo.id)}
-                    contentType="video"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
           <div className="p-6 border-b border-gray-200 bg-gray-50">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-black">
+                <h2 className="text-2xl font-bold text-black text-black">
                   {t("summary:results.title")}
                 </h2>
                 <p className="text-sm text-gray-700 mt-1">{video.title}</p>
@@ -626,7 +606,7 @@ export const VideoDetailPage = () => {
                   <video
                     ref={videoRef}
                     src={video.url}
-                    className="w-full h-auto max-h-96 object-contain bg-black"
+                    className="w-full h-auto max-h-96 object-contain bg-gray-100"
                     poster={video.thumbnail}
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
@@ -661,7 +641,7 @@ export const VideoDetailPage = () => {
                       <div className="flex items-center space-x-4">
                         <button
                           onClick={togglePlayPause}
-                          className="text-white hover:text-indigo-300 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+                          className="text-white hover:text-indigo-300 p-2 rounded-full bg-gray-100/40 hover:bg-gray-100/60 transition-colors"
                           type="button"
                         >
                           {isPlaying ? <Pause size={22} /> : <Play size={22} />}
@@ -669,7 +649,7 @@ export const VideoDetailPage = () => {
 
                         <button
                           onClick={toggleMute}
-                          className="text-white hover:text-indigo-300 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+                          className="text-white hover:text-indigo-300 p-2 rounded-full bg-gray-100/40 hover:bg-gray-100/60 transition-colors"
                           type="button"
                         >
                           {isMuted ? (
@@ -765,7 +745,7 @@ export const VideoDetailPage = () => {
                 >
                   {summaryContentTab === "summary" && detailedSummary && (
                     <div>
-                      <div className="prose max-w-none text-black">
+                      <div className="prose max-w-none text-black text-black">
                         {detailedSummary.split("\n").map((paragraph, index) => (
                           <p key={index} className="mb-4 leading-relaxed">
                             {paragraph}
@@ -785,7 +765,9 @@ export const VideoDetailPage = () => {
                               <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 font-bold text-sm shadow-sm">
                                 {index + 1}
                               </div>
-                              <span className="ml-4 text-black">{point}</span>
+                              <span className="ml-4 text-black text-black">
+                                {point}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -821,7 +803,9 @@ export const VideoDetailPage = () => {
                             <span className="text-sm text-gray-500 w-16 flex-shrink-0 font-mono">
                               {formatTime(entry.time)}
                             </span>
-                            <p className="text-base text-black">{entry.text}</p>
+                            <p className="text-base text-black text-black">
+                              {entry.text}
+                            </p>
                           </div>
                         ))}
                       </div>

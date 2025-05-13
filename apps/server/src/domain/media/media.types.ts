@@ -1,5 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { BaseModelSchema, OptionalDefaultNull } from "~/infra/utils/schema";
+import { User } from "../user/user.types";
 
 export const Media = Type.Object({
   url: Type.String(),
@@ -12,6 +13,38 @@ export const Media = Type.Object({
 });
 
 export type Media = Static<typeof Media>;
+
+export const Chunk = Type.Object({
+  transcriptId: Type.String(),
+  time: Type.Number(),
+  content: Type.String(),
+  ...BaseModelSchema,
+});
+
+export type Chunk = Static<typeof Chunk>;
+
+export const Transcript = Type.Object({
+  mediaId: Type.String(),
+  content: Type.String(),
+  chunks: Type.Array(Chunk),
+  ...BaseModelSchema,
+});
+
+export type Transcript = Static<typeof Transcript>;
+
+export const WhisperChunk = Type.Object({
+  time: Type.Number(),
+  text: Type.String(),
+});
+
+export type WhisperChunk = Static<typeof WhisperChunk>;
+
+export const WhisperTranscript = Type.Object({
+  text: Type.String(),
+  chunks: Type.Array(WhisperChunk),
+});
+
+export type WhisperTranscript = Static<typeof WhisperTranscript>;
 
 export const MediaInfo = Type.Object({});
 
@@ -45,6 +78,7 @@ export type GetSearchMediaHistoryResponse = Static<
 
 export const SearchMediaQueryString = Type.Object({
   keyword: Type.Optional(Type.String()),
+  category: Type.Optional(Type.String()),
   page: Type.Optional(Type.Number()),
   size: Type.Optional(Type.Number()),
 });
@@ -75,11 +109,12 @@ export const GetMediaDetailResponse = Type.Object({
 export type GetMediaDetailResponse = Static<typeof GetMediaDetailResponse>;
 
 export const CreateMediaBody = Type.Object({
-  videoUrl: Type.String(),
+  mediaUrl: Type.String(),
   thumbnailUrl: Type.String(),
   title: Type.String(),
   description: Type.Optional(Type.String()),
   category: Type.String(),
+  transcript: Type.Optional(WhisperTranscript),
 });
 
 export type CreateMediaBody = Static<typeof CreateMediaBody>;
@@ -92,11 +127,17 @@ export type CreateMediaResponse = Static<typeof CreateMediaResponse>;
 
 export const UpdateMediaBody = Type.Object({
   mediaId: Type.String(),
-  views: Type.Optional(Type.Number()),
-  isSummarized: Type.Optional(Type.Boolean()),
+  transcript: Transcript,
+  chunks: Type.Array(Chunk),
 });
 
 export type UpdateMediaBody = Static<typeof UpdateMediaBody>;
+
+export const DeleteMediaParams = Type.Object({
+  mediaId: Type.String(),
+});
+
+export type DeleteMediaParams = Static<typeof DeleteMediaParams>;
 
 export const ToggleLikeParams = Type.Object({
   mediaId: Type.String(),

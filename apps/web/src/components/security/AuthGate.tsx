@@ -2,8 +2,8 @@ import React, { ReactNode } from "react";
 import { LogIn, Lock } from "lucide-react";
 
 import { useTranslation } from "react-i18next";
-import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
-import { Button } from "./ui/Button";
+import { useKeycloakAuth } from "../../hooks/useKeycloakAuth";
+import { Button } from "../ui/Button";
 
 interface AuthGateProps {
   children: ReactNode;

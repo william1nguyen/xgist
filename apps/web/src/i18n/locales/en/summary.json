@@ -64,6 +64,8 @@
     "thumbnail_formats": "Recommended: JPG, PNG - 16:9 aspect ratio",
     "auto_thumbnail": "If you don't upload a thumbnail, the system will automatically generate one from your video",
     "video_title": "Video Title",
+    "video_section": "",
+    "video_details": "",
     "title_placeholder": "Enter video title",
     "description": "Description",
     "description_placeholder": "Describe your video content",

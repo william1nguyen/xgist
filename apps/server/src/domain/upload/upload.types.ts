@@ -1,4 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
+import { WhisperTranscript } from "../media/media.types";
+import { OptionalDefaultNull } from "~/infra/utils/schema";
 
 export const File = Type.Any();
 export type File = Static<typeof File>;
@@ -26,6 +28,7 @@ export const UploadResponse = Type.Object({
   fileName: Type.String(),
   mimeType: Type.String(),
   size: Type.Number(),
+  transcript: OptionalDefaultNull(WhisperTranscript),
 });
 
 export type UploadResponse = Static<typeof UploadResponse>;

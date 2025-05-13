@@ -13,7 +13,6 @@ import { aiHttpClient, httpClient } from "../config/httpClient";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { ComprehensiveSummaryView } from "../components/ComprehensiveSummaryView";
-import { AuthGate } from "../components/AuthGate";
 
 export interface Chunk {
   time: number;
@@ -301,118 +300,112 @@ export const CreateSummaryPage: React.FC = () => {
   );
 
   return (
-    <AuthGate>
-      <Layout activeItem="summarize" title={t("summary:page_title.create")}>
-        {isProcessing && renderLoadingIndicator()}
+    <Layout activeItem="summarize" title={t("summary:page_title.create")}>
+      {isProcessing && renderLoadingIndicator()}
 
-        <div className="max-w-8xl mx-auto px-4 py-6">
-          {!isComplete ? (
-            <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-black mb-6 border-b pb-3">
-                  {t("summary:heading.ai_summary")}
-                </h2>
+      <div className="max-w-8xl mx-auto px-4 py-6">
+        {!isComplete ? (
+          <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-black mb-6 border-b pb-3">
+                {t("summary:heading.ai_summary")}
+              </h2>
 
-                <form onSubmit={handleSummarizeSubmit} className="space-y-6">
-                  <div>
-                    {!videoFile ? (
-                      <div
-                        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors bg-gray-50"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="hidden"
-                          onChange={handleFileSelect}
-                          accept="video/*"
-                        />
-                        <Upload
-                          size={48}
-                          className="mx-auto text-blue-500 mb-4"
-                        />
-                        <p className="text-base text-black font-medium mb-2">
-                          {t("summary:dropzone.text")}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          {t("summary:dropzone.formats")}
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 shadow-sm">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center">
-                              <File size={20} className="text-gray-600 mr-2" />
-                              <span className="text-sm font-medium text-black">
-                                {videoFile.name}
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setVideoFile(null);
-                                if (videoPreviewUrl) {
-                                  URL.revokeObjectURL(videoPreviewUrl);
-                                  setVideoPreviewUrl(null);
-                                }
-                              }}
-                              className="text-gray-600 hover:text-red-600 p-1 rounded-full hover:bg-gray-200"
-                              type="button"
-                            >
-                              <X size={18} />
-                            </button>
-                          </div>
-
-                          <div className="flex justify-between text-xs text-gray-700 mt-2">
-                            <span>{t("summary:file.selected")}</span>
-                            <span className="font-medium">
-                              {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+              <form onSubmit={handleSummarizeSubmit} className="space-y-6">
+                <div>
+                  {!videoFile ? (
+                    <div
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors bg-gray-50"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={handleFileSelect}
+                        accept="video/*,audio/mp3,audio/*"
+                      />
+                      <Upload
+                        size={48}
+                        className="mx-auto text-blue-500 mb-4"
+                      />
+                      <p className="text-base text-black font-medium mb-2">
+                        {t("summary:dropzone.text")}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {t("summary:dropzone.formats")}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <File size={20} className="text-gray-600 mr-2" />
+                            <span className="text-sm font-medium text-black">
+                              {videoFile.name}
                             </span>
                           </div>
+                          <button
+                            onClick={() => {
+                              setVideoFile(null);
+                              if (videoPreviewUrl) {
+                                URL.revokeObjectURL(videoPreviewUrl);
+                                setVideoPreviewUrl(null);
+                              }
+                            }}
+                            className="text-gray-600 hover:text-red-600 p-1 rounded-full hover:bg-gray-200"
+                            type="button"
+                          >
+                            <X size={18} />
+                          </button>
                         </div>
-                      </>
-                    )}
-                  </div>
 
-                  <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
-                    {isProcessing ? (
-                      <Button
-                        variant="outline"
-                        onClick={resetForm}
-                        type="button"
-                      >
-                        {t("summary:buttons.cancel")}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        type="submit"
-                        disabled={!videoFile}
-                      >
-                        {t("summary:buttons.create_summary")}
-                      </Button>
-                    )}
-                  </div>
-                </form>
-              </div>
+                        <div className="flex justify-between text-xs text-gray-700 mt-2">
+                          <span>{t("summary:file.selected")}</span>
+                          <span className="font-medium">
+                            {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+                  {isProcessing ? (
+                    <Button variant="outline" onClick={resetForm} type="button">
+                      {t("summary:buttons.cancel")}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      disabled={!videoFile}
+                    >
+                      {t("summary:buttons.create_summary")}
+                    </Button>
+                  )}
+                </div>
+              </form>
             </div>
-          ) : (
-            <div>
-              <ComprehensiveSummaryView
-                videoFile={videoFile}
-                videoPreviewUrl={videoPreviewUrl}
-                thumbnailPreview={thumbnailPreview}
-                talkData={talkData}
-                summaryData={summaryData!}
-                onReset={resetForm}
-                avatarVideoUrl={avatarVideoUrl}
-                isTalkProcessing={isTalkProcessing}
-                talkId={talkData?.id}
-              />
-            </div>
-          )}
-        </div>
-      </Layout>
-    </AuthGate>
+          </div>
+        ) : (
+          <div>
+            <ComprehensiveSummaryView
+              videoFile={videoFile}
+              videoPreviewUrl={videoPreviewUrl}
+              thumbnailPreview={thumbnailPreview}
+              talkData={talkData}
+              summaryData={summaryData!}
+              onReset={resetForm}
+              avatarVideoUrl={avatarVideoUrl}
+              isTalkProcessing={isTalkProcessing}
+              talkId={talkData?.id}
+            />
+          </div>
+        )}
+      </div>
+    </Layout>
   );
 };

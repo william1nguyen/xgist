@@ -7,6 +7,7 @@ enum ErrorCode {
   FileTypeNotAllowed = "FileTypeNotAllowedError",
   FileTypeCompressionNotSupported = "FileTypeCompressionNotSupportedError",
   FileSizeLimitExceed = "FileSizeLimitExceedError",
+  ContentInvalid = "ContentInvalidError",
 }
 
 export const BucketNotFoundError = createError(
@@ -42,5 +43,11 @@ export const FileTypeCompressionNotSupportedError = createError(
 export const FileSizeLimitExceedError = createError(
   ErrorCode.FileSizeLimitExceed,
   "File is too big!",
+  500
+);
+
+export const ContentInvalidError = createError(
+  ErrorCode.ContentInvalid,
+  "Content invalid!",
   500
 );

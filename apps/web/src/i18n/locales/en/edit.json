@@ -1,0 +1,79 @@
+{
+  "title": "Edit Video",
+  "heading": "Edit Video Content",
+  "subtitle": "Modify the video keywords, key points, summary, transcript and enable AI Presenter.",
+  "loading": "Loading video data...",
+  "loading_title": "Loading information...",
+
+  "tabs": {
+    "content": "Content",
+    "transcript": "Transcript"
+  },
+
+  "sections": {
+    "keywords": "Keywords",
+    "keypoints": "Key Points",
+    "summary": "Summary",
+    "ai_presenter": "AI Presenter",
+    "full_transcript": "Full Transcript",
+    "transcript_chunks": "Time-stamped Transcript Chunks"
+  },
+
+  "descriptions": {
+    "keywords": "Add relevant keywords to help categorize and make your video more discoverable.",
+    "keypoints": "Add key points that highlight the main topics covered in your video.",
+    "summary": "Edit the video summary that provides an overview of the content.",
+    "ai_presenter": "Create an AI-powered presenter for your video that will narrate the content based on your summary and key points.",
+    "transcript": "Edit the transcript of your video to ensure content accuracy."
+  },
+
+  "placeholders": {
+    "keyword": "Enter a keyword",
+    "keypoint": "Enter a key point",
+    "summary": "Write a summary of your video content...",
+    "transcript": "Enter or edit video transcript..."
+  },
+
+  "buttons": {
+    "add": "Add",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "back": "Back to Videos",
+    "login_now": "Login Now",
+    "edit": "Edit"
+  },
+
+  "labels": {
+    "ai_presenter_enabled": "AI Presenter Enabled",
+    "ai_presenter_disabled": "AI Presenter Disabled"
+  },
+
+  "messages": {
+    "save_success": "Changes saved successfully!",
+    "ai_presenter_info": "The AI Presenter will be generated after saving. This process may take a few minutes. You will be notified when it's ready."
+  },
+
+  "errors": {
+    "fetch_failed": "Failed to load video data. Please try again.",
+    "save_failed": "Failed to save changes. Please try again.",
+    "presenter_generation_failed": "Changes were saved, but there was an issue generating the AI Presenter. The team has been notified."
+  },
+
+  "auth": {
+    "locked_content": "Authentication Required",
+    "login_message": "You need to login to edit video content."
+  },
+
+  "video_info": {
+    "duration": "Duration",
+    "category": "Category"
+  },
+
+  "transcript": {
+    "jump_to_time": "Jump to this time",
+    "edit_chunk": "Edit this chunk",
+    "save_chunk": "Save chunk",
+    "cancel_edit": "Cancel edit"
+  }
+}

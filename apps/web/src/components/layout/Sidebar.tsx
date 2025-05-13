@@ -28,7 +28,8 @@ interface SidebarProps {
     | "library"
     | "settings"
     | "guide"
-    | "upload";
+    | "upload"
+    | "presentation";
   categories: Category[];
   onCategoryClick?: (categoryId: string) => void;
 }
@@ -57,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onClick={() => navigate("/")}
       >
         <FastForward className="text-indigo-500" size={24} />
-        <span className="hidden md:inline font-bold text-lg">VideoSum.AI</span>
+        <span className="hidden md:inline font-bold text-lg">MediaSum.AI</span>
       </button>
 
       <div className="flex-1 py-6 overflow-y-auto">
@@ -73,20 +74,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Video className="mr-3 h-5 w-5 text-slate-400" />
             <span className="hidden md:inline">
               {t("explore", { ns: "sidebar" })}
-            </span>
-          </Link>
-
-          <Link
-            to="/trending"
-            className={`flex items-center px-2 py-3 text-sm font-medium rounded-md ${
-              activeItem === "trending"
-                ? "bg-slate-800 text-white"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            <TrendingUp className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">
-              {t("trending", { ns: "sidebar" })}
             </span>
           </Link>
 
@@ -169,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <Link
-          to="/settings"
+          to="http://localhost:8084/realms/dev/account"
           className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
         >
           <Settings className="mr-3 h-5 w-5 text-slate-400" />

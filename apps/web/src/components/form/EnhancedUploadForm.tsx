@@ -34,7 +34,7 @@ interface VideoUploadProps {
   showAdvancedOptions: boolean;
   categories: Array<{ id: string; name: string }>;
   onVideoSelect: (e: ChangeEvent<HTMLInputElement>) => void;
-  onThumbnailSelect: (e: ChangeEvent<HTMLInputElement>) => void;
+  onThumbcreatenailSelect: (e: ChangeEvent<HTMLInputElement>) => void;
   onTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onDescriptionChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onCategoryChange: (e: ChangeEvent<HTMLSelectElement>) => void;
@@ -217,7 +217,7 @@ export const EnhancedUploadForm: React.FC<VideoUploadProps> = ({
                 ref={fileInputRef}
                 className="hidden"
                 onChange={onVideoSelect}
-                accept="video/*"
+                accept="video/*,audio/mp3,audio/*"
               />
               <Upload size={48} className="mx-auto text-blue-500 mb-4" />
               <p className="text-base text-black font-medium mb-2">

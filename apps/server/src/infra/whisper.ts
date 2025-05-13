@@ -1,4 +1,6 @@
 import axios from "axios";
+import { MediaNotFoundError } from "~/domain/media/media.errors";
+import { getMediaDetail } from "~/domain/media/media.services";
 import { env } from "~/env";
 
 export const whisperHttpClient = axios.create({
@@ -85,4 +87,36 @@ export const transcribeFile = async (
   } catch (err) {
     throw new Error(`Failed to transcribe ${err}`);
   }
+};
+
+export const transcribeUrl = async (url: string) => {
+  try {
+    const res = await whisperHttpClient.post(
+      "/transcribe-url/",
+      {
+        url,
+      },
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    return res.data;
+  } catch (err) {
+    throw new Error(`Failed to transcribe ${err}`);
+  }
+};
+
+export const transcribeMedia = async (mediaId: string) => {
+  const res = await getMediaDetail({ mediaId });
+  const media = res.data;
+
+  if (!media) {
+    throw new MediaNotFoundError();
+  }
+
+  const transcript = await transcribeUrl(media.url);
+  return transcript;
 };

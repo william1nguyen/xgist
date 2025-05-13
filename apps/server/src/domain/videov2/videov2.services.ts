@@ -2,7 +2,7 @@ import _ from "lodash";
 import { SummarizedFailedError, VideoInvalidError } from "./videov2.errors";
 import { SummarizeVideoBody } from "./videov2.types";
 import { transcribeStream } from "~/infra/whisper";
-import { prompting } from "~/infra/models";
+import { prompting } from "~/infra/gemini";
 
 export const summarize = async (text: string, chunks: any) => {
   const prompt = `
