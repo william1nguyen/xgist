@@ -2,7 +2,7 @@
   "pageTitle": "Hướng dẫn sử dụng",
   "goBack": "Quay lại",
   "header": {
-    "title": "Hướng dẫn sử dụng VideoSum.AI",
+    "title": "Hướng dẫn sử dụng MediaSum.AI",
     "description": "Tiết kiệm thời gian và nắm bắt nội dung video nhanh chóng với công nghệ tóm tắt AI tiên tiến",
     "tryNow": "Thử ngay"
   },
@@ -37,15 +37,15 @@
   "guide4": {
     "title": "Quản lý và chia sẻ tóm tắt",
     "description": "Cách lưu trữ, chia sẻ và xuất bản tóm tắt video của bạn",
-    "step1": "Đăng nhập vào tài khoản VideoSum.AI của bạn",
+    "step1": "Đăng nhập vào tài khoản MediaSum.AI của bạn",
     "step2": "Truy cập trang 'Thư viện của tôi' để xem tất cả tóm tắt đã tạo",
     "step3": "Sử dụng nút 'Chia sẻ' để gửi tóm tắt qua email hoặc mạng xã hội",
     "step4": "Nhấn 'Tải xuống' để lưu tóm tắt dưới dạng PDF hoặc văn bản",
     "step5": "Nhúng tóm tắt vào website hoặc blog của bạn bằng mã nhúng (Premium)"
   },
   "timeSaver": {
-    "title": "Tiết kiệm thời gian với VideoSum.AI",
-    "description": "Người dùng VideoSum.AI tiết kiệm trung bình 90% thời gian xem video. Tóm tắt một video 30 phút chỉ mất vài giây."
+    "title": "Tiết kiệm thời gian với MediaSum.AI",
+    "description": "Người dùng MediaSum.AI tiết kiệm trung bình 90% thời gian xem video. Tóm tắt một video 30 phút chỉ mất vài giây."
   },
   "tips": {
     "title": "Mẹo hữu ích",
@@ -65,12 +65,12 @@
   "faq": {
     "title": "Câu hỏi thường gặp",
     "q1": {
-      "question": "1. VideoSum.AI hoạt động với những loại video nào?",
-      "answer": "VideoSum.AI có thể tóm tắt hầu hết các loại video có nội dung nói, bao gồm bài giảng, hội thảo, podcast, tin tức, v.v. Hệ thống hỗ trợ nhiều ngôn ngữ khác nhau."
+      "question": "1. MediaSum.AI hoạt động với những loại video nào?",
+      "answer": "MediaSum.AI có thể tóm tắt hầu hết các loại video có nội dung nói, bao gồm bài giảng, hội thảo, podcast, tin tức, v.v. Hệ thống hỗ trợ nhiều ngôn ngữ khác nhau."
     },
     "q2": {
       "question": "2. Tóm tắt video có chính xác không?",
-      "answer": "VideoSum.AI sử dụng công nghệ AI tiên tiến để đảm bảo độ chính xác cao. Tuy nhiên, kết quả tốt nhất đạt được với video có âm thanh rõ ràng và không có nhiều tiếng ồn nền."
+      "answer": "MediaSum.AI sử dụng công nghệ AI tiên tiến để đảm bảo độ chính xác cao. Tuy nhiên, kết quả tốt nhất đạt được với video có âm thanh rõ ràng và không có nhiều tiếng ồn nền."
     },
     "q3": {
       "question": "3. Dữ liệu video của tôi có an toàn không?",

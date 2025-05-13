@@ -2,7 +2,7 @@
   "pageTitle": "User Guide",
   "goBack": "Go Back",
   "header": {
-    "title": "VideoSum.AI User Guide",
+    "title": "MediaSum.AI User Guide",
     "description": "Save time and quickly grasp video content with advanced AI summarization technology",
     "tryNow": "Try Now"
   },
@@ -19,7 +19,7 @@
   "guide2": {
     "title": "Summarize Uploaded Videos",
     "description": "How to summarize video files already on your device",
-    "step1": "Click the 'Upload Video File' button on the summary page",
+    "step1": "Click the 'Upload Media File' button on the summary page",
     "step2": "Select the video file (supports MP4, AVI, MOV, WMV...)",
     "step3": "Choose the summary language and desired detail level",
     "step4": "Click 'Start Summary' and wait for processing to complete",
@@ -37,15 +37,15 @@
   "guide4": {
     "title": "Managing and Sharing Summaries",
     "description": "How to store, share, and publish your video summaries",
-    "step1": "Log in to your VideoSum.AI account",
+    "step1": "Log in to your MediaSum.AI account",
     "step2": "Access 'My Library' page to view all created summaries",
     "step3": "Use the 'Share' button to send summaries via email or social media",
     "step4": "Click 'Download' to save summaries as PDF or text",
     "step5": "Embed summaries in your website or blog using embed code (Premium)"
   },
   "timeSaver": {
-    "title": "Save Time with VideoSum.AI",
-    "description": "VideoSum.AI users save an average of 90% of video viewing time. Summarizing a 30-minute video takes just seconds."
+    "title": "Save Time with MediaSum.AI",
+    "description": "MediaSum.AI users save an average of 90% of video viewing time. Summarizing a 30-minute video takes just seconds."
   },
   "tips": {
     "title": "Helpful Tips",
@@ -56,7 +56,7 @@
   },
   "buttons": {
     "summarizeYoutube": "Summarize YouTube Video",
-    "uploadVideo": "Upload Video for Summary",
+    "uploadVideo": "Upload Media for Summary",
     "exploreAdvanced": "Explore Advanced Features",
     "goToLibrary": "Go to My Library",
     "nextGuide": "Next Guide",
@@ -65,12 +65,12 @@
   "faq": {
     "title": "Frequently Asked Questions",
     "q1": {
-      "question": "1. What types of videos work with VideoSum.AI?",
-      "answer": "VideoSum.AI can summarize most types of videos with spoken content, including lectures, webinars, podcasts, news, etc. The system supports multiple languages."
+      "question": "1. What types of videos work with MediaSum.AI?",
+      "answer": "MediaSum.AI can summarize most types of videos with spoken content, including lectures, webinars, podcasts, news, etc. The system supports multiple languages."
     },
     "q2": {
       "question": "2. Are video summaries accurate?",
-      "answer": "VideoSum.AI uses advanced AI technology to ensure high accuracy. However, best results are achieved with videos that have clear audio and minimal background noise."
+      "answer": "MediaSum.AI uses advanced AI technology to ensure high accuracy. However, best results are achieved with videos that have clear audio and minimal background noise."
     },
     "q3": {
       "question": "3. Is my video data safe?",

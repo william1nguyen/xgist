@@ -42,22 +42,13 @@ export const UploadVideoPage: React.FC = () => {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await httpClient.get("/v1/categories");
-        setCategories(response.data || []);
-      } catch (error) {
-        setCategories([
-          { id: "technology", name: "Technology" },
-          { id: "education", name: "Education" },
-          { id: "entertainment", name: "Entertainment" },
-          { id: "business", name: "Business" },
-          { id: "science", name: "Science" },
-        ]);
-      }
-    };
-
-    fetchCategories();
+    setCategories([
+      { id: "technology", name: "Technology" },
+      { id: "education", name: "Education" },
+      { id: "entertainment", name: "Entertainment" },
+      { id: "business", name: "Business" },
+      { id: "science", name: "Science" },
+    ]);
   }, []);
 
   const handleAdvancedOptionChange = (option: string): void => {

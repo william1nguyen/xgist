@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onClick={() => navigate("/")}
       >
         <FastForward className="text-indigo-500" size={24} />
-        <span className="hidden md:inline font-bold text-lg">VideoSum.AI</span>
+        <span className="hidden md:inline font-bold text-lg">MediaSum.AI</span>
       </button>
 
       <div className="flex-1 py-6 overflow-y-auto">
@@ -116,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="hidden md:inline">
               {t("upload_video", {
                 ns: "sidebar",
-                defaultValue: "Upload Video",
+                defaultValue: "Upload Media",
               })}
             </span>
           </Link>

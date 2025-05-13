@@ -369,7 +369,7 @@ export const MainVideoPage: React.FC = () => {
                             <FastForward size={20} />
                           </div>
                           <div className="ml-3">
-                            <h3 className="font-semibold">VideoSum.AI</h3>
+                            <h3 className="font-semibold">MediaSum.AI</h3>
                             <p className="text-xs text-indigo-200">
                               {t("explore:messages.powered_by_ai")}
                             </p>

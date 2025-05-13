@@ -18,14 +18,14 @@
   "hero": {
     "tagline": "AI-Powered Video Summarization",
     "title": "Tiết kiệm thời gian xem video với AI tóm tắt thông minh",
-    "description": "VideoSum.AI sử dụng trí tuệ nhân tạo tiên tiến để tóm tắt bất kỳ video nào thành những điểm chính, giúp bạn nắm bắt thông tin nhanh chóng mà không bỏ lỡ chi tiết quan trọng.",
+    "description": "MediaSum.AI sử dụng trí tuệ nhân tạo tiên tiến để tóm tắt bất kỳ video nào thành những điểm chính, giúp bạn nắm bắt thông tin nhanh chóng mà không bỏ lỡ chi tiết quan trọng.",
     "demo": {
       "original": "Video thời lượng 30 phút",
       "summary": "Tóm tắt 3 phút"
     }
   },
   "features": {
-    "title": "Tiết kiệm thời gian với VideoSum.AI",
+    "title": "Tiết kiệm thời gian với MediaSum.AI",
     "subtitle": "Sử dụng công nghệ AI tiên tiến để biến video dài thành nội dung ngắn gọn, dễ tiêu thụ",
     "card1": {
       "title": "Tóm tắt trong vài giây",
@@ -58,7 +58,7 @@
   },
   "cta": {
     "title": "Tiết kiệm 90% thời gian xem video",
-    "description": "Đừng lãng phí thời gian quý báu của bạn. VideoSum.AI có thể giúp bạn tiếp thu kiến thức nhanh hơn 10 lần."
+    "description": "Đừng lãng phí thời gian quý báu của bạn. MediaSum.AI có thể giúp bạn tiếp thu kiến thức nhanh hơn 10 lần."
   },
   "pricing": {
     "title": "Gói dịch vụ đơn giản",
@@ -95,7 +95,7 @@
   },
   "faq": {
     "title": "Câu hỏi thường gặp",
-    "q1": "VideoSum.AI hoạt động với các video nào?",
+    "q1": "MediaSum.AI hoạt động với các video nào?",
     "a1": "Chúng tôi hỗ trợ hầu hết các nền tảng video phổ biến như YouTube, Vimeo, Facebook, và nhiều nền tảng khác. Bạn cũng có thể tải lên video của riêng mình với nhiều định dạng phổ biến.",
     "q2": "Tóm tắt có chính xác không?",
     "a2": "Thuật toán AI của chúng tôi đã được huấn luyện trên hàng triệu video để đảm bảo độ chính xác cao. Tuy nhiên, chất lượng tóm tắt có thể phụ thuộc vào chất lượng âm thanh và độ phức tạp của nội dung.",
@@ -113,6 +113,6 @@
     "privacy": "Chính sách riêng tư",
     "help": "Trợ giúp",
     "contact": "Liên hệ",
-    "copyright": "Bản quyền thuộc về VideoSum.AI."
+    "copyright": "Bản quyền thuộc về MediaSum.AI."
   }
 }
