@@ -28,7 +28,8 @@ interface SidebarProps {
     | "library"
     | "settings"
     | "guide"
-    | "upload";
+    | "upload"
+    | "presenter";
   categories: Category[];
   onCategoryClick?: (categoryId: string) => void;
 }
@@ -100,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Zap className="mr-3 h-5 w-5 text-slate-400" />
             <span className="hidden md:inline">
-              {t("create_summary", { ns: "sidebar" })}
+              {t("summary", { ns: "sidebar" })}
             </span>
           </Link>
 

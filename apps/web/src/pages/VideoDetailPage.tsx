@@ -832,19 +832,6 @@ export const VideoDetailPage = () => {
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex space-x-4">
                     <Button
-                      variant="outline"
-                      leftIcon={<File size={16} />}
-                      onClick={() =>
-                        window.open(
-                          `/v1/videos/summary/${video.id}/download/pdf`,
-                          "_blank"
-                        )
-                      }
-                      type="button"
-                    >
-                      {t("summary:buttons.download_pdf")}
-                    </Button>
-                    <Button
                       variant="primary"
                       leftIcon={<Share size={16} />}
                       onClick={handleCopyLink}

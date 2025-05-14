@@ -11,6 +11,7 @@ import {
 import { commonFields } from "./base";
 import { userTable } from "./user";
 import { relations } from "drizzle-orm";
+import { agentTable } from "./agent";
 
 export const videoCategory = pgEnum("category", [
   "technology",
@@ -103,6 +104,21 @@ export const bookmarkTable = pgTable(
   }
 );
 
+export const presenterTable = pgTable("presenter", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  userId: uuid("user_id")
+    .references(() => userTable.id)
+    .notNull(),
+  videoId: uuid("video_id")
+    .references(() => videoTable.id)
+    .notNull(),
+  agentId: uuid("agent_id")
+    .references(() => agentTable.id)
+    .notNull(),
+  presenterId: text("presenter_id").notNull(),
+  url: text("url"),
+});
+
 export const videoRelations = relations(videoTable, ({ one, many }) => ({
   creator: one(userTable, {
     fields: [videoTable.userId],
@@ -136,6 +152,17 @@ export const bookmarkRelations = relations(bookmarkTable, ({ one }) => ({
   }),
   video: one(videoTable, {
     fields: [bookmarkTable.videoId],
+    references: [videoTable.id],
+  }),
+}));
+
+export const presenterRelations = relations(presenterTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [presenterTable.userId],
+    references: [userTable.id],
+  }),
+  video: one(videoTable, {
+    fields: [presenterTable.videoId],
     references: [videoTable.id],
   }),
 }));

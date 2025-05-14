@@ -3,6 +3,7 @@ import _ from "lodash";
 import { db } from "~/drizzle/db";
 import {
   bookmarkTable,
+  presenterTable,
   videoLikeTable,
   videoTable,
 } from "~/drizzle/schema/video";
@@ -13,6 +14,7 @@ import {
   GetNotificationsFailedError,
   SummarizedFailedError,
   ThumbnailInvalidError,
+  UpdateVideoFailedError,
   VideoInvalidError,
   VideoNotFoundError,
 } from "./video.errors";
@@ -26,22 +28,32 @@ import {
   GetRelatedVideosParams,
   GetVideosQueryString,
   UpdateVideoViewsBody,
+  UpdateVideoBody,
+  GeneratePresenterBody,
+  GetPresenterQueryString,
+  GetPresenterStatusQueryString,
+  GetSearchMediaHistoryQueryString,
+  GetPresenterDetailParams,
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
-import { transcribeStream } from "~/infra/whisper";
+import { transcribeStream, whisperHttpClient } from "~/infra/whisper";
 import { redisDefault } from "~/infra/redis";
 import { prompting } from "~/infra/models";
+import { agentTable } from "~/drizzle/schema/agent";
+import { AgentNotFoundError } from "../agent/agent.errors";
+import { createTalk, getTalkStatus } from "~/infra/did";
+import { searchHistoryTable } from "~/drizzle/schema/search";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnails",
-  allowedType: "image",
+  allowedType: ["image"],
   shouldCompress: true,
 });
 
 const uploadVideo = createUploader({
   bucket: "videos",
-  allowedType: "video",
+  allowedType: ["video", "audio"],
 });
 
 export const getNotifications = async (
@@ -95,14 +107,46 @@ export const getNotifications = async (
   }
 };
 
+export const getSearchMediaHistory = async (
+  { page = 1, size = 10 }: GetSearchMediaHistoryQueryString,
+  userId: string
+) => {
+  const offset = (page - 1) * size;
+  const searchHistory = await db.query.searchHistoryTable.findMany({
+    where: eq(searchHistoryTable.userId, userId),
+    limit: size,
+    offset,
+  });
+
+  const total = (await db.query.searchHistoryTable.findMany({})).length;
+  return {
+    data: searchHistory,
+    metadata: {
+      page,
+      size,
+      total,
+    },
+  };
+};
+
+export const addSearchHistory = async (keyword: string, userId: string) => {
+  await db.insert(searchHistoryTable).values({
+    userId,
+    keyword,
+  });
+};
+
 export const getVideos = async (
-  { page = 1, size = 100, category }: GetVideosQueryString,
+  { q, page = 1, size = 100, category }: GetVideosQueryString,
   userId?: string
 ) => {
   try {
     const offset = (page - 1) * size;
     const queryOptions: any = {
-      where: category ? eq(videoTable.category, category) : undefined,
+      where: and(
+        category ? eq(videoTable.category, category) : undefined,
+        q ? like(videoTable.title, q) : undefined
+      ),
       with: {
         creator: true,
       },
@@ -129,6 +173,9 @@ export const getVideos = async (
     const videos = await db.query.videoTable.findMany(queryOptions);
     const total = (await db.select({ count: count() }).from(videoTable))[0]
       .count;
+
+    if (q && userId) await addSearchHistory(q, userId);
+
     return {
       data: { videos },
       metadata: {
@@ -425,6 +472,132 @@ export const getBookmarkedVideos = async (
       total,
     },
   };
+};
+
+export const updateVideo = async (
+  { videoId, keyPoints, keywords, transcripts }: UpdateVideoBody,
+  userId: string
+) => {
+  const video = await db.query.videoTable.findFirst({
+    where: and(eq(videoTable.id, videoId), eq(videoTable.userId, userId)),
+  });
+
+  if (!video) {
+    throw new VideoNotFoundError();
+  }
+
+  const res = _.first(
+    await db
+      .update(videoTable)
+      .set({
+        metadata: {
+          keyPoints,
+          keywords,
+          transcripts: [{ ...transcripts }],
+          summary: video.metadata?.summary ?? "",
+        },
+      })
+      .returning()
+  );
+
+  if (!res) {
+    throw new UpdateVideoFailedError();
+  }
+
+  return {
+    data: res,
+  };
+};
+
+export const generatePresenter = async (
+  { videoId, agentId, text }: GeneratePresenterBody,
+  userId: string
+) => {
+  const video = await db.query.videoTable.findFirst({
+    where: and(eq(videoTable.id, videoId), eq(videoTable.userId, userId)),
+  });
+
+  if (!video) {
+    throw new VideoNotFoundError();
+  }
+
+  const agent = await db.query.agentTable.findFirst({
+    where: eq(agentTable.id, agentId),
+  });
+
+  if (!agent) {
+    throw new AgentNotFoundError();
+  }
+
+  const res = await createTalk(agent.avatarUrl, agent.voiceId, text);
+
+  const presenter = await db
+    .insert(presenterTable)
+    .values({
+      userId,
+      videoId,
+      agentId,
+      presenterId: res.id,
+    })
+    .returning();
+
+  return presenter;
+};
+
+export const getPresenters = async (
+  { page = 1, size = 10 }: GetPresenterQueryString,
+  userId: string
+) => {
+  const offset = (page - 1) * size;
+  const presenters = await db.query.presenterTable.findMany({
+    where: eq(presenterTable.userId, userId),
+    limit: size,
+    offset,
+    with: {
+      user: true,
+      video: true,
+    },
+  });
+
+  const total = (
+    await db.query.presenterTable.findMany({
+      where: eq(presenterTable.userId, userId),
+    })
+  ).length;
+
+  return {
+    data: presenters,
+    metadata: {
+      page,
+      size,
+      total,
+    },
+  };
+};
+
+export const getPresenterDetail = async (
+  { presenterId }: GetPresenterDetailParams,
+  userId: string
+) => {
+  const presenters = await db.query.presenterTable.findFirst({
+    where: and(
+      eq(presenterTable.id, presenterId),
+      eq(presenterTable.userId, userId)
+    ),
+    with: {
+      user: true,
+      video: true,
+    },
+  });
+
+  return presenters;
+};
+
+export const getPresenterStatus = async ({
+  id,
+}: GetPresenterStatusQueryString) => {
+  const res = await getTalkStatus(id);
+  return res;
 };
 
 export const summarize = async (text: string) => {

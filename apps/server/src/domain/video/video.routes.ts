@@ -1,29 +1,40 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { GetQueryString } from "~/infra/utils/schema";
 import {
+  generatePresenter,
   getBookmarkedVideos,
   getMyVideos,
   getNotifications,
+  getPresenterDetail,
+  getPresenters,
   getRelatedVideos,
+  getSearchMediaHistory,
   getVideoDetail,
   getVideos,
   postVideo,
   summarizeVideo,
   toggleBookmark,
   toggleLike,
+  updateVideo,
   updateVideoViews,
 } from "./video.services";
 import {
   ActivitiesResponse,
   CategoryStatsResponse,
+  GeneratePresenterBody,
+  GetPresenterDetailParams,
+  GetPresenterQueryString,
   GetRelatedVideosParams,
   GetRelatedVideosQuerystring,
+  GetSearchMediaHistoryQueryString,
   GetVideoDetailParams,
   GetVideosQueryString,
+  PresenterWebhookBody,
   StatisticsResponse,
   SummarizeVideoBody,
   ToggleBookmarkParams,
   ToggleLikeParams,
+  UpdateVideoBody,
   UpdateVideoViewsBody,
   UploadVideoBody,
 } from "./video.types";
@@ -32,6 +43,9 @@ import {
   getUserActivities,
   getUserStatistics,
 } from "./stats.service";
+import { db } from "~/drizzle/db";
+import { eq } from "drizzle-orm";
+import { presenterTable } from "~/drizzle/schema/video";
 
 const tags = ["video"];
 
@@ -197,6 +211,49 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     }
   );
 
+  app.get(
+    "/search-history",
+    {
+      schema: {
+        tags,
+        description: "Get media search history",
+        querystring: GetSearchMediaHistoryQueryString,
+      },
+    },
+    async (req) => {
+      const res = await getSearchMediaHistory(req.query, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.get(
+    "/presenters",
+    {
+      schema: {
+        tags,
+        querystring: GetPresenterQueryString,
+      },
+    },
+    async (req) => {
+      const res = await getPresenters(req.query, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.get(
+    "/presenters/:presenterId",
+    {
+      schema: {
+        tags,
+        params: GetPresenterDetailParams,
+      },
+    },
+    async (req) => {
+      const res = await getPresenterDetail(req.params, req.principal.user.id);
+      return res;
+    }
+  );
+
   app.post(
     "",
     {
@@ -208,6 +265,61 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await postVideo(req.body, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.put(
+    "",
+    {
+      schema: {
+        tags: tags,
+        description: "Cập nhật một video",
+        body: UpdateVideoBody,
+      },
+    },
+    async (req) => {
+      const res = await updateVideo(req.body, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/generate-presenter",
+    {
+      schema: {
+        tags: tags,
+        description: "Tạo video presenter",
+        body: GeneratePresenterBody,
+      },
+    },
+    async (req) => {
+      const res = generatePresenter(req.body, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.post(
+    "/presenter/webhook",
+    {
+      schema: {
+        tags: tags,
+        description: "presenter webhook",
+        body: PresenterWebhookBody,
+      },
+      config: {
+        shouldSkipAuth: true,
+      },
+    },
+    async (req) => {
+      const { id, result_url } = req.body as any;
+      const res = await db
+        .update(presenterTable)
+        .set({
+          url: result_url,
+        })
+        .where(eq(presenterTable.presenterId, id));
+
       return res;
     }
   );

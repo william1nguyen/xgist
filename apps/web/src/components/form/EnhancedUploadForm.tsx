@@ -217,7 +217,7 @@ export const EnhancedUploadForm: React.FC<VideoUploadProps> = ({
                 ref={fileInputRef}
                 className="hidden"
                 onChange={onVideoSelect}
-                accept="video/*"
+                accept="audio/*,video/mp4,audio/mp3,audio/mpeg"
               />
               <Upload size={48} className="mx-auto text-blue-500 mb-4" />
               <p className="text-base text-black font-medium mb-2">

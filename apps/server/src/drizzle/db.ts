@@ -1,6 +1,8 @@
 import { env } from "~/env";
 import * as userSchema from "./schema/user";
 import * as videoSchema from "./schema/video";
+import * as agentSchema from "./schema/agent";
+import * as searchSchema from "./schema/search";
 
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
@@ -9,6 +11,8 @@ import logger from "~/infra/logger";
 const schema = {
   ...userSchema,
   ...videoSchema,
+  ...agentSchema,
+  ...searchSchema,
 };
 
 interface PoolOptions {

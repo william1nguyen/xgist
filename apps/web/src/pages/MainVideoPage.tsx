@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { Plus, TrendingUp, FastForward } from "lucide-react";
+import { Plus, TrendingUp, FastForward, Search, X, Clock } from "lucide-react";
 import { VideoItem, SortOption, ApiResponse, VideosResponse } from "../types";
 import { Button } from "../components/ui/Button";
 import { SortingMenu } from "../components/filter/SortingMenu";
@@ -34,6 +34,12 @@ interface Category {
   label: string;
 }
 
+interface SearchHistoryItem {
+  id: string;
+  userId: string;
+  keyword: string;
+}
+
 export const MainVideoPage: React.FC = () => {
   const { t } = useTranslation(["common", "explore"]);
 
@@ -56,12 +62,21 @@ export const MainVideoPage: React.FC = () => {
   const [total, setTotal] = useState<number>(0);
   const [likedVideos, setLikedVideos] = useState<Record<string, boolean>>({});
 
+  // Search states
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [isSearchHistoryLoading, setIsSearchHistoryLoading] =
+    useState<boolean>(false);
+  const [hasLoadedHistory, setHasLoadedHistory] = useState<boolean>(false);
+
   const env = import.meta.env;
 
   const fetchVideos = async (
     pageNum: number = 1,
     pageSize: number = 20,
-    category?: string
+    category?: string,
+    search?: string
   ): Promise<void> => {
     setLoading(true);
     try {
@@ -72,6 +87,7 @@ export const MainVideoPage: React.FC = () => {
             page: pageNum,
             size: pageSize,
             category: category !== "all" ? category : undefined,
+            q: search || undefined,
           },
         }
       );
@@ -100,20 +116,62 @@ export const MainVideoPage: React.FC = () => {
     }
   };
 
+  const fetchSearchHistory = async (): Promise<void> => {
+    if (hasLoadedHistory || !user?.access_token) return;
+
+    setIsSearchHistoryLoading(true);
+    try {
+      const response = await httpClient.get("/v1/videos/search-history", {
+        params: {
+          page: 1,
+          size: 10,
+        },
+        headers: {
+          Authorization: `Bearer ${user.access_token}`,
+        },
+      });
+
+      setSearchHistory(response.data.data || []);
+      setHasLoadedHistory(true);
+    } catch (err) {
+      console.error("Error fetching search history:", err);
+    } finally {
+      setIsSearchHistoryLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchVideos(1, size, activeCategory);
+    fetchVideos(1, size, activeCategory, searchQuery);
   }, []);
 
   useEffect(() => {
     if (categoryParam) {
       setActiveCategory(categoryParam);
-      fetchVideos(1, size, categoryParam);
+      fetchVideos(1, size, categoryParam, searchQuery);
     }
   }, [categoryParam]);
 
   const handleReload = (): void => {
-    fetchVideos(1, size, activeCategory);
+    fetchVideos(1, size, activeCategory, searchQuery);
     window.scrollTo(0, 0);
+  };
+
+  const handleSearch = (query: string): void => {
+    setSearchQuery(query);
+    fetchVideos(1, size, activeCategory, query);
+    setIsSearchOpen(false);
+  };
+
+  const handleClearSearch = (): void => {
+    setSearchQuery("");
+    fetchVideos(1, size, activeCategory, "");
+  };
+
+  const handleSearchClick = (): void => {
+    setIsSearchOpen(true);
+    if (!hasLoadedHistory) {
+      fetchSearchHistory();
+    }
   };
 
   const handleSummarizeClick = (): void => {
@@ -135,7 +193,7 @@ export const MainVideoPage: React.FC = () => {
   const handleCategoryChange = (category: string): void => {
     setActiveCategory(category);
     setPage(1);
-    fetchVideos(1, size, category);
+    fetchVideos(1, size, category, searchQuery);
     navigate(`/explore${category !== "all" ? `?category=${category}` : ""}`);
   };
 
@@ -236,6 +294,7 @@ export const MainVideoPage: React.FC = () => {
             page: nextPage,
             size: size,
             category: activeCategory !== "all" ? activeCategory : undefined,
+            q: searchQuery || undefined,
           },
         }
       );
@@ -302,7 +361,7 @@ export const MainVideoPage: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-12 px-6 -mx-8 -mt-8 mb-8">
+        <div className="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-12 px-6 -mx-8 -mt-8 mb-8 text-black">
           <div className="max-w-7xl mx-auto">
             <div className="md:flex items-center justify-between">
               {loading ? (
@@ -401,7 +460,7 @@ export const MainVideoPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto text-black">
           <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
             {loading ? (
               <>
@@ -454,39 +513,112 @@ export const MainVideoPage: React.FC = () => {
               </>
             )}
 
-            <div className="flex items-center ml-auto">
+            <div className="flex items-center ml-auto gap-3">
               {loading ? (
                 <>
                   <div className="h-9 w-32 bg-gray-200 rounded-md animate-pulse"></div>
-                  <div className="ml-3 h-9 w-28 bg-gray-200 rounded-md animate-pulse"></div>
+                  <div className="h-9 w-28 bg-gray-200 rounded-md animate-pulse"></div>
                 </>
               ) : (
                 <>
+                  {/* Search Section */}
+                  <div className="relative">
+                    {!isSearchOpen ? (
+                      <button
+                        onClick={handleSearchClick}
+                        className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        <Search size={16} className="mr-2 text-gray-500" />
+                        <span className="text-sm text-gray-700">
+                          {searchQuery || t("explore:search.placeholder")}
+                        </span>
+                      </button>
+                    ) : (
+                      <div className="relative">
+                        <div className="flex items-center">
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleSearch(searchQuery);
+                              }
+                            }}
+                            placeholder={t("explore:search.placeholder")}
+                            className="w-64 px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => setIsSearchOpen(false)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+
+                        {/* Search History Dropdown */}
+                        {isSearchOpen && searchHistory.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                            <div className="py-2">
+                              <p className="px-4 py-2 text-xs text-gray-500 font-medium">
+                                {t("explore:search.history")}
+                              </p>
+                              {isSearchHistoryLoading ? (
+                                <div className="px-4 py-2">
+                                  <div className="animate-pulse">
+                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                  </div>
+                                </div>
+                              ) : (
+                                searchHistory.map((item) => (
+                                  <button
+                                    key={item.id}
+                                    onClick={() => handleSearch(item.keyword)}
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center"
+                                  >
+                                    <Clock
+                                      size={14}
+                                      className="mr-2 text-gray-400"
+                                    />
+                                    {item.keyword}
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {searchQuery && (
+                    <button
+                      onClick={handleClearSearch}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+
                   <SortingMenu
                     options={sortOptions}
                     selectedOption={sortBy}
                     onSelect={setSortBy}
                   />
 
-                  <div className="ml-3">
-                    <ViewToggle
-                      viewMode={viewMode}
-                      onViewChange={setViewMode}
-                    />
-                  </div>
+                  <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
 
-                  <div className="ml-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleReload}
-                      disabled={loading}
-                    >
-                      {loading
-                        ? t("explore:buttons.loading")
-                        : t("explore:buttons.reload")}
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleReload}
+                    disabled={loading}
+                  >
+                    {loading
+                      ? t("explore:buttons.loading")
+                      : t("explore:buttons.reload")}
+                  </Button>
                 </>
               )}
             </div>
@@ -529,14 +661,23 @@ export const MainVideoPage: React.FC = () => {
           {sortedVideos.length === 0 && !loading && (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">
-                {t("explore:messages.no_videos")}
+                {searchQuery
+                  ? t("explore:messages.no_search_results", {
+                      query: searchQuery,
+                    })
+                  : t("explore:messages.no_videos")}
               </p>
               <Button
                 variant="outline"
-                onClick={() => handleCategoryChange("all")}
+                onClick={() => {
+                  handleClearSearch();
+                  handleCategoryChange("all");
+                }}
                 className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
               >
-                {t("explore:buttons.view_all")}
+                {searchQuery
+                  ? t("explore:buttons.clear_search")
+                  : t("explore:buttons.view_all")}
               </Button>
             </div>
           )}
@@ -564,7 +705,7 @@ export const MainVideoPage: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-10 px-6 mt-8 -mx-8 -mb-8">
+        <div className="bg-gradient-to-r from-indigo-900 to-purple-900 text-white py-10 px-6 mt-8 -mx-8 -mb-8 text-black">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-2xl font-bold mb-3">
               {t("explore:messages.improve_productivity")}

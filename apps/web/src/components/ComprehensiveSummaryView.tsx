@@ -311,10 +311,6 @@ export const ComprehensiveSummaryView: React.FC<
               </div>
             </div>
           </div>
-
-          <Button variant="secondary" size="sm" onClick={onReset} type="button">
-            {t("summary:buttons.create_new", "Create New")}
-          </Button>
         </div>
       </div>
 
@@ -678,29 +674,6 @@ export const ComprehensiveSummaryView: React.FC<
         </div>
 
         <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200">
-          <Button
-            variant="outline"
-            leftIcon={<Download size={16} />}
-            onClick={() => {
-              if (summaryData && summaryData.id) {
-                window.open(
-                  `/v1/videos/summary/${summaryData.id}/download/pdf`,
-                  "_blank"
-                );
-              } else {
-                toast.error(
-                  t(
-                    "summary:errors.download_failed",
-                    "Download failed: Summary not available"
-                  )
-                );
-              }
-            }}
-            type="button"
-            disabled={!summaryData || !summaryData.id}
-          >
-            {t("summary:buttons.download_pdf", "Download PDF")}
-          </Button>
           <Button
             variant="primary"
             leftIcon={<Share size={16} />}

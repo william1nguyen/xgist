@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FastForward, Eye, Download, Share, Trash } from "lucide-react";
+import { FastForward, Edit, UserPlus } from "lucide-react";
 import { VideoItem } from "../../types";
 import { useTranslation } from "react-i18next";
 
@@ -18,14 +18,16 @@ interface VideoCardProps {
   isSelected: boolean;
   onSelect: (id: string) => void;
   contentType: "video" | "summary" | "bookmark";
-  onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onCreatePresenter?: (id: string) => void;
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({
   item,
   viewMode,
   contentType,
-  onDelete,
+  onEdit,
+  onCreatePresenter,
 }) => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(["common", "videos"]);
@@ -51,10 +53,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     navigate(`/videos/${item.id}`);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onDelete) {
-      onDelete(item.id);
+    if (onEdit) {
+      onEdit(item.id);
+    }
+  };
+
+  const handleCreatePresenter = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onCreatePresenter) {
+      onCreatePresenter(item.id);
     }
   };
 
@@ -183,24 +192,21 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             className="flex items-center space-x-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="p-1.5 text-gray-400 hover:text-gray-700 flex items-center">
-              <Eye size={16} className="mr-1" />
-              <span className="text-xs">{t("videos:actions.view")}</span>
-            </button>
-            <button className="p-1.5 text-gray-400 hover:text-gray-700 flex items-center">
-              <Download size={16} className="mr-1" />
-              <span className="text-xs">{t("videos:actions.download")}</span>
-            </button>
-            <button className="p-1.5 text-gray-400 hover:text-gray-700 flex items-center">
-              <Share size={16} className="mr-1" />
-              <span className="text-xs">{t("videos:actions.share")}</span>
+            <button
+              className="p-1.5 text-gray-400 hover:text-blue-600 flex items-center"
+              onClick={handleEdit}
+            >
+              <Edit size={16} className="mr-1" />
+              <span className="text-xs">{t("videos:actions.edit")}</span>
             </button>
             <button
-              className="p-1.5 text-gray-400 hover:text-red-500 flex items-center"
-              onClick={handleDelete}
+              className="p-1.5 text-gray-400 hover:text-green-600 flex items-center"
+              onClick={handleCreatePresenter}
             >
-              <Trash size={16} className="mr-1" />
-              <span className="text-xs">{t("videos:actions.delete")}</span>
+              <UserPlus size={16} className="mr-1" />
+              <span className="text-xs">
+                {t("videos:actions.createPresenter")}
+              </span>
             </button>
           </div>
         </div>

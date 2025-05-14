@@ -81,6 +81,15 @@ export const SummarizeVideoBody = Type.Object({
 });
 export type SummarizeVideoBody = Static<typeof SummarizeVideoBody>;
 
+export const GetSearchMediaHistoryQueryString = Type.Object({
+  page: Type.Number(),
+  size: Type.Number(),
+});
+
+export type GetSearchMediaHistoryQueryString = Static<
+  typeof GetSearchMediaHistoryQueryString
+>;
+
 export const GetVideosQueryString = Type.Object({
   category: Type.Optional(Category),
   ...GetQueryString.properties,
@@ -120,6 +129,42 @@ export const ToggleBookmarkParams = Type.Object({
   videoId: Type.String(),
 });
 export type ToggleBookmarkParams = Static<typeof ToggleBookmarkParams>;
+
+export const UpdateVideoBody = Type.Object({
+  videoId: Type.String(),
+  keyPoints: Type.Array(Type.String()),
+  keywords: Type.Array(Type.String()),
+  transcripts: Transcript,
+});
+export type UpdateVideoBody = Static<typeof UpdateVideoBody>;
+
+export const GeneratePresenterBody = Type.Object({
+  videoId: Type.String(),
+  agentId: Type.String(),
+  text: Type.String(),
+});
+export type GeneratePresenterBody = Static<typeof GeneratePresenterBody>;
+
+export const PresenterWebhookBody = Type.Any();
+export type PresenterWebhookBody = Static<typeof PresenterWebhookBody>;
+
+export const GetPresenterStatusQueryString = Type.Object({
+  id: Type.String(),
+});
+export type GetPresenterStatusQueryString = Static<
+  typeof GetPresenterStatusQueryString
+>;
+
+export const GetPresenterQueryString = Type.Object({
+  page: Type.Optional(Type.Number()),
+  size: Type.Optional(Type.Number()),
+});
+export type GetPresenterQueryString = Static<typeof GetPresenterQueryString>;
+
+export const GetPresenterDetailParams = Type.Object({
+  presenterId: Type.String(),
+});
+export type GetPresenterDetailParams = Static<typeof GetPresenterDetailParams>;
 
 export const CategoryData = Type.Object({
   name: Type.String(),

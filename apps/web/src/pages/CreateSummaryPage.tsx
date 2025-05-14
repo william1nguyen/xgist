@@ -180,7 +180,7 @@ export const CreateSummaryPage: React.FC = () => {
       }
 
       const response = await aiHttpClient.post("/create-talk", {
-        script_text: summaryText,
+        text: summaryText,
       });
 
       setTalkData(response.data);
@@ -389,7 +389,7 @@ export const CreateSummaryPage: React.FC = () => {
                         type="submit"
                         disabled={!videoFile}
                       >
-                        {t("summary:buttons.create_summary")}
+                        {t("summary:buttons.summary")}
                       </Button>
                     )}
                   </div>

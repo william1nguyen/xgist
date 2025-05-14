@@ -27,7 +27,7 @@
   },
   "buttons": {
     "cancel": "Hủy",
-    "create_summary": "Tạo tóm tắt",
+    "summary": "Tạo tóm tắt",
     "create_new": "Tạo tóm tắt mới",
     "download_pdf": "Tải xuống PDF",
     "share": "Chia sẻ",

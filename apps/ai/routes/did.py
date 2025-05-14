@@ -10,26 +10,27 @@ did_router = APIRouter(dependencies=[Depends(validate_x_api_key)])
 
 DID_API_URL = os.getenv("DID_API_URL")
 DID_API_KEY = os.getenv("DID_API_KEY")
+WEBHOOK_CALLBACK = os.getenv("WEBHOOK_CALLBACK")
 
-AGENT_MALE_IMAGE_URL = os.getenv("AGENT_MALE_IMAGE_URL")
-AGENT_MALE_VOICE = os.getenv("AGENT_MALE_VOICE")
-
-class DidTalkItem(BaseModel):
-    script_text: str
+class CreateDidTalkItem(BaseModel):
+    agent_image: str
+    agent_voice_id: str
+    text: str
 
 @did_router.post("/create-talk", tags=["did"])
-async def create_talk(item: DidTalkItem):
+async def create_talk(item: CreateDidTalkItem):
     try:
         payload = json.dumps({
-            "source_url": AGENT_MALE_IMAGE_URL,
+            "source_url": item.agent_image,
             "script": {
                 "type": "text",
-                "input": item.script_text,
+                "input": item.text,
                 "provider":{
                     "type":"microsoft",
-                    "voice_id": AGENT_MALE_VOICE
+                    "voice_id": item.agent_voice_id
                 }
             },
+            "webhook": WEBHOOK_CALLBACK
         })
 
         headers = {
@@ -38,6 +39,7 @@ async def create_talk(item: DidTalkItem):
         }
 
         response = requests.post(f"{DID_API_URL}/talks", headers=headers, data=payload)
+        print(response.json())
         return response.json()
     except Exception as e: 
         raise e

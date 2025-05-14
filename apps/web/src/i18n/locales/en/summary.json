@@ -23,11 +23,11 @@
   },
   "summary_options": {
     "title": "Summary Options",
-    "auto_summary": "Your video will be automatically summarized by AI when uploaded"
+    "auto_summary": "Your media will be automatically summarized by AI when uploaded"
   },
   "buttons": {
     "cancel": "Cancel",
-    "create_summary": "Create Summary",
+    "summary": "Create Summary",
     "create_new": "Create New Summary",
     "download_pdf": "Download PDF",
     "share": "Share",
@@ -63,10 +63,11 @@
     "thumbnail_dropzone": "Drag and drop thumbnail image or click to browse",
     "thumbnail_formats": "Recommended: JPG, PNG - 16:9 aspect ratio",
     "auto_thumbnail": "If you don't upload a thumbnail, the system will automatically generate one from your video",
-    "video_title": "Video Title",
-    "title_placeholder": "Enter video title",
+    "video_details": "Detail",
+    "video_title": "Title",
+    "title_placeholder": "Enter title",
     "description": "Description",
-    "description_placeholder": "Describe your video content",
+    "description_placeholder": "Describe your content",
     "category": "Category"
   },
   "categories": {

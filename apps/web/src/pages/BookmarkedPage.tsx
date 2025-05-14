@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { VideoItem, SortOption } from "../types";
+
+import { VideoItem, TabItem, SortOption } from "../types";
+import { TabNavigation } from "../components/navigation/TabNavigation";
 import { Button } from "../components/ui/Button";
 import { Layout } from "../components/layout/Layout";
 import { SearchBar } from "../components/filter/SearchBar";
@@ -11,17 +13,27 @@ import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { VideoCard } from "../components/video/VideoCard";
 import { env } from "../config/env";
+import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
 import { httpClient } from "../config/httpClient";
-import { useNavigate } from "react-router-dom";
 
-export const LibraryPage: React.FC = () => {
+interface BookmarkItem {
+  video: VideoItem;
+}
+
+export const BookmarkedPage: React.FC = () => {
   const { t } = useTranslation(["common", "library"]);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [activeTab] = useState("bookmarks");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("recent");
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [myMedias, setMyMedias] = useState<VideoItem[]>([]);
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useKeycloakAuth();
+
+  const tabs: TabItem[] = [
+    { id: "bookmarks", label: t("library:tabs.bookmarks") },
+  ];
 
   const sortOptions: SortOption[] = [
     { id: "recent", label: t("library:sorting.recent") },
@@ -29,14 +41,12 @@ export const LibraryPage: React.FC = () => {
     { id: "title", label: t("library:sorting.title") },
   ];
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     setLoading(true);
-    fetchMyMedias();
+    fetchBookmarks();
   }, []);
 
-  const fetchMyMedias = async () => {
+  const fetchBookmarks = async () => {
     try {
       setLoading(true);
 
@@ -47,15 +57,18 @@ export const LibraryPage: React.FC = () => {
       };
 
       const response = await httpClient.get(
-        `${env.VITE_BASE_URL}/v1/videos/me`,
+        `${env.VITE_BASE_URL}/v1/videos/bookmarks`,
         {
           params,
+          headers: {
+            Authorization: `Bearer ${user?.access_token}`,
+          },
         }
       );
-      setMyMedias(response.data.data.videos);
+      setBookmarks(response.data.data.videos);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching my medias:", err);
+      console.error("Error fetching bookmarks:", err);
       setError(t("library:errors.fetch_failed"));
       setLoading(false);
     }
@@ -64,31 +77,33 @@ export const LibraryPage: React.FC = () => {
   const handleReload = () => {
     setLoading(true);
     window.scrollTo(0, 0);
-    fetchMyMedias();
+    fetchBookmarks();
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    fetchMyMedias();
+    fetchBookmarks();
   };
 
   const getSortedData = () => {
     if (sortBy === "recent") {
-      return [...myMedias].sort(
+      return [...bookmarks].sort(
         (a, b) =>
-          new Date(b.createdTime || "").getTime() -
-          new Date(a.createdTime || "").getTime()
+          new Date(b.video.createdTime || "").getTime() -
+          new Date(a.video.createdTime || "").getTime()
       );
     } else if (sortBy === "oldest") {
-      return [...myMedias].sort(
+      return [...bookmarks].sort(
         (a, b) =>
-          new Date(a.createdTime || "").getTime() -
-          new Date(b.createdTime || "").getTime()
+          new Date(a.video.createdTime || "").getTime() -
+          new Date(b.video.createdTime || "").getTime()
       );
     } else if (sortBy === "title") {
-      return [...myMedias].sort((a, b) => a.title.localeCompare(b.title));
+      return [...bookmarks].sort((a, b) =>
+        a.video.title.localeCompare(b.video.title)
+      );
     } else {
-      return myMedias;
+      return bookmarks;
     }
   };
 
@@ -126,8 +141,16 @@ export const LibraryPage: React.FC = () => {
 
   const displayData = getSortedData();
 
+  const headerContent = (
+    <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={() => {}} />
+  );
+
   return (
-    <Layout activeItem="library" title={t("library:page_title")}>
+    <Layout
+      activeItem="library"
+      title={t("library:page_title")}
+      headerContent={headerContent}
+    >
       {error && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
           <p>{error}</p>
@@ -183,17 +206,11 @@ export const LibraryPage: React.FC = () => {
         >
           {displayData.map((item) => (
             <VideoCard
-              key={item.id}
-              item={adaptVideoForComponent(item)}
+              key={item.video.id}
+              item={adaptVideoForComponent(item.video)}
               viewMode={viewMode}
               isSelected={false}
               onSelect={() => {}}
-              onEdit={() => {
-                navigate(`/videos/edit/${item.id}`);
-              }}
-              onCreatePresenter={() => {
-                navigate(`/videos/${item.id}/create-presenter`);
-              }}
               contentType="bookmark"
             />
           ))}

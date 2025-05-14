@@ -8,6 +8,27 @@
       "when": 1741037844474,
       "tag": "0000_create_schemas",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747184667198,
+      "tag": "0001_add_agent_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747190624129,
+      "tag": "0002_add_presenter_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747193750378,
+      "tag": "0003_add_history",
+      "breakpoints": true
     }
   ]
 }

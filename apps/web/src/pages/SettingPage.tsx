@@ -147,11 +147,6 @@ export const SettingsPage: React.FC = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
-  const handleDeleteVideo = (videoId: string) => {
-    setVideoToDelete(videoId);
-    setIsDeleteModalOpen(true);
-  };
-
   const confirmDeleteVideo = async () => {
     if (videoToDelete) {
       try {
@@ -381,7 +376,6 @@ export const SettingsPage: React.FC = () => {
                           isSelected={selectedItems.includes(video.id)}
                           onSelect={() => toggleSelectItem(video.id)}
                           contentType="video"
-                          onDelete={() => handleDeleteVideo(video.id)}
                         />
                       </div>
                     ))}
@@ -396,7 +390,6 @@ export const SettingsPage: React.FC = () => {
                           isSelected={selectedItems.includes(video.id)}
                           onSelect={() => toggleSelectItem(video.id)}
                           contentType="video"
-                          onDelete={() => handleDeleteVideo(video.id)}
                         />
                       </div>
                     ))}
@@ -586,7 +579,7 @@ export const SettingsPage: React.FC = () => {
                             className="mt-2"
                             leftIcon={<Edit size={14} />}
                             onClick={() =>
-                              (window.location.href = `/edit/${mostPopularVideo.id}`)
+                              (window.location.href = `videos/edit/${mostPopularVideo.id}`)
                             }
                           >
                             {t("settings:buttons.edit")}

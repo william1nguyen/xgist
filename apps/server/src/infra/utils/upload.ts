@@ -22,9 +22,9 @@ const extractFileInfo = (file: ExtendedFile) => {
 
 const validateFileType = (
   mimeType: string,
-  type?: "image" | "video" | "audio"
+  type?: ("image" | "video" | "audio")[]
 ) => {
-  return type ? mimeType.startsWith(type) : true;
+  return type ? type.some((t) => mimeType.startsWith(t)) : true;
 };
 
 const generateMinioFileName = (fileName: string, folder?: string) => {
@@ -81,7 +81,7 @@ const compress = async (fileBuffer: Buffer) => {
 
 export interface UploaderOptions {
   bucket: string;
-  allowedType: "image" | "video" | "audio";
+  allowedType: ("image" | "video" | "audio")[];
   shouldCompress?: boolean;
 }
 
@@ -104,7 +104,7 @@ export const upload = async ({
     throw new FileTypeNotAllowedError();
   }
 
-  if (shouldCompress && validateFileType(mimeType, "image")) {
+  if (shouldCompress && validateFileType(mimeType, ["image"])) {
     const compressedBuffer = await compress(buffer);
 
     if (compressedBuffer) {

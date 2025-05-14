@@ -15,6 +15,7 @@ import { redisDefault } from "./redis";
 import { INotification } from "./jobs/workers/summarize";
 import logger from "./logger";
 import { videoV2Module } from "~/domain/videov2/videov2.module";
+import { agentModule } from "~/domain/agent/agent.module";
 
 const app = fastify({ logger: true });
 
@@ -84,5 +85,6 @@ app.register(bullBoardPlugin, { queues: queues, path: "/bullboard" });
 app.register(userModule);
 app.register(videoModule);
 app.register(videoV2Module);
+app.register(agentModule);
 
 export { app };
