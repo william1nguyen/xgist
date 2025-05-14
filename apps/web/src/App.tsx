@@ -14,6 +14,7 @@ import { VideoEditPage } from "./pages/VideoEditPage";
 import { CreatePresenterPage } from "./pages/CreatePresenterPage";
 import { SummaryPage } from "./pages/SummaryPage";
 import { PresenterDetailPage } from "./pages/PresenterDetail";
+import { BookmarkedPage } from "./pages/BookmarkedPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/summarize" element={<SummaryPage />} />
         <Route path="/upload" element={<UploadVideoPage />} />
         <Route path="/library" element={<LibraryPage />} />
+        <Route path="/bookmark" element={<BookmarkedPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/videos/:id" element={<VideoDetailPage />} />
         <Route path="/videos/edit/:videoId" element={<VideoEditPage />} />

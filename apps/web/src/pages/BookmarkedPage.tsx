@@ -147,7 +147,7 @@ export const BookmarkedPage: React.FC = () => {
 
   return (
     <Layout
-      activeItem="library"
+      activeItem="bookmark"
       title={t("library:page_title")}
       headerContent={headerContent}
     >
@@ -157,15 +157,7 @@ export const BookmarkedPage: React.FC = () => {
         </div>
       )}
 
-      <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="w-full md:w-auto">
-          <SearchBar
-            placeholder={t("library:search.placeholder")}
-            onSearch={handleSearch}
-            fullWidth={true}
-          />
-        </div>
-
+      <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-black">
         <div className="flex items-center space-x-3 w-full md:w-auto">
           <SortingMenu
             options={sortOptions}

@@ -29,7 +29,8 @@ interface SidebarProps {
     | "settings"
     | "guide"
     | "upload"
-    | "presenter";
+    | "presenter"
+    | "bookmark";
   categories: Category[];
   onCategoryClick?: (categoryId: string) => void;
 }
@@ -133,6 +134,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <BookOpen className="mr-3 h-5 w-5 text-slate-400" />
             <span className="hidden md:inline">
               {t("library", { ns: "sidebar" })}
+            </span>
+          </Link>
+
+          <Link
+            to="/bookmark"
+            className={`flex items-center px-2 py-3 text-sm font-medium rounded-md ${
+              activeItem === "bookmark"
+                ? "bg-slate-800 text-white"
+                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <BookOpen className="mr-3 h-5 w-5 text-slate-400" />
+            <span className="hidden md:inline">
+              {t("Bookmark", { ns: "sidebar" })}
             </span>
           </Link>
 

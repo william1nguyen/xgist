@@ -19,7 +19,8 @@ interface LayoutProps {
     | "settings"
     | "guide"
     | "upload"
-    | "presenter";
+    | "presenter"
+    | "bookmark";
   title: string;
   headerContent?: React.ReactNode;
   sidebarProps?: SidebarProps;
