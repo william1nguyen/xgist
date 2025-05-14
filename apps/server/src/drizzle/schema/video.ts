@@ -48,7 +48,7 @@ export const videoTable = pgTable(
     description: text("description").notNull(),
     thumbnail: text("thumbnail").notNull(),
     userId: uuid("user_id")
-      .references(() => userTable.id)
+      .references(() => userTable.id, { onDelete: "cascade" })
       .notNull(),
     category: videoCategory("category").default("technology").notNull(),
     duration: integer("duration").default(0).notNull(),
@@ -69,10 +69,10 @@ export const videoLikeTable = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom().notNull(),
     userId: uuid("user_id")
-      .references(() => userTable.id)
+      .references(() => userTable.id, { onDelete: "cascade" })
       .notNull(),
     videoId: uuid("video_id")
-      .references(() => videoTable.id)
+      .references(() => videoTable.id, { onDelete: "cascade" })
       .notNull(),
     state: boolean("state"),
   },
@@ -89,10 +89,10 @@ export const bookmarkTable = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom().notNull(),
     userId: uuid("user_id")
-      .references(() => userTable.id)
+      .references(() => userTable.id, { onDelete: "cascade" })
       .notNull(),
     videoId: uuid("video_id")
-      .references(() => videoTable.id)
+      .references(() => videoTable.id, { onDelete: "cascade" })
       .notNull(),
     state: boolean("state"),
   },
@@ -107,13 +107,13 @@ export const bookmarkTable = pgTable(
 export const presenterTable = pgTable("presenter", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
   userId: uuid("user_id")
-    .references(() => userTable.id)
+    .references(() => userTable.id, { onDelete: "cascade" })
     .notNull(),
   videoId: uuid("video_id")
-    .references(() => videoTable.id)
+    .references(() => videoTable.id, { onDelete: "cascade" })
     .notNull(),
   agentId: uuid("agent_id")
-    .references(() => agentTable.id)
+    .references(() => agentTable.id, { onDelete: "cascade" })
     .notNull(),
   presenterId: text("presenter_id").notNull(),
   url: text("url"),

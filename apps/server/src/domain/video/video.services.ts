@@ -34,6 +34,7 @@ import {
   GetPresenterStatusQueryString,
   GetSearchMediaHistoryQueryString,
   GetPresenterDetailParams,
+  DeleteVideoParams,
 } from "./video.types";
 import { createUploader } from "~/infra/utils/upload";
 import { summaryQueue } from "~/infra/jobs/workers/summarize";
@@ -683,5 +684,16 @@ export const summarizeVideo = async ({
 
   const buffer = videoFile._buf;
   const res = await summarizeBuffer(buffer, keyPoints?.value, keywords?.value);
+  return res;
+};
+
+export const deleteVideo = async (
+  { videoId }: DeleteVideoParams,
+  userId: string
+) => {
+  const res = await db
+    .delete(videoTable)
+    .where(and(eq(videoTable.id, videoId), eq(videoTable.userId, userId)))
+    .returning();
   return res;
 };

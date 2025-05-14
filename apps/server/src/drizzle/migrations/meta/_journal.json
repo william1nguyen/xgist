@@ -29,6 +29,13 @@
       "when": 1747193750378,
       "tag": "0003_add_history",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747208438600,
+      "tag": "0004_add_cascade",
+      "breakpoints": true
     }
   ]
 }

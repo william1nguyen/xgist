@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FastForward, Edit, UserPlus } from "lucide-react";
+import { FastForward, Edit, UserPlus, Delete } from "lucide-react";
 import { VideoItem } from "../../types";
 import { useTranslation } from "react-i18next";
+import { httpClient } from "../../config/httpClient";
 
 interface VideoCardProps {
   item: VideoItem & {
@@ -19,6 +20,7 @@ interface VideoCardProps {
   onSelect: (id: string) => void;
   contentType: "video" | "summary" | "bookmark";
   onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
   onCreatePresenter?: (id: string) => void;
 }
 
@@ -27,6 +29,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   viewMode,
   contentType,
   onEdit,
+  onDelete,
   onCreatePresenter,
 }) => {
   const navigate = useNavigate();
@@ -57,6 +60,21 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     e.stopPropagation();
     if (onEdit) {
       onEdit(item.id);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    try {
+      await httpClient.delete(`/v1/videos/${item.id}`);
+      window.location.reload();
+
+      if (onDelete) {
+        onDelete(item.id);
+      }
+    } catch (error) {
+      console.error("Error deleting video:", error);
     }
   };
 
@@ -199,6 +217,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               <Edit size={16} className="mr-1" />
               <span className="text-xs">{t("videos:actions.edit")}</span>
             </button>
+
+            <button
+              className="p-1.5 text-gray-400 hover:text-blue-600 flex items-center"
+              onClick={handleDelete}
+            >
+              <Delete size={16} className="mr-1" />
+              <span className="text-xs">{t("videos:actions.delete")}</span>
+            </button>
+
             <button
               className="p-1.5 text-gray-400 hover:text-green-600 flex items-center"
               onClick={handleCreatePresenter}

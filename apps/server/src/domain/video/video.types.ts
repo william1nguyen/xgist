@@ -207,3 +207,8 @@ export const StatisticsResponse = Type.Object({
   success: Type.Boolean(),
   data: StatisticsData,
 });
+
+export const DeleteVideoParams = Type.Object({
+  videoId: Type.String(),
+});
+export type DeleteVideoParams = Static<typeof DeleteVideoParams>;

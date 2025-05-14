@@ -672,54 +672,6 @@ export const ComprehensiveSummaryView: React.FC<
             </div>
           )}
         </div>
-
-        <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200">
-          <Button
-            variant="primary"
-            leftIcon={<Share size={16} />}
-            onClick={() => {
-              if (summaryData && summaryData.id) {
-                navigator.clipboard.writeText(
-                  window.location.origin + `/summary/${summaryData.id}`
-                );
-                toast.success(
-                  t("summary:messages.link_copied", "Link copied to clipboard!")
-                );
-              } else {
-                toast.error(
-                  t(
-                    "summary:errors.share_failed",
-                    "Share failed: Summary not available"
-                  )
-                );
-              }
-            }}
-            type="button"
-            disabled={!summaryData || !summaryData.id}
-          >
-            {t("summary:buttons.share", "Share")}
-          </Button>
-          <Button
-            variant="secondary"
-            leftIcon={<Bookmark size={16} />}
-            onClick={() => {
-              if (summaryData && summaryData.id) {
-                toast.success(t("summary:messages.saved", "Summary saved!"));
-              } else {
-                toast.error(
-                  t(
-                    "summary:errors.save_failed",
-                    "Save failed: Summary not available"
-                  )
-                );
-              }
-            }}
-            type="button"
-            disabled={!summaryData || !summaryData.id}
-          >
-            {t("summary:buttons.save", "Save")}
-          </Button>
-        </div>
       </div>
     </div>
   );

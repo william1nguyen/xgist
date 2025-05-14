@@ -1,6 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { GetQueryString } from "~/infra/utils/schema";
 import {
+  deleteVideo,
   generatePresenter,
   getBookmarkedVideos,
   getMyVideos,
@@ -21,6 +22,7 @@ import {
 import {
   ActivitiesResponse,
   CategoryStatsResponse,
+  DeleteVideoParams,
   GeneratePresenterBody,
   GetPresenterDetailParams,
   GetPresenterQueryString,
@@ -390,6 +392,20 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     },
     async (req) => {
       const res = await toggleLike(req.params, req.principal.user.id);
+      return res;
+    }
+  );
+
+  app.delete(
+    "/:videoId",
+    {
+      schema: {
+        tags,
+        params: DeleteVideoParams,
+      },
+    },
+    async (req) => {
+      const res = await deleteVideo(req.params, req.principal.user.id);
       return res;
     }
   );
