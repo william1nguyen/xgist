@@ -51,10 +51,8 @@ async def generate_with_retry(model, prompt, generation_config):
         else:
             raise
 
-@chat_router.post("/v1beta/models/gemini-2.0-flash:generateContent", response_model=GeminiResponse)
-async def generate_content(request: GeminiRequest):
+async def prompting(prompt):
     try:
-        prompt = request.contents[0].parts[0].text
         model = genai.GenerativeModel('gemini-2.0-flash')
         generation_config = {
             "temperature": 1.0,
@@ -63,14 +61,6 @@ async def generate_content(request: GeminiRequest):
             "max_output_tokens": 8192,
         }
         response_text = await generate_with_retry(model, prompt, generation_config)
-        return GeminiResponse(
-            candidates=[
-                Candidate(
-                    content=ContentResponse(
-                        parts=[Part(text=response_text)]
-                    )
-                )
-            ]
-        )
+        return response_text
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed after retries: {str(e)}")

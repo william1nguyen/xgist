@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, Request, UploadFile, File, APIRouter
-from models import whisper
+from services import whisper
 from infra.auth import validate_x_api_key
+from pydantic import BaseModel
 
 transcribe_router = APIRouter(dependencies=[Depends(validate_x_api_key)])
 
@@ -27,3 +28,11 @@ async def post_stream(request: Request):
             
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Form processing error: {str(e)}")
+
+class PathRequest(BaseModel):
+    file_path: str
+
+@transcribe_router.post("/transcribe-from-path/", tags=["transcribe"])
+async def post_from_path(request: PathRequest):
+    transcript = await whisper.transcribe_from_path(file_path=request.file_path)
+    return transcript

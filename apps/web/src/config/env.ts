@@ -5,6 +5,8 @@ const envSchema = z.object({
   VITE_KEYCLOAK_REALM: z.string(),
   VITE_CLIENT_ID: z.string(),
   VITE_BASE_URL: z.string(),
+  VITE_AI_BASE_URL: z.string(),
+  VITE_AI_AUTH_KEY: z.string(),
 });
 
 type Env = z.infer<typeof envSchema>;

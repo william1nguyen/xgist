@@ -2,7 +2,7 @@
   "title": "Explore",
   "explore": {
     "title": "Explore Summarized Video Content",
-    "description": "Save time with VideoSum.AI - Smart AI-powered video summarization platform"
+    "description": "Save time with MediaSum.AI - Smart AI-powered video summarization platform"
   },
   "buttons": {
     "summarize_now": "Summarize Video Now",
@@ -11,7 +11,7 @@
     "loading": "Loading...",
     "view_all": "View All Videos",
     "load_more": "Load More Videos",
-    "upload_video": "Upload Video",
+    "upload_video": "Upload Media",
     "get_started": "Get Started"
   },
   "sorting": {
@@ -31,7 +31,7 @@
   "messages": {
     "no_videos": "No videos found",
     "improve_productivity": "Enhance Learning and Work Efficiency",
-    "save_time": "Save time with VideoSum.AI - Summarize any video in seconds",
+    "save_time": "Save time with MediaSum.AI - Summarize any video in seconds",
     "powered_by_ai": "Powered by AI"
   },
   "demo": {

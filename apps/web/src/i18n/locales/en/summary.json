@@ -1,11 +1,11 @@
 {
   "tabs": {
     "summarize": "Summarize Video",
-    "upload": "Upload Video"
+    "upload": "Upload Media"
   },
   "page_title": {
     "create": "Create Video Summary",
-    "upload": "Upload New Video"
+    "upload": "Upload New Media"
   },
   "heading": {
     "ai_summary": "AI-Powered Video Summarization"
@@ -58,7 +58,7 @@
     "transcript": "Transcript"
   },
   "upload": {
-    "title": "Upload New Video",
+    "title": "Upload New Media",
     "thumbnail": "Thumbnail",
     "thumbnail_dropzone": "Drag and drop thumbnail image or click to browse",
     "thumbnail_formats": "Recommended: JPG, PNG - 16:9 aspect ratio",
