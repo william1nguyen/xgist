@@ -134,7 +134,6 @@ Based on your actual project structure:
 xgist/
 ├── apps/
 │   ├── ai/                  # AI service application
-│   ├── gemini/              # Gemini service application
 │   ├── server/              # Backend server
 │   └── web/                 # React frontend application
 ├── docker-compose.dev.yml  # Development Docker Compose
