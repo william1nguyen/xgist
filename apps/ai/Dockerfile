@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y ffmpeg \
     && pip install torch --index-url https://download.pytorch.org/whl/cpu \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && pipenv install
+    && pipenv install --system --deploy
 
 WORKDIR /app
 COPY . /app
