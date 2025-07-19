@@ -2,7 +2,7 @@ import type {FastifyPluginAsyncTypebox} from '@fastify/type-provider-typebox';
 import {getUserInfo, register} from './user.services';
 import {KeycloakWebhookPayload, RegisterResponse, User} from './user.types';
 
-const tags = ['users'];
+const tags = ['User'];
 
 export const userRoutes: FastifyPluginAsyncTypebox = async (app) => {
   app.get(

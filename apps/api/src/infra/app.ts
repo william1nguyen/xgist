@@ -3,6 +3,7 @@ import FastifyRateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import scalar from '@scalar/fastify-api-reference';
 import fastify from 'fastify';
+import {mediaModule} from '~/domain/media/media.module';
 import {execSecurityHandlerChain} from '~/domain/user/security-plugin/plugin';
 import {userModule} from '~/domain/user/user.module';
 import {env} from '~/env';
@@ -40,5 +41,6 @@ if (env.NODE_ENV !== 'production') {
 
 app.register(bullBoardPlugin, {queues: queues, path: '/bullboard'});
 app.register(userModule);
+app.register(mediaModule);
 
 export {app};
