@@ -19,7 +19,6 @@ export type KeycloakPrincipal = {
 };
 
 export const KeycloakWebhookPayload = Type.Object({
-  id: Type.String(),
   time: Type.Number(),
   realmId: Type.String(),
   uid: Type.String(),
