@@ -55,13 +55,11 @@ export const register = async ({
   try {
     const user = await db
       .insert(userTable)
-      .values([
-        {
+      .values({
           keycloakUserId,
           username,
           email,
-        },
-      ])
+      })
       .onConflictDoUpdate({
         target: [userTable.id],
         set: {
