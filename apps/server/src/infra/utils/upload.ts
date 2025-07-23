@@ -28,6 +28,7 @@ const validateFileType = (
 };
 
 const generateMinioFileName = (fileName: string, folder?: string) => {
+  fileName = fileName.trim();
   const ext = path.extname(fileName);
   const base = path.basename(fileName, ext);
   const name = `${base.slice(0, 200)}-${uuidv4()}${ext}`;
@@ -35,6 +36,7 @@ const generateMinioFileName = (fileName: string, folder?: string) => {
 };
 
 const getMinioFileUrl = (bucket: string, fileName: string) => {
+  fileName = fileName.trim();
   const prefix =
     env.NODE_ENV === "production"
       ? `https://${env.MINIO_API_ENDPOINT}`
