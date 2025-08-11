@@ -182,7 +182,7 @@ SENTRY_ENVIRONMENT=development
 **Quick Start:**
 1. Clone the repo
 2. Rename `.env.example` to `.env` in each app directory and change the settings
-3. Run `pnpm ci` to install all dependencies  
+3. Run `pnpm install` to install all dependencies  
 4. Run `pnpm run dev`
 
 **Detailed Setup:**
