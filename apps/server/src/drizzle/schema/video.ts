@@ -19,6 +19,7 @@ export const videoCategory = pgEnum("category", [
   "finance",
   "travel",
   "health",
+  "other",
 ]);
 
 export interface Chunk {

@@ -32,6 +32,8 @@ import { summaryQueue } from "~/infra/jobs/workers/summarize";
 import { transcribeStream } from "~/infra/whisper";
 import { redisDefault } from "~/infra/redis";
 import { prompting } from "~/infra/models";
+import { getOrSetCache, invalidateByPattern } from "~/infra/utils/cache";
+import { videoUploadedCounter, videoSummarizedCounter } from "~/infra/metrics";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnails",
@@ -100,6 +102,9 @@ export const getVideos = async (
   userId?: string
 ) => {
   try {
+    const cacheKey = `videos:list:${category ?? "all"}:${page}:${size}:user:${userId ?? "anon"}`;
+    const ttl = 60; // 1 minute cache for list
+    return await getOrSetCache(cacheKey, ttl, async () => {
     const offset = (page - 1) * size;
     const queryOptions: any = {
       where: category ? eq(videoTable.category, category) : undefined,
@@ -129,14 +134,15 @@ export const getVideos = async (
     const videos = await db.query.videoTable.findMany(queryOptions);
     const total = (await db.select({ count: count() }).from(videoTable))[0]
       .count;
-    return {
-      data: { videos },
-      metadata: {
-        page,
-        size,
-        total,
-      },
-    };
+      return {
+        data: { videos },
+        metadata: {
+          page,
+          size,
+          total,
+        },
+      };
+    });
   } catch (error) {
     logger.error(`Failed to get videos: ${error}`);
     throw new VideoNotFoundError();
@@ -166,45 +172,49 @@ export const getVideoDetail = async (
   userId?: string
 ) => {
   try {
-    const queryOptions: any = {
-      where: eq(videoTable.id, videoId),
-      with: {
-        creator: true,
-      },
-    };
-
-    if (userId) {
-      queryOptions.with.isLiked = {
-        where: eq(videoLikeTable.userId, userId),
-        columns: {
-          state: true,
+    const cacheKey = `videos:detail:${videoId}:user:${userId ?? "anon"}`;
+    const ttl = 120; // 2 minutes
+    return await getOrSetCache(cacheKey, ttl, async () => {
+      const queryOptions: any = {
+        where: eq(videoTable.id, videoId),
+        with: {
+          creator: true,
         },
       };
 
-      queryOptions.with.isBookmarked = {
-        where: eq(bookmarkTable.userId, userId),
-        columns: {
-          state: true,
-        },
+      if (userId) {
+        queryOptions.with.isLiked = {
+          where: eq(videoLikeTable.userId, userId),
+          columns: {
+            state: true,
+          },
+        };
+
+        queryOptions.with.isBookmarked = {
+          where: eq(bookmarkTable.userId, userId),
+          columns: {
+            state: true,
+          },
+        };
+      }
+
+      const video = await db.query.videoTable.findFirst(queryOptions);
+      const likes = (
+        await db.query.videoLikeTable.findMany({
+          where: and(
+            eq(videoLikeTable.videoId, videoId),
+            eq(videoLikeTable.state, true)
+          ),
+        })
+      ).length;
+
+      const videoWithLikes = {
+        ...video,
+        likes,
       };
-    }
 
-    const video = await db.query.videoTable.findFirst(queryOptions);
-    const likes = (
-      await db.query.videoLikeTable.findMany({
-        where: and(
-          eq(videoLikeTable.videoId, videoId),
-          eq(videoLikeTable.state, true)
-        ),
-      })
-    ).length;
-
-    const videoWithLikes = {
-      ...video,
-      likes,
-    };
-
-    return itemResponse({ video: videoWithLikes });
+      return itemResponse({ video: videoWithLikes });
+    });
   } catch (error) {
     logger.error(`Failed to get video ${videoId}: ${error}`);
     throw new VideoNotFoundError();
@@ -268,6 +278,11 @@ export const postVideo = async (
       .returning()
   )[0];
 
+  // Metrics: count uploaded
+  try {
+    videoUploadedCounter.labels(userId, category.value).inc();
+  } catch {}
+
   const videoBuffer = videoFile._buf;
   const encodedData = Buffer.from(videoBuffer).toString("base64");
 
@@ -279,8 +294,13 @@ export const postVideo = async (
       userId,
       videoName: title.value,
     },
-  });
+  }, { jobId: res.id });
 
+  // Invalidate list caches for this category and "all"
+  try {
+    await invalidateByPattern(`videos:list:${category.value}:*`);
+    await invalidateByPattern(`videos:list:all:*`);
+  } catch {}
   return res;
 };
 
@@ -510,5 +530,9 @@ export const summarizeVideo = async ({
 
   const buffer = videoFile._buf;
   const res = await summarizeBuffer(buffer, keyPoints?.value, keywords?.value);
+  // Metrics: count summarized (ad-hoc summarize)
+  try {
+    videoSummarizedCounter.labels("anonymous").inc();
+  } catch {}
   return res;
 };

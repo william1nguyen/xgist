@@ -26,7 +26,8 @@
     "productivity": "Năng suất",
     "finance": "Tài chính",
     "travel": "Du lịch",
-    "health": "Sức khỏe"
+    "health": "Sức khỏe",
+    "other": "Khác"
   },
   "messages": {
     "no_videos": "Không tìm thấy video nào phù hợp",

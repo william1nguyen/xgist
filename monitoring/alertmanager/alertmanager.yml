@@ -1,0 +1,12 @@
+route:
+  receiver: "default"
+  group_by: ["alertname"]
+
+receivers:
+  - name: "default"
+    # Example Slack/email config can be added here later
+    # slack_configs:
+    #   - send_resolved: true
+    #     api_url: "https://hooks.slack.com/services/..."
+    #     channel: "#alerts"
+

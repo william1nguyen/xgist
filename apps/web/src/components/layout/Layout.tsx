@@ -39,6 +39,7 @@ export const Layout: React.FC<LayoutProps> = ({
     { id: "finance", label: t("category_finance") },
     { id: "travel", label: t("category_travel") },
     { id: "health", label: t("category_health") },
+    { id: "other", label: t("category_other") },
   ];
 
   const categories = sidebarProps?.categories || defaultCategories;

@@ -26,7 +26,8 @@ interface SidebarProps {
     | "summarize"
     | "library"
     | "settings"
-    | "guide";
+    | "guide" 
+    | "other";
   categories: Category[];
   onCategoryClick?: (categoryId: string) => void;
 }

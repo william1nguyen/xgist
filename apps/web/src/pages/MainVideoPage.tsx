@@ -202,6 +202,7 @@ export const MainVideoPage: React.FC = () => {
     { id: "finance", label: t("explore:categories.finance") },
     { id: "travel", label: t("explore:categories.travel") },
     { id: "health", label: t("explore:categories.health") },
+    { id: "other", label: t("explore:categories.other") },
   ];
 
   const sortOptions: SortOption[] = [

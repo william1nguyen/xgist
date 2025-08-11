@@ -31,7 +31,8 @@
     "finance": "Finance",
     "education": "Education",
     "health": "Health",
-    "productivity": "Productivity"
+    "productivity": "Productivity",
+    "other": "Other"
   },
   "sections": {
     "trending_videos": "Trending Videos {{time}}",

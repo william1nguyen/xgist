@@ -8,6 +8,7 @@ const EnvSchema = Type.Object({
   NODE_ENV: Type.Union([
     Type.Literal("development"),
     Type.Literal("production"),
+    Type.Literal("test"),
   ]),
 
   LOG_LEVEL: Type.Union([
@@ -47,6 +48,10 @@ const EnvSchema = Type.Object({
   BULL_API_CALLBACK_URL: Type.String(),
 
   X_API_KEY: Type.String(),
+
+  // Optional monitoring settings
+  SENTRY_DSN: OptionalDefaultNull(Type.String()),
+  SENTRY_TRACES_SAMPLE_RATE: OptionalDefaultNull(Type.Number()),
 });
 
 type Env = Static<typeof EnvSchema>;
@@ -111,6 +116,36 @@ const validateEnv = (): Env => {
 
     X_API_KEY: process.env.X_API_KEY,
   };
+
+  // In test environment, provide safe defaults and relax strictness
+  if (env.NODE_ENV === "test") {
+    const withDefaults = {
+      ...env,
+      APP_URL: env.APP_URL ?? "http://localhost:5173",
+      JWKS_URI: env.JWKS_URI ?? "http://localhost/.well-known/jwks.json",
+      DATABASE_URL: env.DATABASE_URL ?? "postgres://user:pass@localhost:5432/db",
+      WHISPERAI_URL: env.WHISPERAI_URL ?? "http://localhost:8000",
+      GEMINI_URL: env.GEMINI_URL ?? "http://localhost:8800",
+      GOOGLE_API_KEY: env.GOOGLE_API_KEY ?? "test-key",
+      LMSTUDIO_URL: env.LMSTUDIO_URL ?? "http://localhost:1234",
+      MINIO_ENDPOINT: env.MINIO_ENDPOINT ?? "localhost",
+      MINIO_API_ENDPOINT: env.MINIO_API_ENDPOINT ?? "localhost:9000",
+      MINIO_PORT: env.MINIO_PORT ?? 9000,
+      MINIO_USE_SSL: env.MINIO_USE_SSL ?? false,
+      MINIO_ACCESS_KEY: env.MINIO_ACCESS_KEY ?? "minio-access",
+      MINIO_SECRET_KEY: env.MINIO_SECRET_KEY ?? "minio-secret",
+      JWT_SECRET: env.JWT_SECRET ?? "secret",
+      JWT_EXPIRE: env.JWT_EXPIRE ?? "1d",
+      REDIS_URL: env.REDIS_URL ?? "redis://localhost:6379/0",
+      REDIS_MAX_CONCURRENCY: env.REDIS_MAX_CONCURRENCY ?? 5,
+      BULL_REDIS_DB: env.BULL_REDIS_DB ?? 1,
+      BULL_BOARD_USERNAME: env.BULL_BOARD_USERNAME ?? "admin",
+      BULL_BOARD_PASSWORD: env.BULL_BOARD_PASSWORD ?? "admin",
+      BULL_API_CALLBACK_URL: env.BULL_API_CALLBACK_URL ?? "http://localhost:8080/callback",
+      X_API_KEY: env.X_API_KEY ?? "test-key",
+    } as Env;
+    return withDefaults;
+  }
 
   if (!validator.Check(env)) {
     const errors = [...validator.Errors(env)];

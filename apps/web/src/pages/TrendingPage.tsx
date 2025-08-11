@@ -298,6 +298,13 @@ export const TrendingPage: React.FC = () => {
           >
             {t("trending:categories.productivity")}
           </Button>
+          <Button
+            variant={activeCategory === "other" ? "primary" : "outline"}
+            size="sm"
+            onClick={() => handleCategoryClick("other")}
+          >
+            {t("trending:categories.other")}
+          </Button>
         </div>
       </div>
 

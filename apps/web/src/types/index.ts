@@ -16,7 +16,8 @@ export interface VideoItem {
     | "productivity"
     | "finance"
     | "travel"
-    | "health";
+    | "health"
+    | "other";
   duration: number;
   views: number;
   likes: number;

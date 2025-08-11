@@ -1,0 +1,51 @@
+{
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP p95 latency (s)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "HTTP error rate (5xx)",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))",
+          "legendFormat": "error-rate"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "BullMQ summary queue size",
+      "targets": [
+        {
+          "expr": "bull_queue_jobs{queue=\"summary\",state=\"waiting\"}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Videos uploaded (rate)",
+      "targets": [
+        { "expr": "sum(rate(video_uploaded_total[5m]))" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Videos summarized (rate)",
+      "targets": [
+        { "expr": "sum(rate(video_summarized_total[5m]))" }
+      ]
+    }
+  ],
+  "title": "Xgist Backend Overview",
+  "schemaVersion": 30
+}
+

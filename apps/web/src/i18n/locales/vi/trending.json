@@ -31,7 +31,8 @@
     "finance": "Tài chính",
     "education": "Giáo dục",
     "health": "Sức khỏe",
-    "productivity": "Năng suất"
+    "productivity": "Năng suất",
+    "other": "Khác"
   },
   "sections": {
     "trending_videos": "Video thịnh hành {{time}}",

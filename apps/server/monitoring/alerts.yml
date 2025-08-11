@@ -1,0 +1,27 @@
+groups:
+  - name: xgist-alerts
+    rules:
+      - alert: HighHttpErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP 5xx error rate (>5%)"
+
+      - alert: CircuitBreakerOpenSpike
+        expr: sum(increase(http_requests_total{route="/v1/videos"}[5m])) > 0 and sum(increase(video_summarized_total[5m])) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Possible circuit open or Whisper outage (uploads without summaries)"
+
+      - alert: SummaryQueueBacklog
+        expr: bull_queue_jobs{queue="summary",state="waiting"} > 100
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Summary queue waiting jobs > 100"
+

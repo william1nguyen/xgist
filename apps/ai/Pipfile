@@ -13,8 +13,13 @@ ffmpeg = "*"
 numpy = "==2.1.0"
 assemblyai = "*"
 faster-whisper = "*"
+prometheus-client = "*"
+sentry-sdk = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-asyncio = "*"
+httpx = "*"
 
 [requires]
 python_version = "3.12"

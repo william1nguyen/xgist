@@ -131,6 +131,7 @@
     "subtitles-parser": "^0.0.2",
     "uuid": "^10.0.0",
     "ytdl-core": "^4.11.5",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "prom-client": "^15.1.3"
   }
 }

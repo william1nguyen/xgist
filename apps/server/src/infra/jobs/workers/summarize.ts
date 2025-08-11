@@ -6,6 +6,7 @@ import { videoTable } from "~/drizzle/schema/video";
 import { io } from "~/infra/app";
 import logger from "~/infra/logger";
 import { redisDefault, redisForBullMq } from "~/infra/redis";
+import { videoSummarizedCounter } from "~/infra/metrics";
 
 export interface INotificationData {
   userId: string;
@@ -38,6 +39,8 @@ export const summaryQueue = new Queue<ISummaryData>("summary", {
       type: "exponential",
       delay: 3000,
     },
+    removeOnComplete: true,
+    removeOnFail: 100,
   },
 });
 
@@ -53,6 +56,10 @@ const handleSummaryJob = async (job: Job) => {
         metadata,
       })
       .where(eq(videoTable.id, videoId));
+    try {
+      // Metrics: count summarized via worker
+      videoSummarizedCounter.labels("worker").inc();
+    } catch {}
   } catch (error) {
     logger.error(`Summarize không thành công: ${error}`);
   }

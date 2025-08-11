@@ -8,6 +8,13 @@
       "when": 1741037844474,
       "tag": "0000_create_schemas",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1754871584820,
+      "tag": "0001_add_video_category",
+      "breakpoints": true
     }
   ]
 }

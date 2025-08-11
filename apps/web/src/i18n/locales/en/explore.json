@@ -26,7 +26,8 @@
     "productivity": "Productivity",
     "finance": "Finance",
     "travel": "Travel",
-    "health": "Health"
+    "health": "Health",
+    "other": "Other"
   },
   "messages": {
     "no_videos": "No videos found",

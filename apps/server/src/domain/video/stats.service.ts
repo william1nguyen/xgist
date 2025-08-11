@@ -2,6 +2,8 @@ import { and, count, eq, desc, sum, gte } from "drizzle-orm";
 import _ from "lodash";
 import { db } from "~/drizzle/db";
 import { videoCategory, videoTable } from "~/drizzle/schema/video";
+import { getCounterValue } from "~/infra/metrics";
+import { getOrSetCache } from "~/infra/utils/cache";
 
 export interface CategoryData {
   name: string;
@@ -29,21 +31,32 @@ export interface StatisticsData {
 export const getCategoryStats = async (userId: string) => {
   const categories = videoCategory.enumValues;
 
-  const categoryCounts = await Promise.all(
-    categories.map(async (category) => {
-      const result = await db
-        .select({ count: count() })
-        .from(videoTable)
-        .where(
-          and(eq(videoTable.category, category), eq(videoTable.userId, userId))
-        );
-
-      return {
-        name: category,
-        count: result[0].count,
-      };
-    })
-  );
+  const cacheKey = `stats:categories:${userId}`;
+  const ttl = 60; // 1 minute cache
+  const categoryCounts = await getOrSetCache(cacheKey, ttl, async () => {
+    const counts = await Promise.all(
+      categories.map(async (category) => {
+        const metricCount = await getCounterValue("video_uploaded_total", {
+          userId,
+          category,
+        });
+        if (metricCount > 0) {
+          return { name: category, count: metricCount };
+        }
+        const result = await db
+          .select({ count: count() })
+          .from(videoTable)
+          .where(
+            and(
+              eq(videoTable.category, category),
+              eq(videoTable.userId, userId)
+            )
+          );
+        return { name: category, count: result[0].count };
+      })
+    );
+    return counts;
+  });
 
   const totalVideos = categoryCounts.reduce(
     (sum, category) => sum + category.count,
@@ -171,7 +184,11 @@ export const getUserStatistics = async (userId: string) => {
       ),
   ]);
 
-  const totalVideos = totalVideosResult[0].count;
+  // totalVideos from metrics if available
+  const metricTotalVideos = await getCounterValue("video_uploaded_total", {
+    userId,
+  } as any);
+  const totalVideos = metricTotalVideos > 0 ? metricTotalVideos : totalVideosResult[0].count;
   const totalSummaries = totalSummariesResult[0].count;
   const totalDurationInSeconds = totalDurationResult[0].total || 0;
 
