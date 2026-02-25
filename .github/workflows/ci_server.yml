@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/ci_server.yml"
       - "apps/server/**"
+  
+  workflow_dispatch:
 
 permissions: write-all
 
