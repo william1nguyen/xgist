@@ -21,11 +21,12 @@
 
 **Transform lengthy content into concise, valuable summaries while preserving the core message**
 
-<img width="1289" alt="Screenshot 2025-05-26 at 01 24 04" src="https://github.com/user-attachments/assets/1589658d-29bc-4dc2-bc8e-0d65bc331419" />
+<img width="1289" height="665" alt="Screenshot 2025-05-26 at 01 24 04" src="https://github.com/user-attachments/assets/1589658d-29bc-4dc2-bc8e-0d65bc331419" />
+<img width="1289" height="665" alt="Screenshot 2026-02-26 at 02 27 41" src="https://github.com/user-attachments/assets/ed50d727-4edf-4793-9777-31ad1276cf89" />
 
 ## Architecture
 
-<img width="1341" height="717" alt="Screenshot 2026-02-26 at 01 39 26" src="https://github.com/user-attachments/assets/70e9e02a-5c5f-41e6-9536-60f176c0df8f" />
+<img width="1289" height="665" alt="Screenshot 2026-02-26 at 01 39 26" src="https://github.com/user-attachments/assets/70e9e02a-5c5f-41e6-9536-60f176c0df8f" />
 
 
 ## Technology Stack
