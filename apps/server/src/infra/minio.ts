@@ -1,12 +1,14 @@
 import { Client, type ClientOptions } from "minio";
+
 import { env } from "~/env";
+
 import logger from "./logger";
 import { createError } from "./utils/errors";
 
 export const UploadFileToMinioError = createError(
   "UploadFileToMinioError",
   "Failed to upload file to Minio",
-  500
+  500,
 );
 
 export const minioClient = new Client({
@@ -27,18 +29,12 @@ export const uploadFileToMinio = async (
   bucketName: string,
   objectName: string,
   mimeType: string,
-  fileBuffer: Buffer
+  fileBuffer: Buffer,
 ) => {
   try {
-    await minioClient.putObject(
-      bucketName,
-      objectName,
-      fileBuffer,
-      fileBuffer.length,
-      {
-        "Content-Type": mimeType,
-      }
-    );
+    await minioClient.putObject(bucketName, objectName, fileBuffer, fileBuffer.length, {
+      "Content-Type": mimeType,
+    });
     const httpProtocol = env.NODE_ENV === "production" ? "https" : "http";
     const endpoint = env.MINIO_PORT
       ? `${env.MINIO_ENDPOINT}:${env.MINIO_PORT}`

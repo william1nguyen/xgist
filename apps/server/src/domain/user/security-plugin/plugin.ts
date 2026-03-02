@@ -1,8 +1,9 @@
 import type { FastifyRequest } from "fastify";
-import type { KeycloakPrincipal } from "../user.types";
-import { authJwtHandler } from "./auth-jwt-handler";
 
+import type { KeycloakPrincipal } from "../user.types";
 import type { SecurityHandlerOptions } from "./types";
+
+import { authJwtHandler } from "./auth-jwt-handler";
 
 const createHandler =
   ({ shouldHandle, onHandle }: SecurityHandlerOptions) =>
@@ -12,9 +13,7 @@ const createHandler =
     }
   };
 
-export const execSecurityHandlerChain = async (
-  request: FastifyRequest
-): Promise<void> => {
+export const execSecurityHandlerChain = async (request: FastifyRequest): Promise<void> => {
   const handlers = [authJwtHandler].map(createHandler);
 
   for (const handler of handlers) {

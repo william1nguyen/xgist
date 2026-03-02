@@ -128,12 +128,8 @@
           "name": "bookmark_user_id_users_id_fk",
           "tableFrom": "bookmark",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -141,12 +137,8 @@
           "name": "bookmark_video_id_video_id_fk",
           "tableFrom": "bookmark",
           "tableTo": "video",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -224,12 +216,8 @@
           "name": "video_like_user_id_users_id_fk",
           "tableFrom": "video_like",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -237,12 +225,8 @@
           "name": "video_like_video_id_video_id_fk",
           "tableFrom": "video_like",
           "tableTo": "video",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -371,12 +355,8 @@
           "name": "video_user_id_users_id_fk",
           "tableFrom": "video",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -392,14 +372,7 @@
     "public.category": {
       "name": "category",
       "schema": "public",
-      "values": [
-        "technology",
-        "education",
-        "productivity",
-        "finance",
-        "travel",
-        "health"
-      ]
+      "values": ["technology", "education", "productivity", "finance", "travel", "health"]
     }
   },
   "schemas": {},

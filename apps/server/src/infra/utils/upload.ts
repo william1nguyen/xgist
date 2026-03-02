@@ -1,6 +1,7 @@
 import path from "node:path";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
+
 import { FileTypeNotAllowedError } from "~/domain/video/video.errors";
 import { env } from "~/env";
 import { minioClient } from "~/infra/minio";
@@ -20,10 +21,7 @@ const extractFileInfo = (file: ExtendedFile) => {
   };
 };
 
-const validateFileType = (
-  mimeType: string,
-  type?: "image" | "video" | "audio"
-) => {
+const validateFileType = (mimeType: string, type?: "image" | "video" | "audio") => {
   return type ? mimeType.startsWith(type) : true;
 };
 
@@ -120,13 +118,7 @@ export const upload = async ({
 
   const minioFilename = generateMinioFileName(fileName, folder);
 
-  await minioClient.putObject(
-    bucket,
-    minioFilename,
-    buffer,
-    buffer.length,
-    metaData
-  );
+  await minioClient.putObject(bucket, minioFilename, buffer, buffer.length, metaData);
 
   const url = getMinioFileUrl(bucket, minioFilename);
 

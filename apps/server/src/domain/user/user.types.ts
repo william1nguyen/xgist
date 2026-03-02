@@ -1,8 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
-import {
-  BaseModelSchema,
-  createItemResponseSchema,
-} from "~/infra/utils/schema";
+
+import { BaseModelSchema, createItemResponseSchema } from "~/infra/utils/schema";
 
 export const User = Type.Object({
   ...BaseModelSchema,

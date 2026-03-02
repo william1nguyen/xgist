@@ -1,4 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
+
+import { videoCategory } from "~/drizzle/schema/video";
+import { createEnum } from "~/infra/utils/fns";
 import {
   BaseModelSchema,
   createItemResponseSchema,
@@ -6,10 +9,9 @@ import {
   GetQueryString,
   OptionalDefaultNull,
 } from "~/infra/utils/schema";
-import { User } from "../user/user.types";
-import { createEnum } from "~/infra/utils/fns";
-import { videoCategory } from "~/drizzle/schema/video";
 import { File } from "~/infra/utils/schema";
+
+import { User } from "../user/user.types";
 
 export const Category = Type.Enum(createEnum(videoCategory.enumValues));
 
@@ -37,11 +39,11 @@ export const GeminiResponse = Type.Object({
         parts: Type.Array(
           Type.Object({
             text: Type.String(),
-          })
+          }),
         ),
         role: Type.String(),
       }),
-    })
+    }),
   ),
 });
 export type GeminiResponse = Static<typeof GeminiResponse>;
@@ -71,12 +73,12 @@ export const SummarizeVideoBody = Type.Object({
   keywords: Type.Optional(
     Type.Object({
       value: Type.Boolean(),
-    })
+    }),
   ),
   keyPoints: Type.Optional(
     Type.Object({
       value: Type.Boolean(),
-    })
+    }),
   ),
 });
 export type SummarizeVideoBody = Static<typeof SummarizeVideoBody>;
@@ -102,9 +104,7 @@ export const GetRelatedVideosQuerystring = Type.Object({
   size: Type.Optional(Type.Number()),
   category: Category,
 });
-export type GetRelatedVideosQuerystring = Static<
-  typeof GetRelatedVideosQuerystring
->;
+export type GetRelatedVideosQuerystring = Static<typeof GetRelatedVideosQuerystring>;
 
 export const UpdateVideoViewsBody = Type.Object({
   videoId: Type.String(),

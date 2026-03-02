@@ -1,6 +1,7 @@
+import type { VideoMetadata } from "../schema/video";
+
 import { db } from "../db";
 import { videoTable } from "../schema/video";
-import type { VideoMetadata } from "../schema/video";
 
 export const seedVideoData = async () => {
   const videos = [
@@ -45,13 +46,7 @@ export const seedVideoData = async () => {
           "Thực hiện truy vấn cơ bản",
           "Xử lý migrations",
         ],
-        keywords: [
-          "Drizzle ORM",
-          "PostgreSQL",
-          "Schema",
-          "Migrations",
-          "Relationships",
-        ],
+        keywords: ["Drizzle ORM", "PostgreSQL", "Schema", "Migrations", "Relationships"],
         summary:
           "Video hướng dẫn cách cài đặt và sử dụng Drizzle ORM với PostgreSQL, bao gồm việc tạo schema, định nghĩa quan hệ và thực hiện các truy vấn.",
       },
@@ -103,13 +98,7 @@ export const seedVideoData = async () => {
           "Quản lý và giảm nợ",
           "Xây dựng quỹ khẩn cấp",
         ],
-        keywords: [
-          "Tài chính cá nhân",
-          "Ngân sách",
-          "Tiết kiệm",
-          "Đầu tư",
-          "Quản lý nợ",
-        ],
+        keywords: ["Tài chính cá nhân", "Ngân sách", "Tiết kiệm", "Đầu tư", "Quản lý nợ"],
         summary:
           "Video trình bày 10 phương pháp hiệu quả để quản lý tài chính cá nhân, bao gồm lập ngân sách, tiết kiệm tự động, đầu tư thông minh và giảm nợ.",
       },
@@ -121,8 +110,7 @@ export const seedVideoData = async () => {
       id: "f6a7b8c9-d0e1-9f2a-3b4c-5d6e7f8a9b0c",
       url: "https://www.youtube.com/embed/5MgBikgcWnY",
       title: "Bí quyết nâng cao năng suất làm việc tại nhà",
-      description:
-        "Các mẹo và kỹ thuật giúp tăng năng suất khi làm việc từ xa hoặc tại nhà.",
+      description: "Các mẹo và kỹ thuật giúp tăng năng suất khi làm việc từ xa hoặc tại nhà.",
       thumbnail: "https://img.youtube.com/vi/5MgBikgcWnY/maxresdefault.jpg",
       userId: "c3d4e5f6-a7b8-6c7d-0e1f-3a4b5c6d7e8f",
       category: "productivity" as const,
@@ -234,13 +222,7 @@ export const seedVideoData = async () => {
           "Kết hợp Grid và Flexbox",
           "Responsive design với media queries",
         ],
-        keywords: [
-          "CSS Grid",
-          "Flexbox",
-          "Responsive Design",
-          "Web Layout",
-          "Media Queries",
-        ],
+        keywords: ["CSS Grid", "Flexbox", "Responsive Design", "Web Layout", "Media Queries"],
         summary:
           "Video hướng dẫn cách sử dụng CSS Grid và Flexbox để tạo layout website responsive. Giải thích khi nào nên dùng Grid, khi nào nên dùng Flexbox và cách kết hợp cả hai để tạo giao diện tối ưu trên mọi kích thước màn hình.",
       },
@@ -304,14 +286,7 @@ export const seedVideoData = async () => {
           "Động Phong Nha-Kẻ Bàng",
           "Ẩm thực đặc trưng miền Trung",
         ],
-        keywords: [
-          "Du lịch Việt Nam",
-          "Miền Trung",
-          "Hội An",
-          "Huế",
-          "Đà Nẵng",
-          "Phong Nha",
-        ],
+        keywords: ["Du lịch Việt Nam", "Miền Trung", "Hội An", "Huế", "Đà Nẵng", "Phong Nha"],
         summary:
           "Video giới thiệu 10 địa điểm du lịch nổi tiếng nhất ở miền Trung Việt Nam, từ các di sản văn hóa thế giới như phố cổ Hội An, Cố đô Huế đến các điểm đến thiên nhiên như bãi biển Mỹ Khê, Bà Nà Hills và Động Phong Nha. Bao gồm thông tin về cách di chuyển, thời điểm lý tưởng để tham quan và các món ăn đặc sản phải thử.",
       },

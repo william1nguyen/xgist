@@ -1,16 +1,8 @@
-import {
-  boolean,
-  index,
-  integer,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { boolean, index, integer, jsonb, pgEnum, pgTable, text, uuid } from "drizzle-orm/pg-core";
+
 import { commonFields } from "./base";
 import { userTable } from "./user";
-import { relations } from "drizzle-orm";
 
 export const videoCategory = pgEnum("category", [
   "technology",
@@ -60,7 +52,7 @@ export const videoTable = pgTable(
     return {
       creatorIdx: index("creator_fk_idx").on(table.userId),
     };
-  }
+  },
 );
 
 export const videoLikeTable = pgTable(
@@ -80,7 +72,7 @@ export const videoLikeTable = pgTable(
       likeActorIdx: index("like_actor_idx").on(table.userId),
       likeVideoIdx: index("like_video_idx").on(table.videoId),
     };
-  }
+  },
 );
 
 export const bookmarkTable = pgTable(
@@ -100,7 +92,7 @@ export const bookmarkTable = pgTable(
       bookmarkActorIdx: index("bookmark_actor_idx").on(table.userId),
       bookmarkVideoIdx: index("bookmark_video_idx").on(table.videoId),
     };
-  }
+  },
 );
 
 export const videoRelations = relations(videoTable, ({ one, many }) => ({

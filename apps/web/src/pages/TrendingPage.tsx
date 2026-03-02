@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react";
 import { TrendingUp, Clock, Activity } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { VideoItem, SortOption } from "../types";
-import { Layout } from "../components/layout/Layout";
+
 import { SearchBar } from "../components/filter/SearchBar";
 import { SortingMenu } from "../components/filter/SortingMenu";
 import { ViewToggle } from "../components/filter/ViewToggle";
-import { Button } from "../components/ui/Button";
+import { Layout } from "../components/layout/Layout";
 import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
+import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { VideoCard } from "../components/video/VideoCard";
 import { httpClient } from "../config/httpClient";
+import { VideoItem, SortOption } from "../types";
 
 type ViewModeType = "grid" | "list";
 type SortByType = "popular" | "newest" | "most-liked" | "most-viewed";
@@ -114,9 +115,7 @@ export const TrendingPage: React.FC = () => {
         return sorted.sort((a, b) => b.views - a.views);
       case "newest":
         return sorted.sort(
-          (a, b) =>
-            new Date(b.createdTime || 0).getTime() -
-            new Date(a.createdTime || 0).getTime()
+          (a, b) => new Date(b.createdTime || 0).getTime() - new Date(a.createdTime || 0).getTime(),
         );
       case "most-liked":
         return sorted.sort((a, b) => b.likes - a.likes);
@@ -187,11 +186,7 @@ export const TrendingPage: React.FC = () => {
   );
 
   return (
-    <Layout
-      activeItem="trending"
-      title={t("trending:title")}
-      headerContent={headerContent}
-    >
+    <Layout activeItem="trending" title={t("trending:title")} headerContent={headerContent}>
       {error && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
           <p>{error}</p>
@@ -211,9 +206,7 @@ export const TrendingPage: React.FC = () => {
           <SortingMenu
             options={timeRangeOptions}
             selectedOption={timeRange}
-            onSelect={(optionId: string) =>
-              setTimeRange(optionId as TimeRangeType)
-            }
+            onSelect={(optionId: string) => setTimeRange(optionId as TimeRangeType)}
           />
 
           <SortingMenu
@@ -227,15 +220,8 @@ export const TrendingPage: React.FC = () => {
             onViewChange={(mode) => setViewMode(mode as ViewModeType)}
           />
 
-          <Button
-            onClick={handleReload}
-            variant="outline"
-            size="sm"
-            disabled={loading}
-          >
-            {loading
-              ? t("trending:buttons.loading")
-              : t("trending:buttons.reload")}
+          <Button onClick={handleReload} variant="outline" size="sm" disabled={loading}>
+            {loading ? t("trending:buttons.loading") : t("trending:buttons.reload")}
           </Button>
         </div>
       </div>
@@ -243,9 +229,7 @@ export const TrendingPage: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center space-x-2 mb-4">
           <TrendingUp className="text-indigo-600" size={18} />
-          <h2 className="text-lg font-semibold text-slate-900">
-            {t("trending:categories.title")}
-          </h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("trending:categories.title")}</h2>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -308,9 +292,7 @@ export const TrendingPage: React.FC = () => {
               <Activity className="text-indigo-600" size={18} />
               <h2 className="text-lg font-semibold text-slate-900">
                 {t("trending:sections.trending_videos", {
-                  time: timeRangeOptions
-                    .find((opt) => opt.id === timeRange)
-                    ?.label.toLowerCase(),
+                  time: timeRangeOptions.find((opt) => opt.id === timeRange)?.label.toLowerCase(),
                 })}
               </h2>
             </div>
@@ -390,9 +372,7 @@ export const TrendingPage: React.FC = () => {
               <TrendingUp className="text-indigo-600" size={18} />
               <h2 className="text-lg font-semibold text-slate-900">
                 {t("trending:sections.popular_videos", {
-                  time: timeRangeOptions
-                    .find((opt) => opt.id === timeRange)
-                    ?.label.toLowerCase(),
+                  time: timeRangeOptions.find((opt) => opt.id === timeRange)?.label.toLowerCase(),
                 })}
               </h2>
             </div>

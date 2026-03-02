@@ -1,14 +1,18 @@
 import { and, count, eq, like, not } from "drizzle-orm";
 import _ from "lodash";
-import { db } from "~/drizzle/db";
-import {
-  bookmarkTable,
-  videoLikeTable,
-  videoTable,
-} from "~/drizzle/schema/video";
-import logger from "~/infra/logger";
-import { itemResponse } from "~/infra/utils/fns";
+
 import type { GetQueryString } from "~/infra/utils/schema";
+
+import { db } from "~/drizzle/db";
+import { bookmarkTable, videoLikeTable, videoTable } from "~/drizzle/schema/video";
+import { summaryQueue } from "~/infra/jobs/workers/summarize";
+import logger from "~/infra/logger";
+import { prompting } from "~/infra/models";
+import { redisDefault } from "~/infra/redis";
+import { itemResponse } from "~/infra/utils/fns";
+import { createUploader } from "~/infra/utils/upload";
+import { transcribeStream } from "~/infra/whisper";
+
 import {
   GetNotificationsFailedError,
   SummarizedFailedError,
@@ -27,11 +31,6 @@ import {
   GetVideosQueryString,
   UpdateVideoViewsBody,
 } from "./video.types";
-import { createUploader } from "~/infra/utils/upload";
-import { summaryQueue } from "~/infra/jobs/workers/summarize";
-import { transcribeStream } from "~/infra/whisper";
-import { redisDefault } from "~/infra/redis";
-import { prompting } from "~/infra/models";
 
 const uploadThumbnail = createUploader({
   bucket: "thumbnails",
@@ -44,10 +43,7 @@ const uploadVideo = createUploader({
   allowedType: "video",
 });
 
-export const getNotifications = async (
-  { page = 1, size = 10 }: GetQueryString,
-  userId: string
-) => {
+export const getNotifications = async ({ page = 1, size = 10 }: GetQueryString, userId: string) => {
   try {
     const pattern = `notifications:${userId}-*`;
     const keys = await redisDefault.keys(pattern);
@@ -80,7 +76,7 @@ export const getNotifications = async (
           default:
             return null;
         }
-      })
+      }),
     );
 
     return {
@@ -97,7 +93,7 @@ export const getNotifications = async (
 
 export const getVideos = async (
   { page = 1, size = 100, category }: GetVideosQueryString,
-  userId?: string
+  userId?: string,
 ) => {
   try {
     const offset = (page - 1) * size;
@@ -127,8 +123,7 @@ export const getVideos = async (
     }
 
     const videos = await db.query.videoTable.findMany(queryOptions);
-    const total = (await db.select({ count: count() }).from(videoTable))[0]
-      .count;
+    const total = (await db.select({ count: count() }).from(videoTable))[0].count;
     return {
       data: { videos },
       metadata: {
@@ -143,10 +138,7 @@ export const getVideos = async (
   }
 };
 
-export const getMyVideos = async (
-  { page = 1, size = 100 }: GetQueryString,
-  userId: string
-) => {
+export const getMyVideos = async ({ page = 1, size = 100 }: GetQueryString, userId: string) => {
   const videos = await db.query.videoTable.findMany({
     where: eq(videoTable.userId, userId),
   });
@@ -161,10 +153,7 @@ export const getMyVideos = async (
   };
 };
 
-export const getVideoDetail = async (
-  { videoId }: GetVideoDetailParams,
-  userId?: string
-) => {
+export const getVideoDetail = async ({ videoId }: GetVideoDetailParams, userId?: string) => {
   try {
     const queryOptions: any = {
       where: eq(videoTable.id, videoId),
@@ -192,10 +181,7 @@ export const getVideoDetail = async (
     const video = await db.query.videoTable.findFirst(queryOptions);
     const likes = (
       await db.query.videoLikeTable.findMany({
-        where: and(
-          eq(videoLikeTable.videoId, videoId),
-          eq(videoLikeTable.state, true)
-        ),
+        where: and(eq(videoLikeTable.videoId, videoId), eq(videoLikeTable.state, true)),
       })
     ).length;
 
@@ -213,14 +199,11 @@ export const getVideoDetail = async (
 
 export const getRelatedVideos = async (
   { videoId }: GetRelatedVideosParams,
-  { page = 1, size = 10, category }: GetRelatedVideosQuerystring
+  { page = 1, size = 10, category }: GetRelatedVideosQuerystring,
 ) => {
   const offset = (page - 1) * size;
   const videos = await db.query.videoTable.findMany({
-    where: and(
-      eq(videoTable.category, category),
-      not(eq(videoTable.id, videoId))
-    ),
+    where: and(eq(videoTable.category, category), not(eq(videoTable.id, videoId))),
     with: {
       creator: true,
     },
@@ -240,7 +223,7 @@ export const getRelatedVideos = async (
 
 export const postVideo = async (
   { videoFile, thumbnailFile, title, description, category }: UploadVideoBody,
-  userId: string
+  userId: string,
 ) => {
   if (!videoFile) {
     throw new VideoInvalidError();
@@ -304,10 +287,7 @@ export const updateVideoViews = async ({ videoId }: UpdateVideoViewsBody) => {
   return res[0];
 };
 
-export const toggleLike = async (
-  { videoId }: ToggleLikeParams,
-  userId: string
-) => {
+export const toggleLike = async ({ videoId }: ToggleLikeParams, userId: string) => {
   const video = await db.query.videoTable.findFirst({
     where: eq(videoTable.id, videoId),
   });
@@ -317,10 +297,7 @@ export const toggleLike = async (
   }
 
   const like = await db.query.videoLikeTable.findFirst({
-    where: and(
-      eq(videoLikeTable.videoId, videoId),
-      eq(videoLikeTable.userId, userId)
-    ),
+    where: and(eq(videoLikeTable.videoId, videoId), eq(videoLikeTable.userId, userId)),
   });
 
   if (!like) {
@@ -341,20 +318,12 @@ export const toggleLike = async (
     .set({
       state,
     })
-    .where(
-      and(
-        eq(videoLikeTable.videoId, videoId),
-        eq(videoLikeTable.userId, userId)
-      )
-    )
+    .where(and(eq(videoLikeTable.videoId, videoId), eq(videoLikeTable.userId, userId)))
     .returning();
   return res;
 };
 
-export const toggleBookmark = async (
-  { videoId }: ToggleBookmarkParams,
-  userId: string
-) => {
+export const toggleBookmark = async ({ videoId }: ToggleBookmarkParams, userId: string) => {
   const video = await db.query.videoTable.findFirst({
     where: eq(videoTable.id, videoId),
   });
@@ -364,10 +333,7 @@ export const toggleBookmark = async (
   }
 
   const bookmark = await db.query.bookmarkTable.findFirst({
-    where: and(
-      eq(bookmarkTable.videoId, videoId),
-      eq(bookmarkTable.userId, userId)
-    ),
+    where: and(eq(bookmarkTable.videoId, videoId), eq(bookmarkTable.userId, userId)),
   });
 
   if (!bookmark) {
@@ -388,16 +354,14 @@ export const toggleBookmark = async (
     .set({
       state,
     })
-    .where(
-      and(eq(bookmarkTable.videoId, videoId), eq(bookmarkTable.userId, userId))
-    )
+    .where(and(eq(bookmarkTable.videoId, videoId), eq(bookmarkTable.userId, userId)))
     .returning();
   return res;
 };
 
 export const getBookmarkedVideos = async (
   { page = 1, size = 20 }: GetQueryString,
-  userId: string
+  userId: string,
 ) => {
   const offset = (page - 1) * size;
   const videos = await db.query.bookmarkTable.findMany({
@@ -475,7 +439,7 @@ export const extractKeyWords = async (text: string): Promise<string[]> => {
 export const summarizeBuffer = async (
   buffer: Buffer,
   isExtractKeyPoints = true,
-  isExtractKeywords = true
+  isExtractKeywords = true,
 ) => {
   try {
     const transcripts = await transcribeStream(buffer);
@@ -499,11 +463,7 @@ export const summarizeBuffer = async (
   }
 };
 
-export const summarizeVideo = async ({
-  videoFile,
-  keyPoints,
-  keywords,
-}: SummarizeVideoBody) => {
+export const summarizeVideo = async ({ videoFile, keyPoints, keywords }: SummarizeVideoBody) => {
   if (!videoFile) {
     throw new VideoInvalidError();
   }

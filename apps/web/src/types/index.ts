@@ -10,13 +10,7 @@ export interface VideoItem {
   thumbnail: string;
   url: string;
   userId: string;
-  category:
-    | "technology"
-    | "education"
-    | "productivity"
-    | "finance"
-    | "travel"
-    | "health";
+  category: "technology" | "education" | "productivity" | "finance" | "travel" | "health";
   duration: number;
   views: number;
   likes: number;

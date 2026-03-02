@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import { env } from "./env";
 
 export const httpClient = axios.create({
@@ -7,7 +8,7 @@ export const httpClient = axios.create({
 
 httpClient.interceptors.request.use((config) => {
   const oidcStorage = localStorage.getItem(
-    `oidc.user:${env.VITE_KEYCLOAK_URL}/realms/${env.VITE_KEYCLOAK_REALM}:${env.VITE_CLIENT_ID}`
+    `oidc.user:${env.VITE_KEYCLOAK_URL}/realms/${env.VITE_KEYCLOAK_REALM}:${env.VITE_CLIENT_ID}`,
   );
 
   if (oidcStorage) {

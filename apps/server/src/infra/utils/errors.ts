@@ -1,6 +1,7 @@
 // NOTE: This code is adapted from `@fastify/error` package, with added ability to embed error context.
-import {format} from 'node:util';
-import type {AnyRecord} from './types';
+import { format } from "node:util";
+
+import type { AnyRecord } from "./types";
 
 export type TnaErrorContext = AnyRecord;
 
@@ -18,7 +19,7 @@ export interface TnaErrorInstance extends Error {
 
 export type TnaErrorConstructor = new (
   message?: string,
-  options?: TnaErrorOptions
+  options?: TnaErrorOptions,
 ) => TnaErrorInstance;
 
 function _toString(this: TnaErrorInstance) {
@@ -29,10 +30,10 @@ export const createError = (
   code: string,
   message: string,
   statusCode = 500,
-  Base = Error
+  Base = Error,
 ): TnaErrorConstructor => {
-  if (!code) throw new Error('Error code must not be empty');
-  if (!message) throw new Error('Error message must not be empty');
+  if (!code) throw new Error("Error code must not be empty");
+  if (!message) throw new Error("Error message must not be empty");
 
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   function TnaError(this: TnaErrorInstance, ...args: any[]) {
@@ -42,20 +43,16 @@ export const createError = (
     }
 
     this.code = code;
-    this.name = 'TnaError';
+    this.name = "TnaError";
     this.statusCode = statusCode;
 
     const lastElement = args.length - 1;
-    if (
-      lastElement !== -1 &&
-      args[lastElement] &&
-      typeof args[lastElement] === 'object'
-    ) {
+    if (lastElement !== -1 && args[lastElement] && typeof args[lastElement] === "object") {
       const opts = args.pop() as TnaErrorOptions;
-      if ('cause' in opts) {
+      if ("cause" in opts) {
         this.cause = opts.cause;
       }
-      if ('context' in opts) {
+      if ("context" in opts) {
         this.context = opts.context;
       }
     }
@@ -74,7 +71,7 @@ export const createError = (
     },
   });
 
-  TnaError.prototype[Symbol.toStringTag] = 'Error';
+  TnaError.prototype[Symbol.toStringTag] = "Error";
 
   TnaError.prototype.toString = _toString;
 

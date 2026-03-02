@@ -1,5 +1,7 @@
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+
 import logger from "~/infra/logger";
+
 import { db } from "./db";
 
 export const runMigrations = async () => {

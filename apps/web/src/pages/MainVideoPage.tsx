@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-
 import { Plus, TrendingUp, FastForward } from "lucide-react";
-import { VideoItem, SortOption, ApiResponse, VideosResponse } from "../types";
-import { Button } from "../components/ui/Button";
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "react-oidc-context";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import { SortingMenu } from "../components/filter/SortingMenu";
 import { ViewToggle } from "../components/filter/ViewToggle";
-import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
-import { VideoCard } from "../components/video/VideoCard";
 import { Layout } from "../components/layout/Layout";
+import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
+import { Button } from "../components/ui/Button";
+import { VideoCard } from "../components/video/VideoCard";
 import { httpClient } from "../config/httpClient";
-import { useAuth } from "react-oidc-context";
+import { VideoItem, SortOption, ApiResponse, VideosResponse } from "../types";
 
 interface User {
   access_token: string;
@@ -43,9 +43,7 @@ export const MainVideoPage: React.FC = () => {
   const categoryParam = queryParams.get("category");
 
   const { user } = useAuth() as { user: User | null };
-  const [activeCategory, setActiveCategory] = useState<string>(
-    categoryParam || "all"
-  );
+  const [activeCategory, setActiveCategory] = useState<string>(categoryParam || "all");
   const [sortBy, setSortBy] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState<boolean>(true);
@@ -61,7 +59,7 @@ export const MainVideoPage: React.FC = () => {
   const fetchVideos = async (
     pageNum: number = 1,
     pageSize: number = 20,
-    category?: string
+    category?: string,
   ): Promise<void> => {
     setLoading(true);
     try {
@@ -73,7 +71,7 @@ export const MainVideoPage: React.FC = () => {
             size: pageSize,
             category: category !== "all" ? category : undefined,
           },
-        }
+        },
       );
 
       const videosData = response.data.data.videos;
@@ -160,7 +158,7 @@ export const MainVideoPage: React.FC = () => {
             };
           }
           return video;
-        })
+        }),
       );
 
       await httpClient.post(
@@ -170,7 +168,7 @@ export const MainVideoPage: React.FC = () => {
           headers: {
             Authorization: `Bearer ${user?.access_token}`,
           },
-        }
+        },
       );
     } catch (error) {
       console.error("Error liking video:", error);
@@ -189,7 +187,7 @@ export const MainVideoPage: React.FC = () => {
             };
           }
           return video;
-        })
+        }),
       );
     }
   };
@@ -216,10 +214,7 @@ export const MainVideoPage: React.FC = () => {
     } else if (sortBy === "trending") {
       return b.likes - a.likes;
     }
-    return (
-      new Date(b.createdTime || 0).getTime() -
-      new Date(a.createdTime || 0).getTime()
-    );
+    return new Date(b.createdTime || 0).getTime() - new Date(a.createdTime || 0).getTime();
   });
 
   const loadMoreVideos = async (): Promise<void> => {
@@ -237,7 +232,7 @@ export const MainVideoPage: React.FC = () => {
             size: size,
             category: activeCategory !== "all" ? activeCategory : undefined,
           },
-        }
+        },
       );
 
       if (response.data.data.videos && response.data.data.videos.length > 0) {
@@ -377,19 +372,13 @@ export const MainVideoPage: React.FC = () => {
                         </div>
                         <div className="space-y-3">
                           <div className="bg-indigo-700 bg-opacity-40 p-2 rounded">
-                            <p className="text-sm">
-                              {t("explore:demo.conversion")}
-                            </p>
+                            <p className="text-sm">{t("explore:demo.conversion")}</p>
                           </div>
                           <div className="bg-indigo-700 bg-opacity-40 p-2 rounded">
-                            <p className="text-sm">
-                              {t("explore:demo.key_points")}
-                            </p>
+                            <p className="text-sm">{t("explore:demo.key_points")}</p>
                           </div>
                           <div className="bg-indigo-700 bg-opacity-40 p-2 rounded">
-                            <p className="text-sm">
-                              {t("explore:demo.time_saving")}
-                            </p>
+                            <p className="text-sm">{t("explore:demo.time_saving")}</p>
                           </div>
                         </div>
                       </div>
@@ -462,29 +451,15 @@ export const MainVideoPage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <SortingMenu
-                    options={sortOptions}
-                    selectedOption={sortBy}
-                    onSelect={setSortBy}
-                  />
+                  <SortingMenu options={sortOptions} selectedOption={sortBy} onSelect={setSortBy} />
 
                   <div className="ml-3">
-                    <ViewToggle
-                      viewMode={viewMode}
-                      onViewChange={setViewMode}
-                    />
+                    <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
                   </div>
 
                   <div className="ml-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleReload}
-                      disabled={loading}
-                    >
-                      {loading
-                        ? t("explore:buttons.loading")
-                        : t("explore:buttons.reload")}
+                    <Button variant="outline" size="sm" onClick={handleReload} disabled={loading}>
+                      {loading ? t("explore:buttons.loading") : t("explore:buttons.reload")}
                     </Button>
                   </div>
                 </>
@@ -528,9 +503,7 @@ export const MainVideoPage: React.FC = () => {
 
           {sortedVideos.length === 0 && !loading && (
             <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">
-                {t("explore:messages.no_videos")}
-              </p>
+              <p className="text-gray-500 mb-4">{t("explore:messages.no_videos")}</p>
               <Button
                 variant="outline"
                 onClick={() => handleCategoryChange("all")}
@@ -549,15 +522,9 @@ export const MainVideoPage: React.FC = () => {
                 disabled={loading}
                 className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
               >
-                {loading
-                  ? t("explore:buttons.loading")
-                  : t("explore:buttons.load_more")}
+                {loading ? t("explore:buttons.loading") : t("explore:buttons.load_more")}
               </Button>
-              <Button
-                variant="primary"
-                leftIcon={<Plus size={16} />}
-                onClick={handleUploadClick}
-              >
+              <Button variant="primary" leftIcon={<Plus size={16} />} onClick={handleUploadClick}>
                 {t("explore:buttons.upload_video")}
               </Button>
             </div>

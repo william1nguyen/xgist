@@ -14,8 +14,7 @@ export interface BaseModel<T = string> {
   updatedAt: string;
 }
 
-export const OptionalDefaultNull = (ts: TSchema) =>
-  Type.Optional(Type.Union([Type.Null(), ts]));
+export const OptionalDefaultNull = (ts: TSchema) => Type.Optional(Type.Union([Type.Null(), ts]));
 
 export const OptionalDefaultUndefined = (ts: TSchema) =>
   Type.Optional(Type.Union([Type.Undefined(), ts]));
@@ -31,19 +30,14 @@ type IntoStringLiteralUnion<T> = {
   [K in keyof T]: T[K] extends string ? TLiteral<T[K]> : never;
 };
 
-export function EnumType<T extends string[]>(
-  values: [...T]
-): TUnion<IntoStringLiteralUnion<T>> {
+export function EnumType<T extends string[]>(values: [...T]): TUnion<IntoStringLiteralUnion<T>> {
   return {
     enum: [...values],
     type: "string",
   } as any;
 }
 
-export const createListResponseSchema = <T extends TObject>(
-  listKey: string,
-  itemSchema: T
-) =>
+export const createListResponseSchema = <T extends TObject>(listKey: string, itemSchema: T) =>
   Type.Object({
     data: Type.Object({
       [listKey]: Type.Optional(Type.Array(itemSchema)),
@@ -53,13 +47,13 @@ export const createListResponseSchema = <T extends TObject>(
         page: Type.Number(),
         size: Type.Number(),
         total: Type.Number(),
-      })
+      }),
     ),
   });
 
 export const createItemResponseSchema = <T extends TObject | TArray | TLiteral>(
   key: string,
-  itemSchema: T
+  itemSchema: T,
 ) =>
   Type.Object({
     data: Type.Object({

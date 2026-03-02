@@ -1,8 +1,9 @@
+import type { Queue } from "bullmq";
+import type { FastifyPluginAsync } from "fastify";
+
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
 import { FastifyAdapter } from "@bull-board/fastify";
-import type { Queue } from "bullmq";
-import type { FastifyPluginAsync } from "fastify";
 
 export const bullBoardPlugin: FastifyPluginAsync<{
   queues: Queue[];

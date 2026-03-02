@@ -1,10 +1,9 @@
 import jwt from "jsonwebtoken";
 import { JwksClient, type SigningKey } from "jwks-rsa";
-import {
-  ExpiredTokenError,
-  InvalidAuthTokenError,
-} from "~/domain/user/user.errors";
+
+import { ExpiredTokenError, InvalidAuthTokenError } from "~/domain/user/user.errors";
 import { env } from "~/env";
+
 import logger from "../logger";
 
 const jwksUri = env.JWKS_URI;
@@ -14,10 +13,7 @@ const getJwksClient = (isAdmin: boolean) => {
   return jwksClient;
 };
 
-const getSigningKey = async (
-  client: JwksClient,
-  kid: string
-): Promise<SigningKey> => {
+const getSigningKey = async (client: JwksClient, kid: string): Promise<SigningKey> => {
   return new Promise<SigningKey>((resolve, reject) => {
     client.getSigningKey(kid, (err, key) => {
       if (err || !key) {
@@ -29,10 +25,7 @@ const getSigningKey = async (
   });
 };
 
-export const verifyJwt = async (
-  accessToken: string,
-  useAdminAuth?: boolean
-) => {
+export const verifyJwt = async (accessToken: string, useAdminAuth?: boolean) => {
   const jwksC = getJwksClient(Boolean(useAdminAuth));
   const jwtPayload = jwt.decode(accessToken, { complete: true, json: true });
 
@@ -78,13 +71,7 @@ export const extractPayloadNoVerify = (jwtToken: string) => {
 export const extractPayload = async (accessToken: string) => {
   const payload = await verifyJwt(accessToken);
 
-  if (
-    typeof payload === "string" ||
-    !payload.sub ||
-    !payload.jti ||
-    !payload.sid ||
-    !payload.exp
-  ) {
+  if (typeof payload === "string" || !payload.sub || !payload.jti || !payload.sid || !payload.exp) {
     throw new InvalidAuthTokenError();
   }
 

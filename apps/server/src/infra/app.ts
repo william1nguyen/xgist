@@ -1,19 +1,21 @@
 import fastifyCors from "@fastify/cors";
-import FastifyRateLimit from "@fastify/rate-limit";
 import fastifyMultipart from "@fastify/multipart";
+import FastifyRateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import scalar from "@scalar/fastify-api-reference";
 import fastify from "fastify";
+import { Server } from "socket.io";
+
 import { execSecurityHandlerChain } from "~/domain/user/security-plugin/plugin";
 import { userModule } from "~/domain/user/user.module";
 import { videoModule } from "~/domain/video/video.module";
 import { env } from "~/env";
+
 import { bullBoardPlugin } from "./bullboard";
 import { queues } from "./jobs";
-import { Server } from "socket.io";
-import { redisDefault } from "./redis";
 import { INotification } from "./jobs/workers/summarize";
 import logger from "./logger";
+import { redisDefault } from "./redis";
 
 const app = fastify({ logger: true });
 

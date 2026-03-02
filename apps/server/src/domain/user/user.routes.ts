@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+
 import { getUserInfo, register } from "./user.services";
 import { KeycloakWebhookPayload, RegisterResponse } from "./user.types";
 
@@ -16,7 +17,7 @@ export const userRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const user = await getUserInfo(req.principal?.user?.id);
       return user;
-    }
+    },
   );
 
   app.post(
@@ -37,6 +38,6 @@ export const userRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const user = register(req.body);
       return user;
-    }
+    },
   );
 };

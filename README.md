@@ -1,151 +1,78 @@
 # xgist
 
-<div align="center">
-  
-  ![xgist Logo](public/xgist-logo.png)
-  
-  # **AI-Driven Content Sharing Platform**
-  ### *Summarization for Social Video and Voice* 
-  
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org)
-  [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://reactjs.org)
-  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
-  [![Fastify](https://img.shields.io/badge/Fastify-Latest-000000?logo=fastify&logoColor=white)](https://www.fastify.io/)
-  
-</div>
+This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, React Router, Fastify, ORPC, and more.
 
-## Project Overview
+## Features
 
-**Xgist** is an innovative platform designed to intelligently summarize and share social video and voice content, making information consumption more efficient and accessible.
+- **TypeScript** - For type safety and improved developer experience
+- **React Router** - Declarative routing for React
+- **TailwindCSS** - Utility-first CSS for rapid UI development
+- **shadcn/ui** - Reusable UI components
+- **Fastify** - Fast, low-overhead web framework
+- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
+- **Node.js** - Runtime environment
+- **Drizzle** - TypeScript-first ORM
+- **PostgreSQL** - Database engine
+- **Authentication** - Better-Auth
+- **Turborepo** - Optimized monorepo build system
+- **Biome** - Linting and formatting
 
-**Transform lengthy content into concise, valuable summaries while preserving the core message**
+## Getting Started
 
-<img width="1289" height="665" alt="Screenshot 2025-05-26 at 01 24 04" src="https://github.com/user-attachments/assets/1589658d-29bc-4dc2-bc8e-0d65bc331419" />
-<img width="1289" height="665" alt="Screenshot 2026-02-26 at 02 27 41" src="https://github.com/user-attachments/assets/ed50d727-4edf-4793-9777-31ad1276cf89" />
+First, install the dependencies:
 
-## Architecture
+```bash
+pnpm install
+```
 
-<img width="1289" height="665" alt="Screenshot 2026-02-26 at 01 39 26" src="https://github.com/user-attachments/assets/70e9e02a-5c5f-41e6-9536-60f176c0df8f" />
+## Database Setup
 
+This project uses PostgreSQL with Drizzle ORM.
 
-## Technology Stack
+1. Make sure you have a PostgreSQL database set up.
+2. Update your `apps/server/.env` file with your PostgreSQL connection details.
 
-<table>
-  <tr>
-    <td><b> Project Structure</b></td>
-    <td>
-      <ul>
-        <li> <b>Monorepo Architecture</b></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td><b> Frontend</b></td>
-    <td>
-      <ul>
-        <li><b>React</b></li>
-        <li><b>Tailwind CSS</b></li>
-        <li><b>i18n</b></li>
-        <li><b>Nginx</b></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td><b>Backend</b></td>
-    <td>
-      <ul>
-        <li><b>Fastify</b></li>
-        <li><b>FastAPI</b></li>
-        <li><b>PostgreSQL</b></li>
-        <li><b>Socket.io</b></li>
-        <li><b>BullMQ</b></li>
-        <li><b>Keycloak</b></li>
-        <li><b>MinIO</b></li>
-      </ul>
-    </td>
-  </tr>
-</table>
+3. Apply the schema to your database:
 
-## How to run ?
+```bash
+pnpm run db:push
+```
 
-### Prerequisites
+Then, run the development server:
 
-- Node.js (v18+)
-- PostgreSQL (v14+)
-- Docker and Docker Compose (for containerized deployment)
-- Keycloak for authentication
-- Gemini API key for AI capabilities
+```bash
+pnpm run dev
+```
 
-### Installation
+Open [http://localhost:5173](http://localhost:5173) in your browser to see the web application.
+The API is running at [http://localhost:3000](http://localhost:3000).
 
-1. Clone the repository:
+## Git Hooks and Formatting
 
-   ```bash
-   $ git clone https://github.com/william1nguyen/xgist.git
-   $ cd xgist
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   $ pnpm install
-   ```
-
-3. Set up environment variables:
-
-   ```bash
-   $ cd /apps/<APP_NAME>
-   $ cp .env.example .env
-   ```
-
-4. Start the development environment:
-   ```bash
-   $ pnpm run dev
-   ```
-
-### Keycloak Setup
-
-- Follow these steps to set up Keycloak using the [keycloak-custom-setup](https://github.com/william1nguyen/keycloak-custom-setup) repository
-
-- For detailed customization options, refer to the [Keycloak documentation](https://www.keycloak.org/documentation.html).
-
-### Gemini API Setup
-
-1. Create a Google Cloud account if you don't have one already at [console.cloud.google.com](https://console.cloud.google.com)
-
-2. Enable the Gemini API:
-
-   - Go to [Google AI Studio](https://makersuite.google.com/)
-   - Sign in with your Google account
-   - Click on "Get API key" or navigate to the API keys section
-   - Generate a new API key
-
-3. Add the API key to your environment variables:
-
-   ```bash
-   # In your apps/server/.env file
-   GEMINI_URL=changeme
-   GOOGLE_API_KEY=changeme
-   ```
-
-For more information about Gemini API capabilities and models, visit the [Google AI documentation](https://ai.google.dev/docs).
+- Format and lint fix: `pnpm run check`
 
 ## Project Structure
-
-Based on your actual project structure:
 
 ```
 xgist/
 ├── apps/
-│   ├── ai/                  # AI service application
-│   ├── server/              # Backend server
-│   └── web/                 # React frontend application
-├── docker-compose.dev.yml  # Development Docker Compose
+│   ├── web/         # Frontend application (React + React Router)
+│   └── server/      # Backend API (Fastify, ORPC)
+├── packages/
+│   ├── api/         # API layer / business logic
+│   ├── auth/        # Authentication configuration & logic
+│   └── db/          # Database schema & queries
 ```
 
-## 📄 License
+## Available Scripts
 
-[MIT License](LICENSE)
-
----
+- `pnpm run dev`: Start all applications in development mode
+- `pnpm run build`: Build all applications
+- `pnpm run dev:web`: Start only the web application
+- `pnpm run dev:server`: Start only the server
+- `pnpm run check-types`: Check TypeScript types across all apps
+- `pnpm run db:push`: Push schema changes to database
+- `pnpm run db:generate`: Generate database client/types
+- `pnpm run db:migrate`: Run database migrations
+- `pnpm run db:studio`: Open database studio UI
+- `pnpm run check`: Run Biome formatting and linting

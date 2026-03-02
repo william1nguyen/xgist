@@ -1,10 +1,11 @@
-import { env } from "~/env";
-import * as userSchema from "./schema/user";
-import * as videoSchema from "./schema/video";
-
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+
+import { env } from "~/env";
 import logger from "~/infra/logger";
+
+import * as userSchema from "./schema/user";
+import * as videoSchema from "./schema/video";
 
 const schema = {
   ...userSchema,

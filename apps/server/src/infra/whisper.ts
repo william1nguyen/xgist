@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import { env } from "~/env";
 
 export const whisperHttpClient = axios.create({
@@ -29,7 +30,7 @@ export const transcribe = async (buffer: Buffer, filename = "filename.mp4") => {
 export const transcribeStream = async (
   buffer: Buffer,
   filename = "filename.mp4",
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
 ) => {
   try {
     const totalSize = buffer.length;
@@ -42,9 +43,7 @@ export const transcribeStream = async (
       onUploadProgress: (progressEvent) => {
         if (onProgress) {
           const total = progressEvent.total || totalSize;
-          const percentCompleted = total
-            ? Math.round((progressEvent.loaded * 100) / total)
-            : -1;
+          const percentCompleted = total ? Math.round((progressEvent.loaded * 100) / total) : -1;
           onProgress(percentCompleted);
         }
       },
@@ -56,10 +55,7 @@ export const transcribeStream = async (
   }
 };
 
-export const transcribeFile = async (
-  file: File,
-  onProgress?: (percent: number) => void
-) => {
+export const transcribeFile = async (file: File, onProgress?: (percent: number) => void) => {
   try {
     if (file.size > 100 * 1024 * 1024) {
       const buffer = await file.arrayBuffer();
@@ -72,9 +68,7 @@ export const transcribeFile = async (
         headers: { Accept: "application/json" },
         onUploadProgress: (progressEvent) => {
           if (onProgress && progressEvent.total) {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             onProgress(percentCompleted);
           }
         },

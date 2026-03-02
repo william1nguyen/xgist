@@ -1,5 +1,6 @@
 import { Job, Queue, Worker } from "bullmq";
 import { eq } from "drizzle-orm";
+
 import { summarizeBuffer } from "~/domain/video/video.services";
 import { db } from "~/drizzle/db";
 import { videoTable } from "~/drizzle/schema/video";
@@ -99,7 +100,7 @@ export const createSummaryWorker = (): Worker => {
     {
       connection: redisForBullMq,
       concurrency: 1,
-    }
+    },
   );
   summaryWorker.on("completed", async (job) => {
     logger.info({ msg: "Job completed", jobId: job.id });

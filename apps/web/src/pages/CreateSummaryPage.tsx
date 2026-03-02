@@ -1,4 +1,3 @@
-import React, { useState, useRef, ChangeEvent, FormEvent } from "react";
 import {
   X,
   Upload,
@@ -12,16 +11,18 @@ import {
   LogIn,
   Lock,
 } from "lucide-react";
-import { TabItem } from "../types";
-import { TabNavigation } from "../components/navigation/TabNavigation";
+import React, { useState, useRef, ChangeEvent, FormEvent } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+
 import { Layout } from "../components/layout/Layout";
+import { TabNavigation } from "../components/navigation/TabNavigation";
+import { TwoPanelSummary } from "../components/TwoPanelSummary";
 import { Button } from "../components/ui/Button";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { httpClient } from "../config/httpClient";
-import { toast } from "react-toastify";
-import { useTranslation } from "react-i18next";
-import { TwoPanelSummary } from "../components/TwoPanelSummary";
 import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
+import { TabItem } from "../types";
 
 interface AdvancedOptions {
   keywords: boolean;
@@ -58,8 +59,7 @@ export const CreateSummaryPage: React.FC = () => {
   const { t } = useTranslation(["common", "summary", "videos"]);
 
   const [activeTab, setActiveTab] = useState<string>("summarize");
-  const [showAdvancedOptions, setShowAdvancedOptions] =
-    useState<boolean>(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
   const [advancedOptions, setAdvancedOptions] = useState<AdvancedOptions>({
     keywords: true,
     keyPoints: true,
@@ -171,18 +171,12 @@ export const CreateSummaryPage: React.FC = () => {
           "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent: any) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setProgress(percentCompleted);
         },
       };
 
-      const response = await httpClient.post(
-        "/v1/videos/summarize",
-        formData,
-        config
-      );
+      const response = await httpClient.post("/v1/videos/summarize", formData, config);
 
       setIsComplete(true);
       setSummaryData(response.data);
@@ -218,9 +212,7 @@ export const CreateSummaryPage: React.FC = () => {
           "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent: any) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setProgress(percentCompleted);
         },
       };
@@ -328,9 +320,7 @@ export const CreateSummaryPage: React.FC = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center">
             <File size={20} className="text-gray-600 mr-2" />
-            <span className="text-sm font-medium text-black">
-              {videoFile!.name}
-            </span>
+            <span className="text-sm font-medium text-black">{videoFile!.name}</span>
           </div>
           <button
             onClick={() => {
@@ -349,18 +339,11 @@ export const CreateSummaryPage: React.FC = () => {
 
         {isProcessing && (
           <>
-            <ProgressBar
-              progress={progress}
-              height="sm"
-              color="blue"
-              animate={true}
-            />
+            <ProgressBar progress={progress} height="sm" color="blue" animate={true} />
             <div className="flex justify-between text-xs text-gray-700 mt-2">
               <span className="font-medium">
                 {progress < 50 && t("summary:progress.uploading")}
-                {progress >= 50 &&
-                  progress < 95 &&
-                  t("summary:progress.processing")}
+                {progress >= 50 && progress < 95 && t("summary:progress.processing")}
                 {progress >= 95 && t("summary:progress.finishing")}
               </span>
               <span className="font-medium">{progress}%</span>
@@ -370,9 +353,7 @@ export const CreateSummaryPage: React.FC = () => {
 
         <div className="flex justify-between text-xs text-gray-700 mt-2">
           <span>{t("summary:file.selected")}</span>
-          <span className="font-medium">
-            {(videoFile!.size / (1024 * 1024)).toFixed(2)} MB
-          </span>
+          <span className="font-medium">{(videoFile!.size / (1024 * 1024)).toFixed(2)} MB</span>
         </div>
       </div>
     </>
@@ -381,21 +362,12 @@ export const CreateSummaryPage: React.FC = () => {
   const renderLoadingIndicator = () => (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h3 className="text-lg font-semibold text-black mb-4">
-          {t("summary:loading.title")}
-        </h3>
-        <ProgressBar
-          progress={progress}
-          height="md"
-          color="blue"
-          animate={true}
-        />
+        <h3 className="text-lg font-semibold text-black mb-4">{t("summary:loading.title")}</h3>
+        <ProgressBar progress={progress} height="md" color="blue" animate={true} />
         <div className="mt-3 text-sm text-gray-700">
           <p className="mb-1 font-medium">
             {progress < 50 && t("summary:progress.uploading")}
-            {progress >= 50 &&
-              progress < 95 &&
-              t("summary:progress.processing")}
+            {progress >= 50 && progress < 95 && t("summary:progress.processing")}
             {progress >= 95 && t("summary:progress.finishing")}
           </p>
           <p>{t("summary:loading.please_wait")}</p>
@@ -435,9 +407,7 @@ export const CreateSummaryPage: React.FC = () => {
     <Layout
       activeItem="summarize"
       title={
-        activeTab === "summarize"
-          ? t("summary:page_title.create")
-          : t("summary:page_title.upload")
+        activeTab === "summarize" ? t("summary:page_title.create") : t("summary:page_title.upload")
       }
       headerContent={headerContent}
     >
@@ -466,16 +436,11 @@ export const CreateSummaryPage: React.FC = () => {
                           onChange={handleFileSelect}
                           accept="video/*"
                         />
-                        <Upload
-                          size={48}
-                          className="mx-auto text-blue-500 mb-4"
-                        />
+                        <Upload size={48} className="mx-auto text-blue-500 mb-4" />
                         <p className="text-base text-black font-medium mb-2">
                           {t("summary:dropzone.text")}
                         </p>
-                        <p className="text-sm text-gray-700">
-                          {t("summary:dropzone.formats")}
-                        </p>
+                        <p className="text-sm text-gray-700">{t("summary:dropzone.formats")}</p>
                       </div>
                     ) : (
                       renderFilePreview()
@@ -489,9 +454,7 @@ export const CreateSummaryPage: React.FC = () => {
                       </label>
                       <button
                         type="button"
-                        onClick={() =>
-                          setShowAdvancedOptions(!showAdvancedOptions)
-                        }
+                        onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
                         className="text-sm text-blue-600 hover:text-blue-800 flex items-center font-medium"
                         disabled={isProcessing}
                       >
@@ -510,9 +473,7 @@ export const CreateSummaryPage: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={advancedOptions.keywords}
-                                onChange={() =>
-                                  handleAdvancedOptionChange("keywords")
-                                }
+                                onChange={() => handleAdvancedOptionChange("keywords")}
                                 className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                 disabled={isProcessing}
                               />
@@ -527,16 +488,12 @@ export const CreateSummaryPage: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={advancedOptions.keyPoints}
-                                onChange={() =>
-                                  handleAdvancedOptionChange("keyPoints")
-                                }
+                                onChange={() => handleAdvancedOptionChange("keyPoints")}
                                 className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                 disabled={isProcessing}
                               />
                               <span className="ml-3 text-black">
-                                {t(
-                                  "summary:advanced_options.extract_key_points"
-                                )}
+                                {t("summary:advanced_options.extract_key_points")}
                               </span>
                             </label>
                           </div>
@@ -547,19 +504,11 @@ export const CreateSummaryPage: React.FC = () => {
 
                   <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
                     {isProcessing ? (
-                      <Button
-                        variant="outline"
-                        onClick={resetForm}
-                        type="button"
-                      >
+                      <Button variant="outline" onClick={resetForm} type="button">
                         {t("summary:buttons.cancel")}
                       </Button>
                     ) : (
-                      <Button
-                        variant="primary"
-                        type="submit"
-                        disabled={!videoFile}
-                      >
+                      <Button variant="primary" type="submit" disabled={!videoFile}>
                         {t("summary:buttons.create_summary")}
                       </Button>
                     )}
@@ -599,16 +548,11 @@ export const CreateSummaryPage: React.FC = () => {
                         onChange={handleFileSelect}
                         accept="video/*"
                       />
-                      <Upload
-                        size={48}
-                        className="mx-auto text-blue-500 mb-4"
-                      />
+                      <Upload size={48} className="mx-auto text-blue-500 mb-4" />
                       <p className="text-base text-black font-medium mb-2">
                         {t("summary:dropzone.text")}
                       </p>
-                      <p className="text-sm text-gray-700">
-                        {t("summary:dropzone.formats")}
-                      </p>
+                      <p className="text-sm text-gray-700">{t("summary:dropzone.formats")}</p>
                     </div>
                   ) : (
                     renderFilePreview()
@@ -677,16 +621,13 @@ export const CreateSummaryPage: React.FC = () => {
                       htmlFor="videoTitle"
                       className="block text-base font-semibold text-black mb-2"
                     >
-                      {t("summary:upload.video_title")}{" "}
-                      <span className="text-red-500">*</span>
+                      {t("summary:upload.video_title")} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       id="videoTitle"
                       value={videoTitle}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setVideoTitle(e.target.value)
-                      }
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setVideoTitle(e.target.value)}
                       placeholder={t("summary:upload.title_placeholder")}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                       required
@@ -738,27 +679,15 @@ export const CreateSummaryPage: React.FC = () => {
                         ))
                       ) : (
                         <>
-                          <option value="technology">
-                            {t("summary:categories.technology")}
-                          </option>
-                          <option value="education">
-                            {t("summary:categories.education")}
-                          </option>
+                          <option value="technology">{t("summary:categories.technology")}</option>
+                          <option value="education">{t("summary:categories.education")}</option>
                           <option value="productivity">
                             {t("summary:categories.productivity")}
                           </option>
-                          <option value="finance">
-                            {t("summary:categories.finance")}
-                          </option>
-                          <option value="travel">
-                            {t("summary:categories.travel")}
-                          </option>
-                          <option value="health">
-                            {t("summary:categories.health")}
-                          </option>
-                          <option value="other">
-                            {t("summary:categories.other")}
-                          </option>
+                          <option value="finance">{t("summary:categories.finance")}</option>
+                          <option value="travel">{t("summary:categories.travel")}</option>
+                          <option value="health">{t("summary:categories.health")}</option>
+                          <option value="other">{t("summary:categories.other")}</option>
                         </>
                       )}
                     </select>
@@ -772,9 +701,7 @@ export const CreateSummaryPage: React.FC = () => {
                     </h3>
                     <button
                       type="button"
-                      onClick={() =>
-                        setShowAdvancedOptions(!showAdvancedOptions)
-                      }
+                      onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
                       className="text-sm text-blue-600 hover:text-blue-800 flex items-center font-medium"
                       disabled={isProcessing}
                     >
@@ -792,9 +719,7 @@ export const CreateSummaryPage: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={advancedOptions.keywords}
-                            onChange={() =>
-                              handleAdvancedOptionChange("keywords")
-                            }
+                            onChange={() => handleAdvancedOptionChange("keywords")}
                             className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                             disabled={isProcessing}
                           />
@@ -809,9 +734,7 @@ export const CreateSummaryPage: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={advancedOptions.keyPoints}
-                            onChange={() =>
-                              handleAdvancedOptionChange("keyPoints")
-                            }
+                            onChange={() => handleAdvancedOptionChange("keyPoints")}
                             className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                             disabled={isProcessing}
                           />

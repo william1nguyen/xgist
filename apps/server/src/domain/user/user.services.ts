@@ -1,11 +1,15 @@
 import type { User } from "@sentry/node";
+
 import { eq } from "drizzle-orm";
+
 import { db } from "~/drizzle/db";
 import { userTable } from "~/drizzle/schema/user";
 import logger from "~/infra/logger";
 import { itemResponse } from "~/infra/utils/fns";
-import { InvalidWebhookTypeError, UserNotFoundError } from "./user.errors";
+
 import type { KeycloakWebhookPayload } from "./user.types";
+
+import { InvalidWebhookTypeError, UserNotFoundError } from "./user.errors";
 
 export const getUserByKeycloakUserId = async (keycloakUserId: string) => {
   const users: User[] = await db
@@ -25,11 +29,7 @@ export const getUserInfo = async (userId: string | undefined) => {
     throw new UserNotFoundError();
   }
 
-  const users = await db
-    .select()
-    .from(userTable)
-    .where(eq(userTable.id, userId))
-    .limit(1);
+  const users = await db.select().from(userTable).where(eq(userTable.id, userId)).limit(1);
   if (!users) {
     throw new UserNotFoundError();
   }
@@ -56,9 +56,9 @@ export const register = async ({
     const user = await db
       .insert(userTable)
       .values({
-          keycloakUserId,
-          username,
-          email,
+        keycloakUserId,
+        username,
+        email,
       })
       .onConflictDoUpdate({
         target: [userTable.id],

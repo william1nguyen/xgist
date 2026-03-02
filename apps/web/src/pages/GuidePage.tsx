@@ -1,5 +1,3 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   FastForward,
   ChevronLeft,
@@ -12,9 +10,12 @@ import {
   ChevronRight,
   Share2,
 } from "lucide-react";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
 import { Layout } from "../components/layout/Layout";
 import { Button } from "../components/ui/Button";
-import { useTranslation } from "react-i18next";
 
 export const GuidePage: React.FC = () => {
   const navigate = useNavigate();
@@ -139,9 +140,7 @@ export const GuidePage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1 space-y-4">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">
-              {t("selectGuide")}
-            </h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">{t("selectGuide")}</h2>
 
             {guides.map((guide) => (
               <GuideNavButton key={guide.id} guide={guide} />
@@ -152,9 +151,7 @@ export const GuidePage: React.FC = () => {
                 <Clock size={18} className="mr-2" />
                 {t("timeSaver.title")}
               </h3>
-              <p className="text-sm text-gray-700 mt-2">
-                {t("timeSaver.description")}
-              </p>
+              <p className="text-sm text-gray-700 mt-2">{t("timeSaver.description")}</p>
             </div>
           </div>
 
@@ -162,15 +159,10 @@ export const GuidePage: React.FC = () => {
             {guides.map(
               (guide) =>
                 guide.id === activeGuide && (
-                  <div
-                    key={guide.id}
-                    className="border border-gray-200 rounded-lg p-6 shadow-sm"
-                  >
+                  <div key={guide.id} className="border border-gray-200 rounded-lg p-6 shadow-sm">
                     <div className="flex items-center mb-6">
                       {guide.icon}
-                      <h2 className="text-2xl font-bold ml-4 text-gray-900">
-                        {guide.title}
-                      </h2>
+                      <h2 className="text-2xl font-bold ml-4 text-gray-900">{guide.title}</h2>
                     </div>
 
                     <p className="text-gray-700 mb-6">{guide.description}</p>
@@ -191,9 +183,7 @@ export const GuidePage: React.FC = () => {
                         <CheckCircle2 size={18} className="mr-2" />
                         {t("tips.title")}
                       </h3>
-                      <p className="text-sm text-gray-700">
-                        {t(`tips.guide${guide.id}`)}
-                      </p>
+                      <p className="text-sm text-gray-700">{t(`tips.guide${guide.id}`)}</p>
                     </div>
 
                     <div className="mt-8 flex flex-wrap gap-3">
@@ -240,62 +230,36 @@ export const GuidePage: React.FC = () => {
                       <Button
                         variant="outline"
                         leftIcon={
-                          guide.id < 4 ? (
-                            <ChevronRight size={16} />
-                          ) : (
-                            <FastForward size={16} />
-                          )
+                          guide.id < 4 ? <ChevronRight size={16} /> : <FastForward size={16} />
                         }
                         className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-medium"
-                        onClick={() =>
-                          setActiveGuide(guide.id < 4 ? guide.id + 1 : 1)
-                        }
+                        onClick={() => setActiveGuide(guide.id < 4 ? guide.id + 1 : 1)}
                       >
-                        {guide.id < 4
-                          ? t("buttons.nextGuide")
-                          : t("buttons.startOver")}
+                        {guide.id < 4 ? t("buttons.nextGuide") : t("buttons.startOver")}
                       </Button>
                     </div>
                   </div>
-                )
+                ),
             )}
 
             <div className="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h3 className="text-lg font-semibold mb-3 text-gray-900">
-                {t("faq.title")}
-              </h3>
+              <h3 className="text-lg font-semibold mb-3 text-gray-900">{t("faq.title")}</h3>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-900">
-                    {t("faq.q1.question")}
-                  </h4>
-                  <p className="text-sm text-gray-700 mt-1">
-                    {t("faq.q1.answer")}
-                  </p>
+                  <h4 className="font-medium text-gray-900">{t("faq.q1.question")}</h4>
+                  <p className="text-sm text-gray-700 mt-1">{t("faq.q1.answer")}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">
-                    {t("faq.q2.question")}
-                  </h4>
-                  <p className="text-sm text-gray-700 mt-1">
-                    {t("faq.q2.answer")}
-                  </p>
+                  <h4 className="font-medium text-gray-900">{t("faq.q2.question")}</h4>
+                  <p className="text-sm text-gray-700 mt-1">{t("faq.q2.answer")}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">
-                    {t("faq.q3.question")}
-                  </h4>
-                  <p className="text-sm text-gray-700 mt-1">
-                    {t("faq.q3.answer")}
-                  </p>
+                  <h4 className="font-medium text-gray-900">{t("faq.q3.question")}</h4>
+                  <p className="text-sm text-gray-700 mt-1">{t("faq.q3.answer")}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">
-                    {t("faq.q4.question")}
-                  </h4>
-                  <p className="text-sm text-gray-700 mt-1">
-                    {t("faq.q4.answer")}
-                  </p>
+                  <h4 className="font-medium text-gray-900">{t("faq.q4.question")}</h4>
+                  <p className="text-sm text-gray-700 mt-1">{t("faq.q4.answer")}</p>
                 </div>
               </div>
             </div>

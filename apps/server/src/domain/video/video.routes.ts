@@ -1,5 +1,8 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+
 import { GetQueryString } from "~/infra/utils/schema";
+
+import { getCategoryStats, getUserActivities, getUserStatistics } from "./stats.service";
 import {
   getBookmarkedVideos,
   getMyVideos,
@@ -27,11 +30,6 @@ import {
   UpdateVideoViewsBody,
   UploadVideoBody,
 } from "./video.types";
-import {
-  getCategoryStats,
-  getUserActivities,
-  getUserStatistics,
-} from "./stats.service";
 
 const tags = ["video"];
 
@@ -48,7 +46,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await getNotifications(req.query, req.principal.user.id);
       return res;
-    }
+    },
   );
 
   app.get(
@@ -66,7 +64,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await getVideos(req.query, req.principal?.user?.id);
       return res;
-    }
+    },
   );
 
   app.get(
@@ -81,7 +79,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await getMyVideos(req.query, req.principal.user.id);
       return res;
-    }
+    },
   );
 
   app.get(
@@ -99,7 +97,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await getVideoDetail(req.params, req.principal?.user?.id);
       return res;
-    }
+    },
   );
 
   app.get(
@@ -118,7 +116,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await getRelatedVideos(req.params, req.query);
       return res;
-    }
+    },
   );
 
   app.get(
@@ -133,7 +131,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await getBookmarkedVideos(req.query, req.principal.user.id);
       return res;
-    }
+    },
   );
 
   app.get(
@@ -154,7 +152,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
           categories,
         },
       };
-    }
+    },
   );
 
   app.get(
@@ -175,7 +173,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
           activities,
         },
       };
-    }
+    },
   );
 
   app.get(
@@ -194,7 +192,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
         success: true,
         data: statistics,
       };
-    }
+    },
   );
 
   app.post(
@@ -209,7 +207,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await postVideo(req.body, req.principal.user.id);
       return res;
-    }
+    },
   );
 
   app.post(
@@ -231,7 +229,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await updateVideoViews(req.body);
       return res;
-    }
+    },
   );
 
   app.post(
@@ -249,7 +247,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await summarizeVideo(req.body);
       return res;
-    }
+    },
   );
 
   app.post(
@@ -264,7 +262,7 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await toggleBookmark(req.params, req.principal.user.id);
       return res;
-    }
+    },
   );
 
   app.post(
@@ -279,6 +277,6 @@ export const videoRoutes: FastifyPluginAsyncTypebox = async (app) => {
     async (req) => {
       const res = await toggleLike(req.params, req.principal.user.id);
       return res;
-    }
+    },
   );
 };

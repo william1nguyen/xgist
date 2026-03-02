@@ -1,14 +1,15 @@
 import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { LandingPage } from "./pages/LandingPage";
-import { MainVideoPage } from "./pages/MainVideoPage";
+
 import { CreateSummaryPage } from "./pages/CreateSummaryPage";
-import { LibraryPage } from "./pages/LibraryPage";
-import { TrendingPage } from "./pages/TrendingPage";
-import { SettingsPage } from "./pages/SettingPage";
-import { VideoDetailPage } from "./pages/VideoDetailPage";
 import { GuidePage } from "./pages/GuidePage";
+import { LandingPage } from "./pages/LandingPage";
+import { LibraryPage } from "./pages/LibraryPage";
+import { MainVideoPage } from "./pages/MainVideoPage";
+import { SettingsPage } from "./pages/SettingPage";
+import { TrendingPage } from "./pages/TrendingPage";
+import { VideoDetailPage } from "./pages/VideoDetailPage";
 
 function App() {
   return (

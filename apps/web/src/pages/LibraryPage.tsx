@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
 import { Folder } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { VideoItem, TabItem, SortOption } from "../types";
-import { TabNavigation } from "../components/navigation/TabNavigation";
-import { Button } from "../components/ui/Button";
-import { Layout } from "../components/layout/Layout";
 import { SearchBar } from "../components/filter/SearchBar";
 import { SortingMenu } from "../components/filter/SortingMenu";
 import { ViewToggle } from "../components/filter/ViewToggle";
+import { Layout } from "../components/layout/Layout";
+import { TabNavigation } from "../components/navigation/TabNavigation";
 import { VideoSkeleton } from "../components/skeleton/VideoSkeleton";
+import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { VideoCard } from "../components/video/VideoCard";
 import { env } from "../config/env";
-import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
 import { httpClient } from "../config/httpClient";
+import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
+import { VideoItem, TabItem, SortOption } from "../types";
 
 interface BookmarkItem {
   video: VideoItem;
@@ -31,9 +31,7 @@ export const LibraryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useKeycloakAuth();
 
-  const tabs: TabItem[] = [
-    { id: "bookmarks", label: t("library:tabs.bookmarks") },
-  ];
+  const tabs: TabItem[] = [{ id: "bookmarks", label: t("library:tabs.bookmarks") }];
 
   const sortOptions: SortOption[] = [
     { id: "recent", label: t("library:sorting.recent") },
@@ -56,15 +54,12 @@ export const LibraryPage: React.FC = () => {
         q: searchQuery,
       };
 
-      const response = await httpClient.get(
-        `${env.VITE_BASE_URL}/v1/videos/bookmarks`,
-        {
-          params,
-          headers: {
-            Authorization: `Bearer ${user?.access_token}`,
-          },
-        }
-      );
+      const response = await httpClient.get(`${env.VITE_BASE_URL}/v1/videos/bookmarks`, {
+        params,
+        headers: {
+          Authorization: `Bearer ${user?.access_token}`,
+        },
+      });
       setBookmarks(response.data.data.videos);
       setLoading(false);
     } catch (err) {
@@ -90,18 +85,16 @@ export const LibraryPage: React.FC = () => {
       return [...bookmarks].sort(
         (a, b) =>
           new Date(b.video.createdTime || "").getTime() -
-          new Date(a.video.createdTime || "").getTime()
+          new Date(a.video.createdTime || "").getTime(),
       );
     } else if (sortBy === "oldest") {
       return [...bookmarks].sort(
         (a, b) =>
           new Date(a.video.createdTime || "").getTime() -
-          new Date(b.video.createdTime || "").getTime()
+          new Date(b.video.createdTime || "").getTime(),
       );
     } else if (sortBy === "title") {
-      return [...bookmarks].sort((a, b) =>
-        a.video.title.localeCompare(b.video.title)
-      );
+      return [...bookmarks].sort((a, b) => a.video.title.localeCompare(b.video.title));
     } else {
       return bookmarks;
     }
@@ -132,8 +125,7 @@ export const LibraryPage: React.FC = () => {
       formattedDuration: formatDuration(video.duration),
       formattedViews: formatViews(video.views),
       creatorName: video.creator?.username || "",
-      creatorAvatar:
-        video.creator?.username?.substring(0, 2).toUpperCase() || "",
+      creatorAvatar: video.creator?.username?.substring(0, 2).toUpperCase() || "",
       summarized: video.isSummarized,
       createdAt: video.createdTime,
     };
@@ -141,16 +133,10 @@ export const LibraryPage: React.FC = () => {
 
   const displayData = getSortedData();
 
-  const headerContent = (
-    <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={() => {}} />
-  );
+  const headerContent = <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={() => {}} />;
 
   return (
-    <Layout
-      activeItem="library"
-      title={t("library:page_title")}
-      headerContent={headerContent}
-    >
+    <Layout activeItem="library" title={t("library:page_title")} headerContent={headerContent}>
       {error && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
           <p>{error}</p>
@@ -167,23 +153,12 @@ export const LibraryPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-3 w-full md:w-auto">
-          <SortingMenu
-            options={sortOptions}
-            selectedOption={sortBy}
-            onSelect={setSortBy}
-          />
+          <SortingMenu options={sortOptions} selectedOption={sortBy} onSelect={setSortBy} />
 
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReload}
-            disabled={loading}
-          >
-            {loading
-              ? t("library:buttons.loading")
-              : t("library:buttons.reload")}
+          <Button variant="outline" size="sm" onClick={handleReload} disabled={loading}>
+            {loading ? t("library:buttons.loading") : t("library:buttons.reload")}
           </Button>
         </div>
       </div>

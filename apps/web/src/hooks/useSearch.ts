@@ -4,9 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 export const useSearch = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || ""
-  );
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
 
   useEffect(() => {
     const handler = setTimeout(() => {

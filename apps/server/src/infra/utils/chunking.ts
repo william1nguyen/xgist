@@ -1,10 +1,7 @@
 import { spawn } from "node:child_process";
 import { Readable } from "node:stream";
 
-export const chunking = (
-  buffer: Buffer,
-  duration: number
-): Promise<Buffer[]> => {
+export const chunking = (buffer: Buffer, duration: number): Promise<Buffer[]> => {
   return new Promise((resolve, reject) => {
     const output: Buffer[] = [];
 

@@ -1,5 +1,6 @@
 import { and, count, eq, desc, sum, gte } from "drizzle-orm";
 import _ from "lodash";
+
 import { db } from "~/drizzle/db";
 import { videoCategory, videoTable } from "~/drizzle/schema/video";
 
@@ -34,27 +35,21 @@ export const getCategoryStats = async (userId: string) => {
       const result = await db
         .select({ count: count() })
         .from(videoTable)
-        .where(
-          and(eq(videoTable.category, category), eq(videoTable.userId, userId))
-        );
+        .where(and(eq(videoTable.category, category), eq(videoTable.userId, userId)));
 
       return {
         name: category,
         count: result[0].count,
       };
-    })
+    }),
   );
 
-  const totalVideos = categoryCounts.reduce(
-    (sum, category) => sum + category.count,
-    0
-  );
+  const totalVideos = categoryCounts.reduce((sum, category) => sum + category.count, 0);
 
   const categoryData: CategoryData[] = categoryCounts.map((category) => ({
     name: category.name,
     count: category.count,
-    percentage:
-      totalVideos > 0 ? Math.round((category.count / totalVideos) * 100) : 0,
+    percentage: totalVideos > 0 ? Math.round((category.count / totalVideos) * 100) : 0,
   }));
 
   return categoryData.sort((a, b) => b.count - a.count);
@@ -76,9 +71,7 @@ export const getUserActivities = async (userId: string) => {
     .limit(10);
 
   const activities: Activity[] = recentVideos.map((video) => {
-    const isRecent =
-      new Date(video.createdTime).getTime() >
-      Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const isRecent = new Date(video.createdTime).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000;
     const timestamp = formatTimestamp(video.createdTime.toISOString());
 
     if (isRecent && !video.isSummarized) {
@@ -109,9 +102,7 @@ export const getUserActivities = async (userId: string) => {
       return {
         id: `update-${video.id}`,
         title: `Đã cập nhật video "${truncateTitle(video.title)}"`,
-        timestamp: video.updatedTime
-          ? formatTimestamp(video.updatedTime.toISOString())
-          : "N/A",
+        timestamp: video.updatedTime ? formatTimestamp(video.updatedTime.toISOString()) : "N/A",
         iconName: "Edit",
         iconColor: "purple",
       };
@@ -132,17 +123,12 @@ export const getUserStatistics = async (userId: string) => {
     uploadedThisMonthResult,
     summarizedThisMonthResult,
   ] = await Promise.all([
-    db
-      .select({ count: count() })
-      .from(videoTable)
-      .where(eq(videoTable.userId, userId)),
+    db.select({ count: count() }).from(videoTable).where(eq(videoTable.userId, userId)),
 
     db
       .select({ count: count() })
       .from(videoTable)
-      .where(
-        and(eq(videoTable.userId, userId), eq(videoTable.isSummarized, true))
-      ),
+      .where(and(eq(videoTable.userId, userId), eq(videoTable.isSummarized, true))),
 
     db
       .select({ total: sum(videoTable.duration) })
@@ -152,12 +138,7 @@ export const getUserStatistics = async (userId: string) => {
     db
       .select({ count: count() })
       .from(videoTable)
-      .where(
-        and(
-          eq(videoTable.userId, userId),
-          gte(videoTable.createdTime, monthStart)
-        )
-      ),
+      .where(and(eq(videoTable.userId, userId), gte(videoTable.createdTime, monthStart))),
 
     db
       .select({ count: count() })
@@ -166,8 +147,8 @@ export const getUserStatistics = async (userId: string) => {
         and(
           eq(videoTable.userId, userId),
           eq(videoTable.isSummarized, true),
-          gte(videoTable.updatedTime, monthStart)
-        )
+          gte(videoTable.updatedTime, monthStart),
+        ),
       ),
   ]);
 
@@ -176,11 +157,7 @@ export const getUserStatistics = async (userId: string) => {
   const totalDurationInSeconds = totalDurationResult[0].total || 0;
 
   const savedTimeInSeconds = totalSummaries
-    ? Math.floor(
-        (totalDurationInSeconds as number) *
-          0.8 *
-          (totalSummaries / totalVideos)
-      )
+    ? Math.floor((totalDurationInSeconds as number) * 0.8 * (totalSummaries / totalVideos))
     : 0;
 
   return {
@@ -193,10 +170,7 @@ export const getUserStatistics = async (userId: string) => {
   };
 };
 
-export const truncateTitle = (
-  title: string,
-  maxLength: number = 40
-): string => {
+export const truncateTitle = (title: string, maxLength: number = 40): string => {
   if (title.length <= maxLength) return title;
   return title.substring(0, maxLength) + "...";
 };

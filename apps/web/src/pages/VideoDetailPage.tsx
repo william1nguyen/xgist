@@ -1,5 +1,3 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import {
   Clock,
   Eye,
@@ -19,16 +17,18 @@ import {
   Share,
   File,
 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { VideoCard } from "../components/video/VideoCard";
-import { VideoItem, ApiResponse, VideosResponse } from "../types";
-import { TabNavigation } from "../components/navigation/TabNavigation";
-import { Button } from "../components/ui/Button";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
+import { TabNavigation } from "../components/navigation/TabNavigation";
+import { Button } from "../components/ui/Button";
+import { VideoCard } from "../components/video/VideoCard";
 import { env } from "../config/env";
-import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
 import { httpClient } from "../config/httpClient";
+import { useKeycloakAuth } from "../hooks/useKeycloakAuth";
+import { VideoItem, ApiResponse, VideosResponse } from "../types";
 
 export interface Chunk {
   time: number;
@@ -52,9 +52,7 @@ export const VideoDetailPage = () => {
   const [detailedSummary, setDetailedSummary] = useState<string>("");
   const [keyPoints, setKeyPoints] = useState<string[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
-  const [transcript, setTranscript] = useState<Transcript | undefined>(
-    undefined
-  );
+  const [transcript, setTranscript] = useState<Transcript | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
@@ -87,10 +85,8 @@ export const VideoDetailPage = () => {
       }
 
       try {
-        const relatedResponse = await httpClient.get<
-          ApiResponse<VideosResponse>
-        >(
-          `${env.VITE_BASE_URL}/v1/videos/${data.id}/related?category=${data.category}&page=1&size=8`
+        const relatedResponse = await httpClient.get<ApiResponse<VideosResponse>>(
+          `${env.VITE_BASE_URL}/v1/videos/${data.id}/related?category=${data.category}&page=1&size=8`,
         );
         setRelatedVideos(relatedResponse.data.data.videos);
       } catch (error) {
@@ -151,7 +147,7 @@ export const VideoDetailPage = () => {
           headers: {
             Authorization: `Bearer ${user?.access_token}`,
           },
-        }
+        },
       );
       setIsLiked(!isLiked);
     } catch (err) {
@@ -170,7 +166,7 @@ export const VideoDetailPage = () => {
           headers: {
             Authorization: `Bearer ${user?.access_token}`,
           },
-        }
+        },
       );
       setIsBookmarked(!isBookmarked);
     } catch (err) {
@@ -224,17 +220,14 @@ export const VideoDetailPage = () => {
       transcriptContainerRef.current &&
       transcript?.chunks
     ) {
-      const transcriptItems =
-        transcriptContainerRef.current.querySelectorAll(".transcript-item");
+      const transcriptItems = transcriptContainerRef.current.querySelectorAll(".transcript-item");
       let activeIndex = -1;
 
       for (let i = 0; i < transcript.chunks.length; i++) {
         const nextIndex = i + 1;
         const currentChunkTime = transcript.chunks[i].time;
         const nextChunkTime =
-          nextIndex < transcript.chunks.length
-            ? transcript.chunks[nextIndex].time
-            : Infinity;
+          nextIndex < transcript.chunks.length ? transcript.chunks[nextIndex].time : Infinity;
 
         if (currentTime >= currentChunkTime && currentTime < nextChunkTime) {
           activeIndex = i;
@@ -247,22 +240,16 @@ export const VideoDetailPage = () => {
           item.classList.add("bg-indigo-50", "border-l-4", "border-indigo-500");
 
           const itemRect = item.getBoundingClientRect();
-          const containerRect =
-            transcriptContainerRef.current?.getBoundingClientRect();
+          const containerRect = transcriptContainerRef.current?.getBoundingClientRect();
 
           if (
             containerRect &&
-            (itemRect.top < containerRect.top ||
-              itemRect.bottom > containerRect.bottom)
+            (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom)
           ) {
             item.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         } else {
-          item.classList.remove(
-            "bg-indigo-50",
-            "border-l-4",
-            "border-indigo-500"
-          );
+          item.classList.remove("bg-indigo-50", "border-l-4", "border-indigo-500");
         }
       });
     }
@@ -337,9 +324,7 @@ export const VideoDetailPage = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-semibold mb-4">
-          {t("videoDetail:error_page.title")}
-        </h2>
+        <h2 className="text-2xl font-semibold mb-4">{t("videoDetail:error_page.title")}</h2>
         <p className="mb-6">{error}</p>
         <button
           className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
@@ -354,9 +339,7 @@ export const VideoDetailPage = () => {
   if (!video) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-semibold mb-4">
-          {t("videoDetail:not_found.title")}
-        </h2>
+        <h2 className="text-2xl font-semibold mb-4">{t("videoDetail:not_found.title")}</h2>
         <p className="mb-6">{t("videoDetail:not_found.description")}</p>
         <button
           className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
@@ -430,16 +413,10 @@ export const VideoDetailPage = () => {
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
               <div className="flex items-center justify-between text-white mb-2">
                 <div className="flex items-center space-x-4">
-                  <button
-                    onClick={togglePlayPause}
-                    className="hover:text-indigo-300"
-                  >
+                  <button onClick={togglePlayPause} className="hover:text-indigo-300">
                     {isPlaying ? <Pause size={24} /> : <Play size={24} />}
                   </button>
-                  <button
-                    onClick={toggleMute}
-                    className="hover:text-indigo-300"
-                  >
+                  <button onClick={toggleMute} className="hover:text-indigo-300">
                     {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                   </button>
                   <span className="text-sm">
@@ -453,28 +430,18 @@ export const VideoDetailPage = () => {
                       <button
                         onClick={handleLikeVideo}
                         className={`p-1 rounded-full ${
-                          isLiked
-                            ? "bg-indigo-600"
-                            : "bg-black/30 hover:bg-black/50"
+                          isLiked ? "bg-indigo-600" : "bg-black/30 hover:bg-black/50"
                         }`}
                       >
-                        <Heart
-                          size={18}
-                          className={isLiked ? "fill-white" : ""}
-                        />
+                        <Heart size={18} className={isLiked ? "fill-white" : ""} />
                       </button>
                       <button
                         onClick={handleBookmarkVideo}
                         className={`p-1 rounded-full ${
-                          isBookmarked
-                            ? "bg-indigo-600"
-                            : "bg-black/30 hover:bg-black/50"
+                          isBookmarked ? "bg-indigo-600" : "bg-black/30 hover:bg-black/50"
                         }`}
                       >
-                        <Bookmark
-                          size={18}
-                          className={isBookmarked ? "fill-white" : ""}
-                        />
+                        <Bookmark size={18} className={isBookmarked ? "fill-white" : ""} />
                       </button>
                     </>
                   ) : (
@@ -549,9 +516,7 @@ export const VideoDetailPage = () => {
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg mb-8">
-            <p className="whitespace-pre-line text-black">
-              {video.description}
-            </p>
+            <p className="whitespace-pre-line text-black">{video.description}</p>
           </div>
 
           {relatedVideos.length > 0 && (
@@ -579,9 +544,7 @@ export const VideoDetailPage = () => {
           <div className="p-6 border-b border-gray-200 bg-gray-50">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-black">
-                  {t("summary:results.title")}
-                </h2>
+                <h2 className="text-2xl font-bold text-black">{t("summary:results.title")}</h2>
                 <p className="text-sm text-gray-700 mt-1">{video.title}</p>
               </div>
               <div>
@@ -672,11 +635,7 @@ export const VideoDetailPage = () => {
                           className="text-white hover:text-indigo-300 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
                           type="button"
                         >
-                          {isMuted ? (
-                            <VolumeX size={22} />
-                          ) : (
-                            <Volume2 size={22} />
-                          )}
+                          {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
                         </button>
 
                         <span className="text-white text-sm">
@@ -704,9 +663,7 @@ export const VideoDetailPage = () => {
                         fill={isLiked ? "#DC2626" : "none"}
                       />
                       <span>
-                        {isLiked
-                          ? t("videoDetail:buttons.liked")
-                          : t("videoDetail:buttons.like")}
+                        {isLiked ? t("videoDetail:buttons.liked") : t("videoDetail:buttons.like")}
                       </span>
                     </button>
                     <button
@@ -741,9 +698,8 @@ export const VideoDetailPage = () => {
                   <div className="flex items-center space-x-2">
                     <Clock size={18} className="text-gray-600" />
                     <span className="text-sm text-gray-700 font-medium">
-                      {t("summary:results.original")}: {video.duration || "N/A"}{" "}
-                      |{t("summary:results.summary")}:{" "}
-                      {video.metadata?.readingTime || "3-5 min"}
+                      {t("summary:results.original")}: {video.duration || "N/A"} |
+                      {t("summary:results.summary")}: {video.metadata?.readingTime || "3-5 min"}
                     </span>
                   </div>
                 </div>
@@ -775,39 +731,35 @@ export const VideoDetailPage = () => {
                     </div>
                   )}
 
-                  {summaryContentTab === "key-points" &&
-                    keyPoints &&
-                    keyPoints.length > 0 && (
-                      <div>
-                        <ul className="space-y-4">
-                          {keyPoints.map((point, index) => (
-                            <li key={index} className="flex items-start">
-                              <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 font-bold text-sm shadow-sm">
-                                {index + 1}
-                              </div>
-                              <span className="ml-4 text-black">{point}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                  {summaryContentTab === "key-points" && keyPoints && keyPoints.length > 0 && (
+                    <div>
+                      <ul className="space-y-4">
+                        {keyPoints.map((point, index) => (
+                          <li key={index} className="flex items-start">
+                            <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 font-bold text-sm shadow-sm">
+                              {index + 1}
+                            </div>
+                            <span className="ml-4 text-black">{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                  {summaryContentTab === "keywords" &&
-                    keywords &&
-                    keywords.length > 0 && (
-                      <div>
-                        <div className="flex flex-wrap gap-3">
-                          {keywords.map((keyword, index) => (
-                            <span
-                              key={index}
-                              className="px-4 py-2 rounded-full bg-gray-100 text-black text-sm font-medium hover:bg-indigo-100 transition-colors shadow-sm"
-                            >
-                              {keyword}
-                            </span>
-                          ))}
-                        </div>
+                  {summaryContentTab === "keywords" && keywords && keywords.length > 0 && (
+                    <div>
+                      <div className="flex flex-wrap gap-3">
+                        {keywords.map((keyword, index) => (
+                          <span
+                            key={index}
+                            className="px-4 py-2 rounded-full bg-gray-100 text-black text-sm font-medium hover:bg-indigo-100 transition-colors shadow-sm"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
                       </div>
-                    )}
+                    </div>
+                  )}
 
                   {summaryContentTab === "transcript" && transcript && (
                     <div>
@@ -835,10 +787,7 @@ export const VideoDetailPage = () => {
                       variant="outline"
                       leftIcon={<File size={16} />}
                       onClick={() =>
-                        window.open(
-                          `/v1/videos/summary/${video.id}/download/pdf`,
-                          "_blank"
-                        )
+                        window.open(`/v1/videos/summary/${video.id}/download/pdf`, "_blank")
                       }
                       type="button"
                     >
@@ -861,9 +810,7 @@ export const VideoDetailPage = () => {
       )}
 
       <div className="mt-10">
-        <h3 className="text-lg font-semibold mb-4">
-          {t("videoDetail:sections.related_videos")}
-        </h3>
+        <h3 className="text-lg font-semibold mb-4">{t("videoDetail:sections.related_videos")}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {relatedVideos.map((relatedVideo) => (
             <VideoCard

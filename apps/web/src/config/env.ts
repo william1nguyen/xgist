@@ -13,9 +13,7 @@ const loadEnvConfig = (): Env => {
   const result = envSchema.safeParse(import.meta.env);
 
   if (!result.success) {
-    const issues = result.error.issues.map(
-      (issue) => `${issue.path.join(".")}: ${issue.message}`
-    );
+    const issues = result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);
     console.error("❌ Invalid environment variables:\n", issues.join("\n"));
     throw new Error("Invalid environment variables");
   }

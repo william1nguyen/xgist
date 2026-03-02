@@ -1,4 +1,5 @@
 import { jsonb, timestamp } from "drizzle-orm/pg-core";
+
 import { AnyRecord } from "~/infra/utils/types";
 
 const timestamptz = (name: string) => timestamp(name, { withTimezone: true });
