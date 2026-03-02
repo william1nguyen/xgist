@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ESNext"],
+		"verbatimModuleSyntax": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"types": ["node"],
+		"paths": {
+			"@repo/types": ["../types/src/index.ts"],
+			"drizzle-orm": [
+				"../../node_modules/.pnpm/drizzle-orm@0.45.1_@electric-sql+pglite@0.3.15_@opentelemetry+api@1.9.0_@prisma+client@6.2.1__h6tk764m637ekjggpgik4da2vm/node_modules/drizzle-orm"
+			],
+			"drizzle-orm/*": [
+				"../../node_modules/.pnpm/drizzle-orm@0.45.1_@electric-sql+pglite@0.3.15_@opentelemetry+api@1.9.0_@prisma+client@6.2.1__h6tk764m637ekjggpgik4da2vm/node_modules/drizzle-orm/*"
+			]
+		},
+		"declaration": false,
+		"noEmit": true
+	},
+	"include": ["src/**/*"]
+}

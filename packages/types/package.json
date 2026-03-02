@@ -1,0 +1,20 @@
+{
+	"name": "@repo/types",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"test": "ESBUILD_BINARY_PATH=../../node_modules/.pnpm/@esbuild+darwin-arm64@0.27.3/node_modules/@esbuild/darwin-arm64/bin/esbuild vitest run --config vitest.config.js"
+	},
+	"devDependencies": {
+		"vitest": "^3.0.0",
+		"typescript": "^5"
+	}
+}
