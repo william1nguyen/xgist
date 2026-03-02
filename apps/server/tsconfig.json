@@ -1,20 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
-    "sourceMap": true,
-    "outDir": "dist",
+    "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
+    "verbatimModuleSyntax": true,
     "strict": true,
-    "lib": ["ES2021"],
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "outDir": "dist",
+    "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*"],
-      "0prelude": ["./src/prelude"]
+      "@/*": ["./src/*"],
+      "@repo/types": ["../../packages/types/src/index.ts"],
+      "drizzle-orm": ["../../node_modules/.pnpm/drizzle-orm@0.45.1_@electric-sql+pglite@0.3.15_@opentelemetry+api@1.9.0_@prisma+client@6.2.1__h6tk764m637ekjggpgik4da2vm/node_modules/drizzle-orm"],
+      "drizzle-orm/*": ["../../node_modules/.pnpm/drizzle-orm@0.45.1_@electric-sql+pglite@0.3.15_@opentelemetry+api@1.9.0_@prisma+client@6.2.1__h6tk764m637ekjggpgik4da2vm/node_modules/drizzle-orm/*"]
     }
   },
-  "include": ["src", "test", "src/drizzle/schema", "src/drizzle/db.ts", "src/drizzle/migrate.ts"]
+  "include": ["src/index.ts", "src/env.ts", "src/lib/**/*", "src/routes/**/*"]
 }
