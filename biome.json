@@ -1,41 +1,76 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.2/schema.json",
-  "organizeImports": {
-    "enabled": true
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": false
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!**/.next",
+      "!**/dist",
+      "!**/.turbo",
+      "!**/dev-dist",
+      "!**/.zed",
+      "!**/.vscode",
+      "!**/routeTree.gen.ts",
+      "!**/src-tauri",
+      "!**/.nuxt",
+      "!bts.jsonc",
+      "!**/.expo",
+      "!**/.wrangler",
+      "!**/.alchemy",
+      "!**/.svelte-kit",
+      "!**/wrangler.jsonc",
+      "!**/.source",
+      "!**/convex/_generated"
+    ]
   },
   "formatter": {
     "enabled": true,
-    "formatWithErrors": false,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 80
+    "indentStyle": "tab"
   },
-  "javascript": {
-    "formatter": {
-      "bracketSpacing": false,
-      "trailingCommas": "es5",
-      "jsxQuoteStyle": "double",
-      "semicolons": "always",
-      "quoteStyle": "single"
-    }
-  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
-      "performance": {
-        "noDelete": "off",
-        "noAccumulatingSpread": "off"
+      "correctness": {
+        "useExhaustiveDependencies": "info"
+      },
+      "nursery": {
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe",
+          "options": {
+            "functions": ["clsx", "cva", "cn"]
+          }
+        }
+      },
+      "style": {
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error"
       }
     }
   },
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true,
-    "defaultBranch": "main"
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
   },
-  "files": {
-    "ignore": ["package.json", ".vscode/*", "./src/drizzle/migrations/meta/*"]
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   }
 }

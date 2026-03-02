@@ -1,31 +1,48 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "ui": "tui",
   "tasks": {
-    "db:generate": {
-      "cache": false
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
     },
     "db:push": {
       "cache": false
     },
+    "db:generate": {
+      "cache": false
+    },
     "db:migrate": {
-      "cache": false
-    },
-    "db:studio": {
-      "cache": false
-    },
-    "dev": {
-      "dependsOn": ["^db:generate"],
       "cache": false,
       "persistent": true
     },
-    "build": {
-      "dependsOn": ["^db:generate", "^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    "db:studio": {
+      "cache": false,
+      "persistent": true
     },
-    "lint": {},
-    "lint:fix": {},
-    "clean": {
+    "db:start": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:stop": {
+      "cache": false
+    },
+    "db:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:down": {
       "cache": false
     }
   }
