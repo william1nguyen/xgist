@@ -1,14 +1,12 @@
+import { Globe } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Globe } from "lucide-react";
 
 interface LanguageSelectorProps {
   compact?: boolean;
 }
 
-export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
-  compact = false,
-}) => {
+export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ compact = false }) => {
   const { i18n } = useTranslation(["common"]);
 
   const changeLanguage = (language: string) => {

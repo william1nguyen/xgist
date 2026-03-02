@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
 import { Bell, LogIn } from "lucide-react";
-import { useKeycloakAuth } from "../../hooks/useKeycloakAuth";
+import React, { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+
 import { env } from "../../config/env";
 import { httpClient } from "../../config/httpClient";
+import { useKeycloakAuth } from "../../hooks/useKeycloakAuth";
 
 interface Notification {
   id: string;
@@ -32,17 +33,13 @@ export const Header: React.FC<HeaderProps> = ({ title, children }) => {
 
     try {
       setIsLoading(true);
-      const res = await httpClient.get(
-        `${env.VITE_BASE_URL}/v1/videos/notifications`
-      );
+      const res = await httpClient.get(`${env.VITE_BASE_URL}/v1/videos/notifications`);
 
       const data = res.data.notifications;
 
       setNotifications(data);
 
-      const unreadNotifications = data.filter(
-        (notification: Notification) => !notification.read
-      );
+      const unreadNotifications = data.filter((notification: Notification) => !notification.read);
       setUnreadCount(unreadNotifications.length);
     } catch (error) {
       console.error("Error fetching initial notifications:", error);
@@ -99,8 +96,8 @@ export const Header: React.FC<HeaderProps> = ({ title, children }) => {
   const markAsRead = (id: string) => {
     setNotifications(
       notifications.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
+        notification.id === id ? { ...notification, read: true } : notification,
+      ),
     );
     setUnreadCount(Math.max(0, unreadCount - 1));
   };
@@ -128,18 +125,14 @@ export const Header: React.FC<HeaderProps> = ({ title, children }) => {
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 max-h-96 overflow-y-auto">
                 <div className="p-3 border-b border-gray-200 bg-green-50">
-                  <h3 className="text-sm font-medium text-green-800">
-                    Notifications
-                  </h3>
+                  <h3 className="text-sm font-medium text-green-800">Notifications</h3>
                 </div>
                 {isLoading ? (
                   <div className="p-4 text-center text-gray-500 text-sm">
                     Loading notifications...
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500 text-sm">
-                    No notifications
-                  </div>
+                  <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>
                 ) : (
                   <div>
                     {notifications.map((notification) => (
@@ -148,13 +141,9 @@ export const Header: React.FC<HeaderProps> = ({ title, children }) => {
                         className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${notification.read ? "bg-white" : "bg-green-50"}`}
                         onClick={() => markAsRead(notification.id)}
                       >
-                        <p className="text-sm font-medium text-gray-800">
-                          {notification.message}
-                        </p>
+                        <p className="text-sm font-medium text-gray-800">{notification.message}</p>
                         <p className="text-xs text-gray-600 mt-1">
-                          {new Date(
-                            parseInt(notification.timestamp)
-                          ).toLocaleString()}
+                          {new Date(parseInt(notification.timestamp)).toLocaleString()}
                         </p>
                       </div>
                     ))}
@@ -166,9 +155,7 @@ export const Header: React.FC<HeaderProps> = ({ title, children }) => {
 
           {isAuthenticated ? (
             <div className="flex items-center space-x-3">
-              <span className="hidden md:inline text-sm text-gray-700">
-                {user?.profile.email}
-              </span>
+              <span className="hidden md:inline text-sm text-gray-700">{user?.profile.email}</span>
               <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">
                 {user?.profile.email?.charAt(0).toUpperCase()}
               </div>
@@ -185,9 +172,7 @@ export const Header: React.FC<HeaderProps> = ({ title, children }) => {
         </div>
       </div>
       {children && (
-        <div className="px-4 sm:px-6 lg:px-8 py-2 border-t border-gray-200">
-          {children}
-        </div>
+        <div className="px-4 sm:px-6 lg:px-8 py-2 border-t border-gray-200">{children}</div>
       )}
     </header>
   );

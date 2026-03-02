@@ -21,21 +21,12 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="fixed inset-0 overflow-y-auto z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black bg-opacity-30"
-        onClick={onClose}
-      ></div>
+      <div className="fixed inset-0 bg-black bg-opacity-30" onClick={onClose}></div>
       <div className="relative bg-white rounded-lg max-w-md w-full mx-auto shadow-xl p-6">
-        {icon && (
-          <div className="flex items-center justify-center mb-4">{icon}</div>
-        )}
-        <h3 className="text-lg font-medium text-center text-gray-900 mb-2">
-          {title}
-        </h3>
+        {icon && <div className="flex items-center justify-center mb-4">{icon}</div>}
+        <h3 className="text-lg font-medium text-center text-gray-900 mb-2">{title}</h3>
         <div className="mb-6">{children}</div>
-        {actions && (
-          <div className="flex justify-center space-x-3">{actions}</div>
-        )}
+        {actions && <div className="flex justify-center space-x-3">{actions}</div>}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import { SortAsc, ChevronDown } from "lucide-react";
+import React, { useState } from "react";
 
 export interface SortOption {
   id: string;
@@ -12,11 +12,7 @@ interface SortingMenuProps {
   onSelect: (optionId: string) => void;
 }
 
-export const SortingMenu: React.FC<SortingMenuProps> = ({
-  options,
-  selectedOption,
-  onSelect,
-}) => {
+export const SortingMenu: React.FC<SortingMenuProps> = ({ options, selectedOption, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const getSelectedLabel = () => {

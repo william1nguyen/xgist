@@ -1,4 +1,5 @@
 import React from "react";
+
 import { ActivityItem } from "./ActivityItem";
 
 export interface Activity {
@@ -14,16 +15,11 @@ interface ActivityListProps {
   title?: string;
 }
 
-export const ActivityList: React.FC<ActivityListProps> = ({
-  activities,
-  title,
-}) => {
+export const ActivityList: React.FC<ActivityListProps> = ({ activities, title }) => {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <h4 className="font-medium text-gray-700">
-          {title || "Recent Activity"}
-        </h4>
+        <h4 className="font-medium text-gray-700">{title || "Recent Activity"}</h4>
       </div>
       <div className="p-4">
         <div className="space-y-4">

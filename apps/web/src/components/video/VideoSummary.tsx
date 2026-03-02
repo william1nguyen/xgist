@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Clock,
   MessageSquare,
@@ -13,6 +12,7 @@ import {
   Tag,
   Lightbulb,
 } from "lucide-react";
+import React, { useState } from "react";
 
 interface KeyPoint {
   timestamp: string;
@@ -44,9 +44,7 @@ export const VideoSummary: React.FC<VideoSummaryProps> = ({
   mainKeys = [],
   wordCount,
 }) => {
-  const [activeSection, setActiveSection] = useState<"summary" | "key-points">(
-    "summary"
-  );
+  const [activeSection, setActiveSection] = useState<"summary" | "key-points">("summary");
   const [expandedPoints, setExpandedPoints] = useState<number[]>([]);
 
   const togglePointExpansion = (index: number) => {
@@ -94,7 +92,7 @@ ${mainKeys.join(", ")}
                 (parseInt(originalDuration.split(":")[0]) * 60 +
                   parseInt(originalDuration.split(":")[1]) -
                   parseInt(readingTime.split(" ")[0])) /
-                  60
+                  60,
               )}{" "}
               phút
             </span>
@@ -148,9 +146,7 @@ ${mainKeys.join(", ")}
         {activeSection === "summary" ? (
           <div>
             <div className="prose max-w-none mb-6">
-              <p className="text-gray-800 leading-relaxed whitespace-pre-line">
-                {summaryText}
-              </p>
+              <p className="text-gray-800 leading-relaxed whitespace-pre-line">{summaryText}</p>
             </div>
 
             {/* Ý chính section */}
@@ -206,9 +202,7 @@ ${mainKeys.join(", ")}
               >
                 <div
                   className={`flex items-start p-3 cursor-pointer ${
-                    expandedPoints.includes(index)
-                      ? "bg-indigo-50"
-                      : "hover:bg-gray-50"
+                    expandedPoints.includes(index) ? "bg-indigo-50" : "hover:bg-gray-50"
                   }`}
                   onClick={() => togglePointExpansion(index)}
                 >
@@ -218,9 +212,7 @@ ${mainKeys.join(", ")}
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{point.title}</h4>
                     {expandedPoints.includes(index) && (
-                      <p className="text-sm text-gray-600 mt-2">
-                        {point.content}
-                      </p>
+                      <p className="text-sm text-gray-600 mt-2">{point.content}</p>
                     )}
                   </div>
                 </div>
@@ -239,9 +231,7 @@ ${mainKeys.join(", ")}
             <button className="p-1.5 text-gray-500 hover:text-red-500 rounded">
               <ThumbsDown size={18} />
             </button>
-            <span className="text-xs text-gray-500 ml-2">
-              Đánh giá tóm tắt này
-            </span>
+            <span className="text-xs text-gray-500 ml-2">Đánh giá tóm tắt này</span>
           </div>
 
           <button

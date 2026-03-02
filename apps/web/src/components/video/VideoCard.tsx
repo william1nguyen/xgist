@@ -1,8 +1,9 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
 import { FastForward, Eye, Download, Share, Trash } from "lucide-react";
-import { VideoItem } from "../../types";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
+import { VideoItem } from "../../types";
 
 interface VideoCardProps {
   item: VideoItem & {
@@ -21,12 +22,7 @@ interface VideoCardProps {
   onDelete?: (id: string) => void;
 }
 
-export const VideoCard: React.FC<VideoCardProps> = ({
-  item,
-  viewMode,
-  contentType,
-  onDelete,
-}) => {
+export const VideoCard: React.FC<VideoCardProps> = ({ item, viewMode, contentType, onDelete }) => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(["common", "videos"]);
 
@@ -71,11 +67,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         onClick={handleCardClick}
       >
         <div className="relative">
-          <img
-            src={item.thumbnail}
-            alt={item.title}
-            className="w-full h-40 object-cover"
-          />
+          <img src={item.thumbnail} alt={item.title} className="w-full h-40 object-cover" />
           {(item.summarized || item.isSummarized) && (
             <div className="absolute top-2 left-2 bg-indigo-600 text-white px-2 py-0.5 text-xs rounded-md flex items-center">
               <FastForward size={12} className="mr-1" />
@@ -85,9 +77,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </div>
 
         <div className="p-3">
-          <h3 className="font-medium text-gray-900 mb-1 line-clamp-2 h-12">
-            {item.title}
-          </h3>
+          <h3 className="font-medium text-gray-900 mb-1 line-clamp-2 h-12">{item.title}</h3>
 
           <div className="flex items-center text-xs text-gray-500 mb-2">
             {contentType === "video" && (item.formattedViews || item.views) && (
@@ -104,13 +94,10 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               <div className="flex items-center">
                 <div className="h-6 w-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-medium mr-2">
                   {item.creatorAvatar ||
-                    (item.creator
-                      ? item.creator.username.substring(0, 2).toUpperCase()
-                      : "N/A")}
+                    (item.creator ? item.creator.username.substring(0, 2).toUpperCase() : "N/A")}
                 </div>
                 <span className="text-sm text-gray-700 truncate">
-                  {item.creatorName ||
-                    (item.creator ? item.creator.username : "N/A")}
+                  {item.creatorName || (item.creator ? item.creator.username : "N/A")}
                 </span>
               </div>
             )}
@@ -126,11 +113,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       onClick={handleCardClick}
     >
       <div className="relative w-48 flex-shrink-0">
-        <img
-          src={item.thumbnail}
-          alt={item.title}
-          className="w-full h-28 object-cover"
-        />
+        <img src={item.thumbnail} alt={item.title} className="w-full h-28 object-cover" />
         {(item.summarized || item.isSummarized) && (
           <div className="absolute top-2 left-2 bg-indigo-600 text-white px-1.5 py-0.5 text-xs rounded-md flex items-center">
             <FastForward size={10} className="mr-1" />
@@ -140,9 +123,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       </div>
 
       <div className="p-4 flex-1">
-        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1">
-          {item.title}
-        </h3>
+        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1">{item.title}</h3>
 
         <div className="flex items-center text-xs text-gray-500 mb-2">
           {contentType === "video" && (item.formattedViews || item.views) && (
@@ -169,20 +150,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             <div className="flex items-center">
               <div className="h-6 w-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-medium mr-2">
                 {item.creatorAvatar ||
-                  (item.creator
-                    ? item.creator.username.substring(0, 2).toUpperCase()
-                    : "N/A")}
+                  (item.creator ? item.creator.username.substring(0, 2).toUpperCase() : "N/A")}
               </div>
               <span className="text-sm text-gray-700 truncate">
-                {item.creatorName ||
-                  (item.creator ? item.creator.username : "N/A")}
+                {item.creatorName || (item.creator ? item.creator.username : "N/A")}
               </span>
             </div>
           )}
-          <div
-            className="flex items-center space-x-3"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
             <button className="p-1.5 text-gray-400 hover:text-gray-700 flex items-center">
               <Eye size={16} className="mr-1" />
               <span className="text-xs">{t("videos:actions.view")}</span>

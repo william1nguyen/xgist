@@ -1,8 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
+
 import { Category } from "../../types";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
-import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
   categories?: Category[];
@@ -11,13 +12,7 @@ interface SidebarProps {
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeItem:
-    | "explore"
-    | "trending"
-    | "summarize"
-    | "library"
-    | "settings"
-    | "guide";
+  activeItem: "explore" | "trending" | "summarize" | "library" | "settings" | "guide";
   title: string;
   headerContent?: React.ReactNode;
   sidebarProps?: SidebarProps;
@@ -54,9 +49,7 @@ export const Layout: React.FC<LayoutProps> = ({
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title}>{headerContent}</Header>
 
-        <main className="flex-1 overflow-y-auto bg-white p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto bg-white p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

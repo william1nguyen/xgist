@@ -1,18 +1,11 @@
+import { Clock, File, Play, Pause, Volume2, VolumeX, Share } from "lucide-react";
 import React, { useState, useRef } from "react";
-import {
-  Clock,
-  File,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Share,
-} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+
 import { TabItem } from "../types";
 import { TabNavigation } from "./navigation/TabNavigation";
 import { Button } from "./ui/Button";
-import { toast } from "react-toastify";
-import { useTranslation } from "react-i18next";
 
 export interface Chunk {
   time: number;
@@ -106,8 +99,7 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
 
   const highlightCurrentTranscript = (currentTime: number): void => {
     if (activeTab === "transcript" && transcriptContainerRef.current) {
-      const transcriptItems =
-        transcriptContainerRef.current.querySelectorAll(".transcript-item");
+      const transcriptItems = transcriptContainerRef.current.querySelectorAll(".transcript-item");
       let activeIndex = -1;
 
       for (let i = 0; i < summaryData.transcripts.chunks.length; i++) {
@@ -132,10 +124,7 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
             const containerScrollTop = container.scrollTop;
             const containerHeight = container.clientHeight;
 
-            if (
-              itemTop < containerScrollTop ||
-              itemTop > containerScrollTop + containerHeight
-            ) {
+            if (itemTop < containerScrollTop || itemTop > containerScrollTop + containerHeight) {
               container.scrollTop = itemTop - containerHeight / 2;
             }
           }
@@ -163,20 +152,13 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
       <div className="p-6 border-b border-gray-200 bg-gray-50">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-black">
-              {t("summary:results.title")}
-            </h2>
+            <h2 className="text-2xl font-bold text-black">{t("summary:results.title")}</h2>
             <p className="text-sm text-gray-700 mt-1">
               {videoFile?.name || t("summary:results.your_video")}
             </p>
           </div>
           <div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onReset}
-              type="button"
-            >
+            <Button variant="secondary" size="sm" onClick={onReset} type="button">
               {t("summary:buttons.create_new")}
             </Button>
           </div>
@@ -249,10 +231,8 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
             <div className="flex items-center space-x-2">
               <Clock size={18} className="text-gray-600" />
               <span className="text-sm text-gray-700 font-medium">
-                {t("summary:results.original")}:{" "}
-                {summaryData.originalDuration || "N/A"} |{" "}
-                {t("summary:results.summary")}:{" "}
-                {summaryData.readingTime || "N/A"}
+                {t("summary:results.original")}: {summaryData.originalDuration || "N/A"} |{" "}
+                {t("summary:results.summary")}: {summaryData.readingTime || "N/A"}
               </span>
             </div>
           </div>
@@ -272,13 +252,11 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
             {activeTab === "summary" && summaryData?.summary && (
               <div>
                 <div className="prose max-w-none text-black">
-                  {summaryData.summary
-                    .split("\n")
-                    .map((paragraph: string, index: number) => (
-                      <p key={index} className="mb-4 leading-relaxed">
-                        {paragraph}
-                      </p>
-                    ))}
+                  {summaryData.summary.split("\n").map((paragraph: string, index: number) => (
+                    <p key={index} className="mb-4 leading-relaxed">
+                      {paragraph}
+                    </p>
+                  ))}
                 </div>
               </div>
             )}
@@ -301,16 +279,14 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
             {activeTab === "keywords" && summaryData?.keywords && (
               <div>
                 <div className="flex flex-wrap gap-3">
-                  {summaryData.keywords.map(
-                    (keyword: string, index: number) => (
-                      <span
-                        key={index}
-                        className="px-4 py-2 rounded-full bg-gray-100 text-black text-sm font-medium hover:bg-blue-100 transition-colors shadow-sm"
-                      >
-                        {keyword}
-                      </span>
-                    )
-                  )}
+                  {summaryData.keywords.map((keyword: string, index: number) => (
+                    <span
+                      key={index}
+                      className="px-4 py-2 rounded-full bg-gray-100 text-black text-sm font-medium hover:bg-blue-100 transition-colors shadow-sm"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}
@@ -323,20 +299,18 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  {summaryData.transcripts.chunks.map(
-                    (entry: Chunk, index: number) => (
-                      <div
-                        key={index}
-                        className="transcript-item flex p-2 rounded cursor-pointer hover:bg-gray-100 transition-colors"
-                        onClick={() => jumpToTime(entry.time)}
-                      >
-                        <span className="text-sm text-gray-500 w-16 flex-shrink-0 font-mono">
-                          {formatTime(entry.time)}
-                        </span>
-                        <p className="text-base text-black">{entry.text}</p>
-                      </div>
-                    )
-                  )}
+                  {summaryData.transcripts.chunks.map((entry: Chunk, index: number) => (
+                    <div
+                      key={index}
+                      className="transcript-item flex p-2 rounded cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => jumpToTime(entry.time)}
+                    >
+                      <span className="text-sm text-gray-500 w-16 flex-shrink-0 font-mono">
+                        {formatTime(entry.time)}
+                      </span>
+                      <p className="text-base text-black">{entry.text}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -348,10 +322,7 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
                 variant="outline"
                 leftIcon={<File size={16} />}
                 onClick={() =>
-                  window.open(
-                    `/v1/videos/summary/${summaryData.id}/download/pdf`,
-                    "_blank"
-                  )
+                  window.open(`/v1/videos/summary/${summaryData.id}/download/pdf`, "_blank")
                 }
                 type="button"
               >
@@ -362,7 +333,7 @@ export const TwoPanelSummary: React.FC<TwoPanelSummaryProps> = ({
                 leftIcon={<Share size={16} />}
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    window.location.origin + `/summary/${summaryData.id}`
+                    window.location.origin + `/summary/${summaryData.id}`,
                   );
                   toast.success(t("summary:messages.link_copied"));
                 }}

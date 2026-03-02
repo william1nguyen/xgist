@@ -1,4 +1,3 @@
-import React from "react";
 import {
   FastForward,
   Settings,
@@ -9,8 +8,10 @@ import {
   Zap,
   BookOpen,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
+
 import { useKeycloakAuth } from "../../hooks/useKeycloakAuth";
 import { LanguageSelector } from "../i18n/LanguageSelector";
 
@@ -20,22 +21,12 @@ export interface Category {
 }
 
 interface SidebarProps {
-  activeItem:
-    | "explore"
-    | "trending"
-    | "summarize"
-    | "library"
-    | "settings"
-    | "guide";
+  activeItem: "explore" | "trending" | "summarize" | "library" | "settings" | "guide";
   categories: Category[];
   onCategoryClick?: (categoryId: string) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
-  activeItem,
-  categories,
-  onCategoryClick,
-}) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeItem, categories, onCategoryClick }) => {
   const { t } = useTranslation(["sidebar", "common"]);
   const { isAuthenticated, login, logout } = useKeycloakAuth();
   const navigate = useNavigate();
@@ -69,9 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Video className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">
-              {t("explore", { ns: "sidebar" })}
-            </span>
+            <span className="hidden md:inline">{t("explore", { ns: "sidebar" })}</span>
           </Link>
 
           <Link
@@ -83,9 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <TrendingUp className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">
-              {t("trending", { ns: "sidebar" })}
-            </span>
+            <span className="hidden md:inline">{t("trending", { ns: "sidebar" })}</span>
           </Link>
 
           <Link
@@ -97,9 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Zap className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">
-              {t("create_summary", { ns: "sidebar" })}
-            </span>
+            <span className="hidden md:inline">{t("create_summary", { ns: "sidebar" })}</span>
           </Link>
 
           <Link
@@ -111,9 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <BookOpen className="mr-3 h-5 w-5 text-slate-400" />
-            <span className="hidden md:inline">
-              {t("library", { ns: "sidebar" })}
-            </span>
+            <span className="hidden md:inline">{t("library", { ns: "sidebar" })}</span>
           </Link>
 
           <div className="pt-4 mt-4 border-t border-slate-700">
@@ -142,9 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-t border-slate-700 space-y-2">
         <div className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300">
           <Globe className="mr-3 h-5 w-5 text-slate-400" />
-          <span className="hidden md:inline">
-            {t("language", { ns: "common" })}
-          </span>
+          <span className="hidden md:inline">{t("language", { ns: "common" })}</span>
           <div className="ml-auto">
             <LanguageSelector compact={true} />
           </div>
@@ -155,9 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
         >
           <Settings className="mr-3 h-5 w-5 text-slate-400" />
-          <span className="hidden md:inline">
-            {t("settings", { ns: "common" })}
-          </span>
+          <span className="hidden md:inline">{t("settings", { ns: "common" })}</span>
         </Link>
 
         <button
@@ -166,9 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <LogOut className="mr-3 h-5 w-5 text-slate-400" />
           <span className="hidden md:inline">
-            {isAuthenticated
-              ? t("logout", { ns: "common" })
-              : t("login", { ns: "common" })}
+            {isAuthenticated ? t("logout", { ns: "common" }) : t("login", { ns: "common" })}
           </span>
         </button>
       </div>

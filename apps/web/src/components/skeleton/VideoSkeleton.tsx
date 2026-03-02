@@ -5,10 +5,7 @@ interface VideoSkeletonProps {
   count?: number;
 }
 
-export const VideoSkeleton: React.FC<VideoSkeletonProps> = ({
-  viewMode,
-  count = 6,
-}) => {
+export const VideoSkeleton: React.FC<VideoSkeletonProps> = ({ viewMode, count = 6 }) => {
   return (
     <div
       className={
@@ -75,7 +72,7 @@ export const VideoSkeleton: React.FC<VideoSkeletonProps> = ({
                 </div>
               </div>
             </div>
-          )
+          ),
         )}
     </div>
   );

@@ -12,10 +12,7 @@ export const StatisticsSkeleton: React.FC = () => {
           {Array(3)
             .fill(0)
             .map((_, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 rounded-lg p-4 border border-gray-100"
-              >
+              <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>

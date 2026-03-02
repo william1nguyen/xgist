@@ -41,14 +41,10 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         <div className="flex items-center justify-between mb-1">
           {label && <span className="text-sm text-gray-600">{label}</span>}
           {value && <span className="text-sm font-medium">{value}</span>}
-          {showPercentage && !value && (
-            <span className="text-sm font-medium">{progress}%</span>
-          )}
+          {showPercentage && !value && <span className="text-sm font-medium">{progress}%</span>}
         </div>
       )}
-      <div
-        className={`w-full bg-gray-200 rounded-full ${heightClasses[height]}`}
-      >
+      <div className={`w-full bg-gray-200 rounded-full ${heightClasses[height]}`}>
         <div
           className={`${colorClasses[color]} ${heightClasses[height]} rounded-full ${animateClass}`}
           style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}

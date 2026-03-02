@@ -1,15 +1,12 @@
-import React from "react";
 import { Grid, List } from "lucide-react";
+import React from "react";
 
 interface ViewToggleProps {
   viewMode: "grid" | "list";
   onViewChange: (mode: "grid" | "list") => void;
 }
 
-export const ViewToggle: React.FC<ViewToggleProps> = ({
-  viewMode,
-  onViewChange,
-}) => {
+export const ViewToggle: React.FC<ViewToggleProps> = ({ viewMode, onViewChange }) => {
   return (
     <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
       <button

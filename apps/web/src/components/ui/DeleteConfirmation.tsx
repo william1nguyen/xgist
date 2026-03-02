@@ -1,7 +1,8 @@
-import React from "react";
 import { AlertTriangle } from "lucide-react";
-import { Modal } from "./Modal";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
+import { Modal } from "./Modal";
 
 interface DeleteConfirmationProps {
   isOpen: boolean;

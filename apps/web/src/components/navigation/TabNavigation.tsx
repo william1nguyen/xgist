@@ -11,11 +11,7 @@ interface TabNavigationProps {
   onTabChange: (tabId: string) => void;
 }
 
-export const TabNavigation: React.FC<TabNavigationProps> = ({
-  tabs,
-  activeTab,
-  onTabChange,
-}) => {
+export const TabNavigation: React.FC<TabNavigationProps> = ({ tabs, activeTab, onTabChange }) => {
   return (
     <div className="flex space-x-4">
       {tabs.map((tab) => (
