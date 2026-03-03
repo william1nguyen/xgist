@@ -1,0 +1,22 @@
+{
+	"name": "@xgist/simulation",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"simulate": "tsx src/index.ts"
+	},
+	"dependencies": {
+		"@xgist/db": "workspace:*",
+		"better-auth": "^1.5.1",
+		"dotenv": "^17.2.2",
+		"drizzle-orm": "^0.45.1",
+		"pg": "^8.17.1",
+		"zod": "^4.1.13"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.16.0",
+		"@xgist/config": "workspace:*",
+		"tsx": "^4.0.0",
+		"typescript": "^5"
+	}
+}
