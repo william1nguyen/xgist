@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import type { ProcessingOptions, QueueJob } from "@repo/types";
 import { CREDIT_COSTS } from "@xgist/config";
 import { desc, eq } from "@xgist/db";
-import { videos } from "@xgist/db/schema/media";
+import { videosTable } from "@xgist/db/schema/media";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
@@ -21,9 +21,9 @@ export const queueRouter = {
 
 			const rows = await context.db
 				.select()
-				.from(videos)
-				.where(eq(videos.userId, userId))
-				.orderBy(desc(videos.createdAt));
+				.from(videosTable)
+				.where(eq(videosTable.userId, userId))
+				.orderBy(desc(videosTable.createdAt));
 
 			const jobs: QueueJob[] = rows.map((v) => ({
 				jobId: v.id,

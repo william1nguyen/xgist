@@ -8,12 +8,12 @@ import type {
 import { CREDIT_COSTS, STREAM_KEYS } from "@xgist/config";
 import { and, asc, eq } from "@xgist/db";
 import {
-	credits,
-	creditTransactions,
-	summaries,
-	summaryRefs,
-	transcriptSegments,
-	videos,
+	creditsTable,
+	creditTransactionsTable,
+	summariesTable,
+	summaryRefsTable,
+	transcriptSegmentsTable,
+	videosTable,
 } from "@xgist/db/schema/media";
 import { z } from "zod";
 
@@ -93,15 +93,15 @@ export const videoRouter = {
 			await context.db.transaction(async (tx) => {
 				const [userCredits] = await tx
 					.select()
-					.from(credits)
-					.where(eq(credits.userId, userId))
+					.from(creditsTable)
+					.where(eq(creditsTable.userId, userId))
 					.for("update");
 
 				if (!userCredits || userCredits.balance < creditCost) {
 					throw new ORPCError("FORBIDDEN", { message: "INSUFFICIENT_CREDITS" });
 				}
 
-				await tx.insert(videos).values({
+				await tx.insert(videosTable).values({
 					id: videoId,
 					userId,
 					title: input.title,
@@ -112,14 +112,14 @@ export const videoRouter = {
 				});
 
 				await tx
-					.update(credits)
+					.update(creditsTable)
 					.set({
 						balance: userCredits.balance - creditCost,
 						updatedAt: new Date(),
 					})
-					.where(eq(credits.userId, userId));
+					.where(eq(creditsTable.userId, userId));
 
-				await tx.insert(creditTransactions).values({
+				await tx.insert(creditTransactionsTable).values({
 					userId,
 					delta: -creditCost,
 					reason: "job_deduction",
@@ -154,8 +154,13 @@ export const videoRouter = {
 
 			const [video] = await context.db
 				.select()
-				.from(videos)
-				.where(and(eq(videos.id, input.videoId), eq(videos.userId, userId)));
+				.from(videosTable)
+				.where(
+					and(
+						eq(videosTable.id, input.videoId),
+						eq(videosTable.userId, userId),
+					),
+				);
 
 			if (!video) {
 				throw new ORPCError("UNAUTHORIZED");
@@ -172,8 +177,8 @@ export const videoRouter = {
 			await context.db.transaction(async (tx) => {
 				const [userCredits] = await tx
 					.select()
-					.from(credits)
-					.where(eq(credits.userId, userId))
+					.from(creditsTable)
+					.where(eq(creditsTable.userId, userId))
 					.for("update");
 
 				if (!userCredits || userCredits.balance < creditCost) {
@@ -181,19 +186,19 @@ export const videoRouter = {
 				}
 
 				await tx
-					.update(videos)
+					.update(videosTable)
 					.set({ status: "pending" })
-					.where(eq(videos.id, input.videoId));
+					.where(eq(videosTable.id, input.videoId));
 
 				await tx
-					.update(credits)
+					.update(creditsTable)
 					.set({
 						balance: userCredits.balance - creditCost,
 						updatedAt: new Date(),
 					})
-					.where(eq(credits.userId, userId));
+					.where(eq(creditsTable.userId, userId));
 
-				await tx.insert(creditTransactions).values({
+				await tx.insert(creditTransactionsTable).values({
 					userId,
 					delta: -creditCost,
 					reason: "job_deduction",
@@ -232,8 +237,13 @@ export const videoRouter = {
 
 				const [video] = await context.db
 					.select()
-					.from(videos)
-					.where(and(eq(videos.id, input.videoId), eq(videos.userId, userId)));
+					.from(videosTable)
+					.where(
+						and(
+							eq(videosTable.id, input.videoId),
+							eq(videosTable.userId, userId),
+						),
+					);
 
 				if (!video) {
 					throw new ORPCError("UNAUTHORIZED");
@@ -250,8 +260,13 @@ export const videoRouter = {
 
 			const [video] = await context.db
 				.select()
-				.from(videos)
-				.where(and(eq(videos.id, input.videoId), eq(videos.userId, userId)));
+				.from(videosTable)
+				.where(
+					and(
+						eq(videosTable.id, input.videoId),
+						eq(videosTable.userId, userId),
+					),
+				);
 
 			if (!video) {
 				throw new ORPCError("UNAUTHORIZED");
@@ -263,14 +278,14 @@ export const videoRouter = {
 
 			const segments = await context.db
 				.select()
-				.from(transcriptSegments)
-				.where(eq(transcriptSegments.videoId, input.videoId))
-				.orderBy(asc(transcriptSegments.index));
+				.from(transcriptSegmentsTable)
+				.where(eq(transcriptSegmentsTable.videoId, input.videoId))
+				.orderBy(asc(transcriptSegmentsTable.index));
 
 			const [summary] = await context.db
 				.select()
-				.from(summaries)
-				.where(eq(summaries.videoId, input.videoId));
+				.from(summariesTable)
+				.where(eq(summariesTable.videoId, input.videoId));
 
 			const mappedVideo = {
 				id: video.id,
@@ -302,8 +317,8 @@ export const videoRouter = {
 
 			const refs = await context.db
 				.select()
-				.from(summaryRefs)
-				.where(eq(summaryRefs.summaryId, summary.id));
+				.from(summaryRefsTable)
+				.where(eq(summaryRefsTable.summaryId, summary.id));
 
 			return {
 				video: mappedVideo,

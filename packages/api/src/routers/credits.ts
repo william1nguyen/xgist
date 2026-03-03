@@ -1,6 +1,6 @@
 import type { CreditTransaction } from "@repo/types";
 import { and, desc, eq, lt, sum } from "@xgist/db";
-import { credits, creditTransactions } from "@xgist/db/schema/media";
+import { creditsTable, creditTransactionsTable } from "@xgist/db/schema/media";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
@@ -14,13 +14,13 @@ export const creditsRouter = {
 
 				const [userCredits] = await context.db
 					.select()
-					.from(credits)
-					.where(eq(credits.userId, userId));
+					.from(creditsTable)
+					.where(eq(creditsTable.userId, userId));
 
 				const [spentResult] = await context.db
-					.select({ total: sum(creditTransactions.delta) })
-					.from(creditTransactions)
-					.where(eq(creditTransactions.userId, userId));
+					.select({ total: sum(creditTransactionsTable.delta) })
+					.from(creditTransactionsTable)
+					.where(eq(creditTransactionsTable.userId, userId));
 
 				const totalSpentRaw = spentResult?.total
 					? Number(spentResult.total)
@@ -52,18 +52,18 @@ export const creditsRouter = {
 				const userId = context.session.user.id;
 
 				const cursorCondition = input.cursor
-					? lt(creditTransactions.id, input.cursor)
+					? lt(creditTransactionsTable.id, input.cursor)
 					: undefined;
 
 				const rows = await context.db
 					.select()
-					.from(creditTransactions)
+					.from(creditTransactionsTable)
 					.where(
 						cursorCondition
-							? and(eq(creditTransactions.userId, userId), cursorCondition)
-							: eq(creditTransactions.userId, userId),
+							? and(eq(creditTransactionsTable.userId, userId), cursorCondition)
+							: eq(creditTransactionsTable.userId, userId),
 					)
-					.orderBy(desc(creditTransactions.createdAt))
+					.orderBy(desc(creditTransactionsTable.createdAt))
 					.limit(input.limit + 1);
 
 				const hasMore = rows.length > input.limit;
