@@ -1,8 +1,6 @@
 # Stage 1: Build the React app
 FROM node:20-alpine AS builder
 
-ARG VITE_KEYCLOAK_URL
-ARG VITE_KEYCLOAK_REALM
 ARG VITE_CLIENT_ID
 ARG VITE_BASE_URL
 
