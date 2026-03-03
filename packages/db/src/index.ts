@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
 export const db = drizzle(env.DATABASE_URL, { schema });
+export type Database = typeof db;
 
 export {
 	and,
@@ -24,3 +25,5 @@ export {
 	sql,
 	sum,
 } from "drizzle-orm";
+export * from "./schema/auth";
+export * from "./schema/media";
