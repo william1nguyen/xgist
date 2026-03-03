@@ -77,12 +77,20 @@ def ack_job(r: redis.Redis, msg_id: str) -> None:
 
 
 def publish_result(r: redis.Redis, result: dict) -> None:
+    key_map = {
+        "job_id": "jobId",
+        "video_id": "videoId",
+        "audio_summary_url": "audioSummaryUrl",
+        "summary_refs": "summaryRefs",
+        "main_ideas": "mainIdeas",
+    }
     fields: dict[str, str] = {}
     for key, value in result.items():
+        out_key = key_map.get(key, key)
         if isinstance(value, (list, dict)):
-            fields[key] = json.dumps(value)
+            fields[out_key] = json.dumps(value)
         elif value is None:
-            fields[key] = ""
+            fields[out_key] = ""
         else:
-            fields[key] = str(value)
+            fields[out_key] = str(value)
     r.xadd(STREAM_RESULTS, fields)

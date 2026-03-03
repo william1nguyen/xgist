@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ProcessingOptions(BaseModel):
     transcribe: bool = True
     summarize: bool = False
-    extract_keywords: bool = False
-    extract_main_ideas: bool = False
-    generate_notes: bool = False
-    generate_audio_summary: bool = False
+    extract_keywords: bool = Field(False, alias="extractKeywords")
+    extract_main_ideas: bool = Field(False, alias="extractMainIdeas")
+    generate_notes: bool = Field(False, alias="generateNotes")
+    generate_audio_summary: bool = Field(False, alias="generateAudioSummary")
+
+    model_config = {"populate_by_name": True}
 
 
 class JobMessage(BaseModel):

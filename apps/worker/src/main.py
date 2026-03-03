@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 import extractor
 import summarizer
 import transcriber
-from models import JobMessage, ResultMessage
+from models import JobMessage, ProcessingOptions, ResultMessage
 from redis_client import (
     ack_job,
     consume_jobs,
@@ -133,7 +133,7 @@ async def run() -> None:
                     user_id=fields["userId"],
                     media_url=fields["mediaUrl"],
                     media_type=fields["mediaType"],
-                    options=json.loads(options_raw),
+                    options=ProcessingOptions.model_validate(json.loads(options_raw)),
                 )
             except Exception as e:
                 logger.error("job_id=%s step=parse_error error=%s", job_id, e)
