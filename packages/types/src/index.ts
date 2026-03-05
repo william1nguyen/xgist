@@ -99,6 +99,15 @@ export type VideoStatusResponse = {
 
 export type QueueJob = {
 	jobId: string;
-	video: Pick<Video, "id" | "title" | "status" | "options" | "createdAt">;
+	video: Pick<
+		Video,
+		| "id"
+		| "title"
+		| "status"
+		| "options"
+		| "createdAt"
+		| "mediaUrl"
+		| "mediaType"
+	>;
 	creditCost: number;
 };

@@ -37,7 +37,7 @@ export const creditsRouter = {
 	getHistory: protectedProcedure
 		.input(
 			z.object({
-				limit: z.number().int().min(1).max(100).default(20),
+				limit: z.number().int().min(1).max(100).default(10),
 				cursor: z.string().optional(),
 			}),
 		)
@@ -60,8 +60,15 @@ export const creditsRouter = {
 					.from(creditTransactionsTable)
 					.where(
 						cursorCondition
-							? and(eq(creditTransactionsTable.userId, userId), cursorCondition)
-							: eq(creditTransactionsTable.userId, userId),
+							? and(
+									eq(creditTransactionsTable.userId, userId),
+									eq(creditTransactionsTable.reason, "polar_purchase"),
+									cursorCondition,
+								)
+							: and(
+									eq(creditTransactionsTable.userId, userId),
+									eq(creditTransactionsTable.reason, "polar_purchase"),
+								),
 					)
 					.orderBy(desc(creditTransactionsTable.createdAt))
 					.limit(input.limit + 1);

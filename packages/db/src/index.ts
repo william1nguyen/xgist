@@ -1,9 +1,13 @@
 import { env } from "@xgist/env/server";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 
 import * as schema from "./schema";
 
-export const db = drizzle(env.DATABASE_URL, { schema });
+const pool = new Pool({ connectionString: env.DATABASE_URL });
+pool.on("error", () => {});
+
+export const db = drizzle(pool, { schema });
 export type Database = typeof db;
 
 export {

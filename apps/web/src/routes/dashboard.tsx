@@ -1,5 +1,5 @@
-import { Navigate } from "react-router"
+import { Navigate } from "react-router";
 
 export default function Dashboard() {
-  return <Navigate to="/upload" replace />
+	return <Navigate to="/upload" replace />;
 }

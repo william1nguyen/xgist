@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { db, eq, sql } from "@xgist/db";
+import { db, sql } from "@xgist/db";
 import { creditsTable, creditTransactionsTable } from "@xgist/db/schema/media";
 import { env } from "@xgist/env/server";
 import type { FastifyInstance } from "fastify";
@@ -45,8 +45,8 @@ export async function polarWebhookRoute(fastify: FastifyInstance) {
 			return reply.status(200).send({ received: true });
 		}
 
-		const userId = event.data.metadata["userId"];
-		const creditAmount = Number(event.data.product.metadata["credits"] ?? 0);
+		const userId = event.data.metadata.userId;
+		const creditAmount = Number(event.data.product.metadata.credits ?? 0);
 
 		if (!userId || creditAmount <= 0) {
 			return reply

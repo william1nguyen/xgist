@@ -6,7 +6,7 @@ import { KeycloakAuthProvider } from "./providers/KeycloakAuthProvider.tsx";
 import "./i18n";
 
 createRoot(document.getElementById("root")!).render(
-  <KeycloakAuthProvider>
-    <App />
-  </KeycloakAuthProvider>,
+	<KeycloakAuthProvider>
+		<App />
+	</KeycloakAuthProvider>,
 );

@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import signal
-import sys
 
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -13,7 +12,7 @@ from dotenv import load_dotenv
 import extractor
 import summarizer
 import transcriber
-from models import JobMessage, ProcessingOptions, ResultMessage
+from models import JobMessage, ProcessingOptions, ResultMessage, TranscriptSegment
 from redis_client import (
     ack_job,
     consume_jobs,
@@ -45,19 +44,23 @@ def handle_sigterm(signum: int, frame: object) -> None:
 signal.signal(signal.SIGTERM, handle_sigterm)
 
 
-def _build_result(job: JobMessage, error: str) -> dict:
+def _build_failed_result(job_id: str, video_id: str, error: str) -> dict:
     return ResultMessage(
-        job_id=job.job_id,
-        video_id=job.video_id,
+        job_id=job_id,
+        video_id=video_id,
         status="failed",
         error=error,
     ).model_dump()
 
 
 async def process_job(job: JobMessage) -> ResultMessage:
-    logger.info("job_id=%s step=transcribe", job.job_id)
-    media_bytes = download_media(job.media_url)
-    segments = transcriber.transcribe(media_bytes, job.media_type)
+    if job.existing_transcript:
+        logger.info("job_id=%s step=skip_transcribe segments=%d", job.job_id, len(job.existing_transcript))
+        segments = job.existing_transcript
+    else:
+        logger.info("job_id=%s step=transcribe", job.job_id)
+        media_bytes = download_media(job.media_url)
+        segments = transcriber.transcribe(media_bytes, job.media_type)
 
     summary_text: str | None = None
     summary_refs = []
@@ -95,14 +98,14 @@ async def process_job(job: JobMessage) -> ResultMessage:
 
     if job.options.generate_audio_summary and summary_text:
         logger.info("job_id=%s step=tts", job.job_id)
-        audio_bytes = generate_audio_summary(summary_text)
+        audio_bytes = await generate_audio_summary(summary_text)
         audio_summary_url = upload_audio(audio_bytes, f"{job.video_id}-summary.mp3")
 
     return ResultMessage(
         job_id=job.job_id,
         video_id=job.video_id,
         status="completed",
-        transcript=segments,
+        transcript=[] if job.existing_transcript else segments,
         summary=summary_text,
         summary_refs=summary_refs,
         keywords=keywords,
@@ -125,7 +128,6 @@ async def run() -> None:
             job_id = fields.get("jobId", "unknown")
             logger.info("job_id=%s step=received", job_id)
 
-            options_raw = fields.get("options", "{}")
             try:
                 job = JobMessage(
                     job_id=fields["jobId"],
@@ -133,7 +135,13 @@ async def run() -> None:
                     user_id=fields["userId"],
                     media_url=fields["mediaUrl"],
                     media_type=fields["mediaType"],
-                    options=ProcessingOptions.model_validate(json.loads(options_raw)),
+                    options=ProcessingOptions.model_validate(
+                        json.loads(fields.get("options", "{}"))
+                    ),
+                    existing_transcript=[
+                        TranscriptSegment.model_validate(s)
+                        for s in json.loads(fields.get("existingTranscript", "[]"))
+                    ],
                 )
             except Exception as e:
                 logger.error("job_id=%s step=parse_error error=%s", job_id, e)
@@ -155,7 +163,7 @@ async def run() -> None:
 
             if last_error is not None:
                 logger.error("job_id=%s step=failed error=%s", job.job_id, last_error)
-                publish_result(r, _build_result(job, last_error))
+                publish_result(r, _build_failed_result(job.job_id, job.video_id, last_error))
 
             ack_job(r, msg_id)
 
@@ -167,7 +175,7 @@ def main() -> None:
     logger.info("Whisper model loaded")
 
     gemini_model = genai.GenerativeModel(
-        model_name=os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+        model_name=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
     )
     genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
     summarizer.set_model(gemini_model)

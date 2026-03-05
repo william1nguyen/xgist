@@ -1,26 +1,35 @@
 from __future__ import annotations
 
+import io
 import logging
-import os
+import wave
 
-import google.generativeai as genai
+import edge_tts
 
 logger = logging.getLogger(__name__)
 
+EDGE_TTS_VOICE = "en-US-AriaNeural"
 
-def generate_audio_summary(summary: str) -> bytes:
-    client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-preview-tts",
-        contents=summary,
-        config=genai.types.GenerateContentConfig(
-            response_modalities=["AUDIO"],
-            speech_config=genai.types.SpeechConfig(
-                voice_config=genai.types.VoiceConfig(
-                    prebuilt_voice_config=genai.types.PrebuiltVoiceConfig(voice_name="Kore")
-                )
-            ),
-        ),
-    )
-    audio_data = response.candidates[0].content.parts[0].inline_data.data
-    return audio_data
+
+def _pcm_to_wav(pcm_data: bytes, sample_rate: int = 24000) -> bytes:
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sample_rate)
+        wf.writeframes(pcm_data)
+    return buffer.getvalue()
+
+
+async def _generate_edge_tts(text: str) -> bytes:
+    communicate = edge_tts.Communicate(text, EDGE_TTS_VOICE)
+    buffer = io.BytesIO()
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            buffer.write(chunk["data"])
+    return buffer.getvalue()
+
+
+async def generate_audio_summary(summary: str) -> bytes:
+    logger.info("tts=edge_tts voice=%s chars=%d", EDGE_TTS_VOICE, len(summary))
+    return await _generate_edge_tts(summary)

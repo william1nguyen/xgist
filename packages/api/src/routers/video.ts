@@ -18,6 +18,7 @@ import {
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
+import { patchJobInCache, prependJobToCache } from "../lib/queue-cache";
 
 const ALLOWED_MIME_TYPES = new Set([
 	"video/mp4",
@@ -144,6 +145,20 @@ export const videoRouter = {
 				JSON.stringify(input.options),
 			);
 
+			await prependJobToCache(context.redis, userId, {
+				jobId,
+				video: {
+					id: videoId,
+					title: input.title,
+					status: "pending",
+					options: input.options,
+					createdAt: new Date(),
+					mediaUrl: input.mediaUrl,
+					mediaType: input.mediaType,
+				},
+				creditCost: computeCreditCost(input.options),
+			});
+
 			return { jobId, videoId, status: "pending" as const };
 		}),
 
@@ -223,7 +238,151 @@ export const videoRouter = {
 				JSON.stringify(options),
 			);
 
+			await patchJobInCache(context.redis, userId, video.id, {
+				status: "pending",
+			});
+
 			return { jobId, videoId: video.id, status: "pending" as const };
+		}),
+
+	generateOptions: protectedProcedure
+		.input(
+			z.object({
+				videoId: z.string().uuid(),
+				options: processingOptionsSchema,
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+
+			const [video] = await context.db
+				.select()
+				.from(videosTable)
+				.where(
+					and(
+						eq(videosTable.id, input.videoId),
+						eq(videosTable.userId, userId),
+					),
+				);
+
+			if (!video) {
+				throw new ORPCError("UNAUTHORIZED");
+			}
+
+			if (video.status !== "completed") {
+				throw new ORPCError("BAD_REQUEST", { message: "NOT_READY" });
+			}
+
+			const existingOptions = video.options as ProcessingOptions;
+
+			const [existingSummary] = await context.db
+				.select({ audioSummaryUrl: summariesTable.audioSummaryUrl })
+				.from(summariesTable)
+				.where(eq(summariesTable.videoId, input.videoId));
+
+			const audioAlreadyGenerated = existingSummary?.audioSummaryUrl != null;
+
+			const newOptions: ProcessingOptions = {
+				transcribe: false,
+				summarize: !existingOptions.summarize && input.options.summarize,
+				extractKeywords:
+					!existingOptions.extractKeywords && input.options.extractKeywords,
+				extractMainIdeas:
+					!existingOptions.extractMainIdeas && input.options.extractMainIdeas,
+				generateNotes:
+					!existingOptions.generateNotes && input.options.generateNotes,
+				generateAudioSummary:
+					!audioAlreadyGenerated && input.options.generateAudioSummary,
+			};
+
+			const creditCost = computeCreditCost(newOptions);
+
+			if (creditCost === 0) {
+				throw new ORPCError("BAD_REQUEST", { message: "NO_NEW_OPTIONS" });
+			}
+
+			const jobId = randomUUID();
+
+			await context.db.transaction(async (tx) => {
+				const [userCredits] = await tx
+					.select()
+					.from(creditsTable)
+					.where(eq(creditsTable.userId, userId))
+					.for("update");
+
+				if (!userCredits || userCredits.balance < creditCost) {
+					throw new ORPCError("FORBIDDEN", { message: "INSUFFICIENT_CREDITS" });
+				}
+
+				const mergedOptions: ProcessingOptions = {
+					transcribe: existingOptions.transcribe || newOptions.transcribe,
+					summarize: existingOptions.summarize || newOptions.summarize,
+					extractKeywords:
+						existingOptions.extractKeywords || newOptions.extractKeywords,
+					extractMainIdeas:
+						existingOptions.extractMainIdeas || newOptions.extractMainIdeas,
+					generateNotes:
+						existingOptions.generateNotes || newOptions.generateNotes,
+					generateAudioSummary:
+						existingOptions.generateAudioSummary ||
+						newOptions.generateAudioSummary,
+				};
+
+				await tx
+					.update(videosTable)
+					.set({ status: "processing", options: mergedOptions })
+					.where(eq(videosTable.id, input.videoId));
+
+				await tx
+					.update(creditsTable)
+					.set({
+						balance: userCredits.balance - creditCost,
+						updatedAt: new Date(),
+					})
+					.where(eq(creditsTable.userId, userId));
+
+				await tx.insert(creditTransactionsTable).values({
+					userId,
+					delta: -creditCost,
+					reason: "job_deduction",
+					metadata: { videoTitle: video.title, videoId: video.id },
+				});
+			});
+
+			const segs = await context.db
+				.select({
+					start: transcriptSegmentsTable.start,
+					end: transcriptSegmentsTable.end,
+					text: transcriptSegmentsTable.text,
+				})
+				.from(transcriptSegmentsTable)
+				.where(eq(transcriptSegmentsTable.videoId, video.id))
+				.orderBy(asc(transcriptSegmentsTable.index));
+
+			await context.redis.xadd(
+				STREAM_KEYS.jobs,
+				"*",
+				"jobId",
+				jobId,
+				"videoId",
+				video.id,
+				"userId",
+				userId,
+				"mediaUrl",
+				video.mediaUrl,
+				"mediaType",
+				video.mediaType,
+				"options",
+				JSON.stringify(newOptions),
+				"existingTranscript",
+				JSON.stringify(segs),
+			);
+
+			await patchJobInCache(context.redis, userId, video.id, {
+				status: "processing",
+			});
+
+			return { jobId, videoId: video.id, status: "processing" as const };
 		}),
 
 	getStatus: protectedProcedure
@@ -270,10 +429,6 @@ export const videoRouter = {
 
 			if (!video) {
 				throw new ORPCError("UNAUTHORIZED");
-			}
-
-			if (video.status !== "completed") {
-				throw new ORPCError("BAD_REQUEST", { message: "NOT_READY" });
 			}
 
 			const segments = await context.db
