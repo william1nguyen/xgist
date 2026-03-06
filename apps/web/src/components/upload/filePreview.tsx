@@ -1,5 +1,5 @@
 import { FileAudio, FileVideo, X } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 type FilePreviewProps = {
 	file: File;

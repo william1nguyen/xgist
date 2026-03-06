@@ -4,11 +4,11 @@ import { computeCreditCost } from "@xgist/config";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/Button";
-import CreditSummary from "@/components/upload/CreditSummary";
-import DropZone from "@/components/upload/DropZone";
-import FilePreview from "@/components/upload/FilePreview";
-import OptionsPanel from "@/components/upload/OptionsPanel";
+import { Button } from "@/components/ui/button";
+import CreditSummary from "@/components/upload/creditSummary";
+import DropZone from "@/components/upload/dropZone";
+import FilePreview from "@/components/upload/filePreview";
+import OptionsPanel from "@/components/upload/optionsPanel";
 import { client, orpc } from "@/utils/orpc";
 
 const DEFAULT_OPTIONS: ProcessingOptions = {

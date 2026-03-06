@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
@@ -24,7 +24,9 @@ export default function Register() {
 				{ name: value.name, email: value.email, password: value.password },
 				{
 					onSuccess: () => navigate("/upload"),
-					onError: (ctx) => toast.error(ctx.error.message ?? "Sign up failed"),
+					onError: (ctx) => {
+						toast.error(ctx.error.message ?? "Sign up failed");
+					},
 				},
 			);
 		},

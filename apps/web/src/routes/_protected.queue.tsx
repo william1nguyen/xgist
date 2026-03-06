@@ -4,7 +4,7 @@ import { computeCreditCost } from "@xgist/config";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";
-import JobThumbnail from "@/components/queue/JobThumbnail";
+import JobThumbnail from "@/components/queue/jobThumbnail";
 import { client, orpc } from "@/utils/orpc";
 
 type ViewMode = "grid" | "list";

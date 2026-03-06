@@ -1,12 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { NavLink, useParams } from "react-router";
-import AudioSummaryPlayer from "@/components/video/AudioSummaryPlayer";
-import GenerateOptionsDialog from "@/components/video/GenerateOptionsDialog";
-import MediaPlayer from "@/components/video/MediaPlayer";
-import NotesPanel from "@/components/video/NotesPanel";
-import SummaryPanel from "@/components/video/SummaryPanel";
-import TranscriptPanel from "@/components/video/TranscriptPanel";
+import AudioSummaryPlayer from "@/components/video/audioSummaryPlayer";
+import GenerateOptionsDialog from "@/components/video/generateOptionsDialog";
+import MediaPlayer from "@/components/video/mediaPlayer";
+import NotesPanel from "@/components/video/notesPanel";
+import SummaryPanel from "@/components/video/summaryPanel";
+import TranscriptPanel from "@/components/video/transcriptPanel";
 import { orpc } from "@/utils/orpc";
 
 type Tab = "summary" | "notes" | "audio";

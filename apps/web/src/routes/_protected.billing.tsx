@@ -4,9 +4,9 @@ import type { PlanTier } from "@xgist/api/routers/billing";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
-import TransactionRow from "@/components/billing/TransactionRow";
-import UpgradeDialog from "@/components/billing/UpgradeDialog";
-import UsageBar from "@/components/billing/UsageBar";
+import TransactionRow from "@/components/billing/transactionRow";
+import UpgradeDialog from "@/components/billing/upgradeDialog";
+import UsageBar from "@/components/billing/usageBar";
 import { client, orpc } from "@/utils/orpc";
 
 const PLAN_LABELS: Record<PlanTier, string> = {

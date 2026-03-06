@@ -35,11 +35,8 @@ export default function DropZone({ onFile, onError, error }: DropZoneProps) {
 
 	const handleFile = (file: File) => {
 		const err = validate(file);
-		if (err) {
-			onError(err);
-		} else {
-			onFile(file);
-		}
+		if (err) onError(err);
+		else onFile(file);
 	};
 
 	const onDrop = (e: React.DragEvent) => {
@@ -67,7 +64,7 @@ export default function DropZone({ onFile, onError, error }: DropZoneProps) {
 				className={[
 					"relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 transition-all",
 					dragging
-						? "border-primary bg-primary/5 [background:linear-gradient(135deg,hsl(var(--primary)/0.08),hsl(var(--primary)/0.03))]"
+						? "border-primary bg-primary/5"
 						: "border-border hover:border-primary/50 hover:bg-muted/30",
 				].join(" ")}
 			>
