@@ -29,4 +29,5 @@
     "**/.turbo": true,
     "**/dist": true
   },
+  "typescript.autoClosingTags": false,
 }
