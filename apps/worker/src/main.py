@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import extractor
 import summarizer
 import transcriber
-from models import JobMessage, ProcessingOptions, ResultMessage, TranscriptSegment
+from models import GeminiSummaryResponse, JobMessage, ProcessingOptions, ResultMessage, SummaryRef
 from redis_client import (
     ack_job,
     consume_jobs,
@@ -44,7 +44,7 @@ def handle_sigterm(signum: int, frame: object) -> None:
 signal.signal(signal.SIGTERM, handle_sigterm)
 
 
-def _build_failed_result(job_id: str, video_id: str, error: str) -> dict:
+def _build_failed_result(job_id: str, video_id: str, error: str) -> dict[str, object]:
     return ResultMessage(
         job_id=job_id,
         video_id=video_id,
@@ -54,22 +54,18 @@ def _build_failed_result(job_id: str, video_id: str, error: str) -> dict:
 
 
 async def process_job(job: JobMessage) -> ResultMessage:
-    if job.existing_transcript:
-        logger.info("job_id=%s step=skip_transcribe segments=%d", job.job_id, len(job.existing_transcript))
-        segments = job.existing_transcript
-    else:
-        logger.info("job_id=%s step=transcribe", job.job_id)
-        media_bytes = download_media(job.media_url)
-        segments = transcriber.transcribe(media_bytes, job.media_type)
+    logger.info("job_id=%s step=transcribe", job.job_id)
+    media_bytes = download_media(job.media_url)
+    segments = transcriber.transcribe(media_bytes, job.media_type)
 
     summary_text: str | None = None
-    summary_refs = []
+    summary_refs: list[SummaryRef] = []
     keywords: list[str] = []
     main_ideas: list[str] = []
     notes: str | None = None
     audio_summary_url: str | None = None
 
-    tasks = {}
+    tasks: dict[str, asyncio.Future[object]] = {}
 
     if job.options.summarize:
         tasks["summarize"] = asyncio.to_thread(summarizer.summarize, segments)
@@ -86,14 +82,14 @@ async def process_job(job: JobMessage) -> ResultMessage:
         for key, result in zip(tasks.keys(), results):
             if isinstance(result, Exception):
                 raise result
-            if key == "summarize":
+            if key == "summarize" and isinstance(result, GeminiSummaryResponse):
                 summary_text = result.summary
-                summary_refs = [r.model_dump() for r in result.refs]
-            elif key == "keywords":
+                summary_refs = result.refs
+            elif key == "keywords" and isinstance(result, list):
                 keywords = result
-            elif key == "main_ideas":
+            elif key == "main_ideas" and isinstance(result, list):
                 main_ideas = result
-            elif key == "notes":
+            elif key == "notes" and isinstance(result, str):
                 notes = result
 
     if job.options.generate_audio_summary and summary_text:
@@ -105,7 +101,7 @@ async def process_job(job: JobMessage) -> ResultMessage:
         job_id=job.job_id,
         video_id=job.video_id,
         status="completed",
-        transcript=[] if job.existing_transcript else segments,
+        transcript=segments,
         summary=summary_text,
         summary_refs=summary_refs,
         keywords=keywords,
@@ -138,10 +134,6 @@ async def run() -> None:
                     options=ProcessingOptions.model_validate(
                         json.loads(fields.get("options", "{}"))
                     ),
-                    existing_transcript=[
-                        TranscriptSegment.model_validate(s)
-                        for s in json.loads(fields.get("existingTranscript", "[]"))
-                    ],
                 )
             except Exception as e:
                 logger.error("job_id=%s step=parse_error error=%s", job_id, e)
@@ -174,10 +166,10 @@ def main() -> None:
     transcriber.load_model()
     logger.info("Whisper model loaded")
 
+    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
     gemini_model = genai.GenerativeModel(
         model_name=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
     )
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
     summarizer.set_model(gemini_model)
     extractor.set_model(gemini_model)
     logger.info("Gemini client initialized")

@@ -22,9 +22,6 @@ class JobMessage(BaseModel):
     media_url: str
     media_type: Literal["video", "audio"]
     options: ProcessingOptions
-    existing_transcript: list[TranscriptSegment] = Field(default_factory=list, alias="existingTranscript")
-
-    model_config = {"populate_by_name": True}
 
 
 class TranscriptSegment(BaseModel):
