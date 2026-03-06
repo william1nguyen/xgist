@@ -44,7 +44,8 @@
 				"useMediaCaption": "off",
 				"noSvgWithoutTitle": "off",
 				"noStaticElementInteractions": "off",
-				"useKeyWithClickEvents": "off"
+				"useKeyWithClickEvents": "off",
+				"noLabelWithoutControl": "off"
 			},
 			"nursery": {
 				"useSortedClasses": {
