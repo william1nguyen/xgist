@@ -4,9 +4,9 @@ on:
   push:
     branches: [master]
     paths:
-      - ".github/workflows/ci_ai.yml"
+      - ".github/workflows/ci_worker.yml"
       - ".github/workflows/_reusable-deploy.yml"
-      - "apps/ai/**"
+      - "apps/worker/**"
   workflow_dispatch:
 
 permissions:
@@ -17,11 +17,11 @@ jobs:
   deploy:
     uses: ./.github/workflows/_reusable-deploy.yml
     with:
-      app-name: ai
-      context: ./apps/ai
-      dockerfile: ./apps/ai/Dockerfile
+      app-name: worker
+      context: ./apps/worker
+      dockerfile: ./apps/worker/Dockerfile
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       CAPROVER_SERVER: ${{ secrets.CAPROVER_SERVER }}
-      CAPROVER_APP_NAME: ${{ secrets.AI_APP_NAME }}
-      CAPROVER_APP_TOKEN: ${{ secrets.AI_APP_TOKEN }}
+      CAPROVER_APP_NAME: ${{ secrets.WORKER_APP_NAME }}
+      CAPROVER_APP_TOKEN: ${{ secrets.WORKER_APP_TOKEN }}
