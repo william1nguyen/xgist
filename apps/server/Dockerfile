@@ -1,34 +1,40 @@
-ARG NODE_VERSION=20.13.1
-
-FROM node:${NODE_VERSION}-alpine AS base
+FROM node:22-alpine AS base
+RUN npm install -g pnpm@9
 WORKDIR /app
-COPY package.json ./
 
-#--
+FROM base AS deps
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY packages/api/package.json packages/api/
+COPY packages/auth/package.json packages/auth/
+COPY packages/config/package.json packages/config/
+COPY packages/db/package.json packages/db/
+COPY packages/env/package.json packages/env/
+COPY packages/types/package.json packages/types/
+COPY apps/server/package.json apps/server/
+RUN pnpm install --frozen-lockfile
 
-FROM base AS pnpm
-COPY pnpm-lock.yaml ./
-RUN npm install -g pnpm@9.7.1 && pnpm fetch
+FROM deps AS build
+COPY packages/ packages/
+COPY apps/server/ apps/server/
+RUN pnpm --filter server build
 
-#--
-
-FROM pnpm AS prod-deps
-RUN pnpm install --prod --no-frozen-lockfile --ignore-scripts
-
-#--
-
-FROM pnpm AS build
-RUN pnpm install --no-frozen-lockfile --ignore-scripts
-COPY . .
-RUN pnpm build
-
-#--
-
-FROM base
+FROM node:22-alpine AS runner
+RUN npm install -g pnpm@9
+WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=prod-deps /app/node_modules /app/node_modules
-COPY --from=build /app/dist /app/dist
-COPY --from=build /app/src/drizzle/migrations /app/src/drizzle/migrations
+
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY packages/api/package.json packages/api/
+COPY packages/auth/package.json packages/auth/
+COPY packages/config/package.json packages/config/
+COPY packages/db/package.json packages/db/
+COPY packages/env/package.json packages/env/
+COPY packages/types/package.json packages/types/
+COPY apps/server/package.json apps/server/
+RUN pnpm install --frozen-lockfile --prod
+
+COPY packages/ packages/
+COPY --from=build /app/apps/server/dist apps/server/dist
 
 EXPOSE 8000
-CMD ["node", "--enable-source-maps", "dist/index.js"]
+CMD ["node", "--enable-source-maps", "apps/server/dist/index.mjs"]

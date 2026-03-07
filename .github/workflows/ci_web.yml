@@ -7,6 +7,7 @@ on:
       - ".github/workflows/ci_web.yml"
       - ".github/workflows/_reusable-deploy.yml"
       - "apps/web/**"
+      - "packages/**"
   workflow_dispatch:
 
 permissions:
@@ -18,7 +19,7 @@ jobs:
     uses: ./.github/workflows/_reusable-deploy.yml
     with:
       app-name: web
-      context: ./apps/web
+      context: .
       dockerfile: ./apps/web/Dockerfile
       build-args: |
         VITE_BASE_URL=${{ vars.VITE_BASE_URL }}

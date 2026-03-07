@@ -19,7 +19,7 @@ jobs:
     uses: ./.github/workflows/_reusable-deploy.yml
     with:
       app-name: server
-      context: ./apps/server
+      context: .
       dockerfile: ./apps/server/Dockerfile
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
