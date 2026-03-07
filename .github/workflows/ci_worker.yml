@@ -1,13 +1,12 @@
-name: Deploy Server
+name: Deploy Worker
 
 on:
   push:
     branches: [master]
     paths:
-      - ".github/workflows/ci_server.yml"
+      - ".github/workflows/ci_ai.yml"
       - ".github/workflows/_reusable-deploy.yml"
-      - "apps/server/**"
-      - "packages/**"
+      - "apps/ai/**"
   workflow_dispatch:
 
 permissions:
@@ -18,11 +17,11 @@ jobs:
   deploy:
     uses: ./.github/workflows/_reusable-deploy.yml
     with:
-      app-name: server
-      context: ./apps/server
-      dockerfile: ./apps/server/Dockerfile
+      app-name: ai
+      context: ./apps/ai
+      dockerfile: ./apps/ai/Dockerfile
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       CAPROVER_SERVER: ${{ secrets.CAPROVER_SERVER }}
-      CAPROVER_APP_NAME: ${{ secrets.SERVER_APP_NAME }}
-      CAPROVER_APP_TOKEN: ${{ secrets.SERVER_APP_TOKEN }}
+      CAPROVER_APP_NAME: ${{ secrets.AI_APP_NAME }}
+      CAPROVER_APP_TOKEN: ${{ secrets.AI_APP_TOKEN }}
