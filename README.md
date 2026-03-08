@@ -1,78 +1,121 @@
-# xgist
+<p align="center">
+  <img src="public/xgist-logo.png" alt="xgist" width="80" />
+</p>
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, React Router, Fastify, ORPC, and more.
+<h1 align="center">xgist</h1>
 
-## Features
+<p align="center">
+  AI-powered media transcription and summarization platform.
+  <br />
+  Upload video or audio → get timestamped transcripts, summaries with citations, keywords, notes, and audio summaries.
+</p>
 
-- **TypeScript** - For type safety and improved developer experience
-- **React Router** - Declarative routing for React
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Fastify** - Fast, low-overhead web framework
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Node.js** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Turborepo** - Optimized monorepo build system
-- **Biome** - Linting and formatting
+## Demo
 
-## Getting Started
+| Upload | Processing Queue |
+|--------|-----------------|
+| ![Upload](public/demo/upload.png) | ![Queue](public/demo/queue.png) |
 
-First, install the dependencies:
+| Media Detail | Detail with Citations |
+|-------------|----------------------|
+| ![Detail](public/demo/detail.png) | ![Detail with Prove](public/demo/detail-with-prove.png) |
 
-```bash
-pnpm install
+| Notes | Billing |
+|-------|---------|
+| ![Notes](public/demo/detail-with-note.png) | ![Billing](public/demo/billing.png) |
+
+| Subscription |
+|-------------|
+| ![Current Plan](public/demo/current-plan.png) |
+
+## Architecture
+
+```
+┌─────────┐   upload    ┌──────────────┐   Redis Stream   ┌──────────────┐
+│  React  │ ──────────▶ │   Fastify    │ ───────────────▶ │    Python    │
+│  SPA    │             │   + oRPC     │                  │    Worker    │
+│         │ ◀────────── │   + Drizzle  │ ◀─────────────── │  Whisper +   │
+│         │   polling   │   + MinIO    │   Redis Stream   │  Gemini API  │
+└─────────┘             └──────────────┘                  └──────────────┘
+                               │                                 │
+                          PostgreSQL                           MinIO
 ```
 
-## Database Setup
+## Tech Stack
 
-This project uses PostgreSQL with Drizzle ORM.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
-
-3. Apply the schema to your database:
-
-```bash
-pnpm run db:push
-```
-
-Then, run the development server:
-
-```bash
-pnpm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
-
-## Git Hooks and Formatting
-
-- Format and lint fix: `pnpm run check`
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React Router v7, TypeScript, Tailwind CSS, shadcn/ui |
+| Backend | Fastify, oRPC, Bun |
+| Database | PostgreSQL, Drizzle ORM |
+| Auth | Better Auth |
+| Payments | Polar |
+| Queue | Redis Streams |
+| Storage | MinIO |
+| AI | OpenAI Whisper, Google Gemini |
 
 ## Project Structure
 
 ```
-xgist/
-├── apps/
-│   ├── web/         # Frontend application (React + React Router)
-│   └── server/      # Backend API (Fastify, ORPC)
-├── packages/
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+apps/
+  web/          React SPA (React Router v7)
+  server/       Fastify API (oRPC + Drizzle)
+  worker/       Python AI worker (Whisper + Gemini)
+packages/
+  api/          oRPC routers and contracts
+  auth/         Better Auth config
+  db/           Drizzle schema + migrations
+  env/          Shared env validation (t3-env)
+  config/       Shared constants
+  types/        Shared TypeScript types
 ```
 
-## Available Scripts
+## Getting Started
 
-- `pnpm run dev`: Start all applications in development mode
-- `pnpm run build`: Build all applications
-- `pnpm run dev:web`: Start only the web application
-- `pnpm run dev:server`: Start only the server
-- `pnpm run check-types`: Check TypeScript types across all apps
-- `pnpm run db:push`: Push schema changes to database
-- `pnpm run db:generate`: Generate database client/types
-- `pnpm run db:migrate`: Run database migrations
-- `pnpm run db:studio`: Open database studio UI
-- `pnpm run check`: Run Biome formatting and linting
+### Prerequisites
+
+- Node.js 22+
+- pnpm 9+
+- Docker (for PostgreSQL, Redis, MinIO)
+- Python 3.11+ (for worker)
+
+### Setup
+
+```bash
+pnpm install
+docker compose up -d
+cp apps/server/.env.example apps/server/.env
+```
+
+### Database
+
+```bash
+pnpm db:push        # push schema
+pnpm db:migrate     # run migrations
+pnpm db:studio      # open Drizzle Studio
+```
+
+### Development
+
+```bash
+pnpm dev             # all apps
+pnpm dev:web         # frontend only
+pnpm dev:server      # backend only
+```
+
+Web: http://localhost:5173 · API: http://localhost:3000
+
+## Key Features
+
+- Drag-and-drop media upload with file validation
+- AI processing options with credit cost preview
+- Real-time job queue with status polling
+- Timestamped transcript synced to media player
+- Summary with citation references to transcript segments
+- Keywords, main ideas, and markdown notes
+- Audio summary generation (TTS)
+- Credit-based billing with Polar integration
+
+## License
+
+MIT
