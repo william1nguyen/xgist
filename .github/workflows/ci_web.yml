@@ -22,7 +22,7 @@ jobs:
       context: .
       dockerfile: ./apps/web/Dockerfile
       build-args: |
-        VITE_BASE_URL=${{ vars.VITE_BASE_URL }}
+        VITE_SERVER_URL=${{ vars.VITE_SERVER_URL }}
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       CAPROVER_SERVER: ${{ secrets.CAPROVER_SERVER }}
