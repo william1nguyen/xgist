@@ -4,6 +4,7 @@ import { RPCHandler } from "@orpc/server/fastify";
 import { createContext } from "@xgist/api/context";
 import { appRouter } from "@xgist/api/routers/index";
 import { auth } from "@xgist/auth";
+import { runMigrations } from "@xgist/db/migrate";
 import { env } from "@xgist/env/server";
 import Fastify from "fastify";
 
@@ -60,7 +61,9 @@ fastify.route({
 		});
 		const response = await auth.handler(req);
 		reply.status(response.status);
-		response.headers.forEach((value, key) => reply.header(key, value));
+		response.headers.forEach((value, key) => {
+			reply.header(key, value);
+		});
 		reply.send(response.body ? await response.text() : null);
 	},
 });
@@ -70,6 +73,9 @@ fastify.register(polarWebhookRoute);
 fastify.get("/", async () => "OK");
 
 const start = async () => {
+	if (env.DB_AUTO_MIGRATE) {
+		await runMigrations();
+	}
 	await initBuckets();
 	startResultConsumer(redis);
 	await fastify.listen({ port: 3000, host: "0.0.0.0" });

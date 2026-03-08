@@ -22,6 +22,10 @@ export const env = createEnv({
 			.string()
 			.default("false")
 			.transform((v) => v === "true" || v === "1"),
+		DB_AUTO_MIGRATE: z
+			.string()
+			.default("false")
+			.transform((v) => v === "true" || v === "1"),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),
