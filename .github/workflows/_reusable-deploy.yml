@@ -66,8 +66,7 @@ jobs:
             ${{ steps.image.outputs.url }}
             ${{ steps.image.outputs.latest }}
           build-args: ${{ inputs.build-args }}
-          cache-from: type=registry,ref=${{ steps.image.outputs.latest }}
-          cache-to: type=inline
+          no-cache: true
 
   deploy:
     runs-on: ubuntu-latest
