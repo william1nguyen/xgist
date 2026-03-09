@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import json
 import logging
 import os
 import signal
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 import extractor
@@ -51,6 +53,21 @@ def _build_failed_result(job_id: str, video_id: str, error: str) -> dict[str, ob
         status="failed",
         error=error,
     ).model_dump()
+
+
+_proxies = [f"http://{p}" for p in os.environ.get("PROXIES", "").split(",") if p.strip()]
+_proxy_cycle = itertools.cycle(_proxies) if _proxies else None
+
+
+def make_gemini_client() -> genai.Client:
+    proxy = next(_proxy_cycle) if _proxy_cycle else None
+    http_options = types.HttpOptions()
+    http_options.client_args = {"proxy": proxy}
+
+    return genai.Client(
+        api_key=os.environ["GOOGLE_API_KEY"],
+        http_options=http_options
+    )
 
 
 async def process_job(job: JobMessage) -> ResultMessage:
@@ -166,13 +183,10 @@ def main() -> None:
     transcriber.load_model()
     logger.info("Whisper model loaded")
 
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-    gemini_model = genai.GenerativeModel(
-        model_name=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
-    )
-    summarizer.set_model(gemini_model)
-    extractor.set_model(gemini_model)
-    logger.info("Gemini client initialized")
+    gemini_model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
+    summarizer.set_model(make_gemini_client, gemini_model)
+    extractor.set_model(make_gemini_client, gemini_model)
+    logger.info("Gemini client initialized with proxy rotation")
 
     asyncio.run(run())
 

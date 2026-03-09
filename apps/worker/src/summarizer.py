@@ -2,22 +2,26 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
+from typing import Any
 
-import google.generativeai as genai
+from google import genai
 from pydantic import ValidationError
 
 from models import GeminiSummaryResponse, TranscriptSegment
 
 logger = logging.getLogger(__name__)
 
-_gemini_model: genai.GenerativeModel | None = None
+_make_client: Callable[[], genai.Client] | None = None
+_model_name: str = "gemini-2.5-flash-lite"
 
 MAX_RETRIES = 3
 
 
-def set_model(model: genai.GenerativeModel) -> None:
-    global _gemini_model
-    _gemini_model = model
+def set_model(make_client: Callable[[], genai.Client], model_name: str) -> None:
+    global _make_client, _model_name
+    _make_client = make_client
+    _model_name = model_name
 
 
 def _build_transcript_text(transcript: list[TranscriptSegment]) -> str:
@@ -28,7 +32,7 @@ def _build_transcript_text(transcript: list[TranscriptSegment]) -> str:
 
 
 def summarize(transcript: list[TranscriptSegment]) -> GeminiSummaryResponse:
-    if _gemini_model is None:
+    if _make_client is None:
         raise RuntimeError("Gemini model not initialized")
 
     transcript_text = _build_transcript_text(transcript)
@@ -45,7 +49,8 @@ def summarize(transcript: list[TranscriptSegment]) -> GeminiSummaryResponse:
     last_error: Exception | None = None
     for attempt in range(MAX_RETRIES):
         try:
-            response = _gemini_model.generate_content(prompt)
+            client = _make_client()
+            response = client.models.generate_content(model=_model_name, contents=prompt)
             raw = response.text.strip()
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
