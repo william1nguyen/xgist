@@ -1,121 +1,76 @@
-<p align="center">
-  <img src="public/xgist-logo.png" alt="xgist" width="80" />
-</p>
+# xgist
 
-<h1 align="center">xgist</h1>
-
-<p align="center">
-  AI-powered media transcription and summarization platform.
-  <br />
-  Upload video or audio → get timestamped transcripts, summaries with citations, keywords, notes, and audio summaries.
-</p>
-
-## Demo
-
-| Upload | Processing Queue |
-|--------|-----------------|
-| ![Upload](public/demo/upload.png) | ![Queue](public/demo/queue.png) |
-
-| Media Detail | Detail with Citations |
-|-------------|----------------------|
-| ![Detail](public/demo/detail.png) | ![Detail with Prove](public/demo/detail-with-prove.png) |
-
-| Notes | Billing |
-|-------|---------|
-| ![Notes](public/demo/detail-with-note.png) | ![Billing](public/demo/billing.png) |
-
-| Subscription |
-|-------------|
-| ![Current Plan](public/demo/current-plan.png) |
+AI-powered media transcription and summarization platform that turns video or audio into timestamped transcripts, cited summaries, keywords, notes, and audio summaries.
 
 ## Architecture
 
-```
-┌─────────┐   upload    ┌──────────────┐   Redis Stream   ┌──────────────┐
-│  React  │ ──────────▶ │   Fastify    │ ───────────────▶ │    Python    │
-│  SPA    │             │   + oRPC     │                  │    Worker    │
-│         │ ◀────────── │   + Drizzle  │ ◀─────────────── │  Whisper +   │
-│         │   polling   │   + MinIO    │   Redis Stream   │  Gemini API  │
-└─────────┘             └──────────────┘                  └──────────────┘
-                               │                                 │
-                          PostgreSQL                           MinIO
-```
+<p align="center">
+  <img src="docs/architecture.png" alt="xgist system architecture" width="100%" />
+</p>
+
+## System Design
+
+### Web (React)
+
+- **Media workspace** — drag-and-drop uploads with processing options and credit-cost previews
+- **Progress tracking** — polls job state and presents queued, processing, completed, and failed states
+- **Synchronized results** — connects transcript timestamps and summary citations to the media player
+- **User accounts and billing** — Better Auth sessions with Polar-backed subscriptions and credit usage
+
+### API (Fastify)
+
+- **Typed API** — oRPC contracts connect the React client to Fastify handlers
+- **Media storage** — uploads source media and generated audio summaries through MinIO
+- **Persistent metadata** — Drizzle ORM stores users, media, processing state, and billing data in PostgreSQL
+- **Asynchronous jobs** — publishes processing jobs and consumes worker results through Redis Streams
+
+### Worker (Python)
+
+- **Transcription** — OpenAI Whisper produces timestamped transcript segments
+- **AI enrichment** — Google Gemini generates cited summaries, keywords, main ideas, and notes
+- **Parallel processing** — independent enrichment tasks run concurrently after transcription
+- **Audio summaries** — optional text-to-speech output is uploaded to MinIO
+- **Reliable consumption** — Redis consumer groups acknowledge completed jobs and retry failed processing
+
+### Communication
+
+<p align="center">
+  <img src="docs/communication.png" alt="xgist communication flow" width="100%" />
+</p>
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React Router v7, TypeScript, Tailwind CSS, shadcn/ui |
-| Backend | Fastify, oRPC, Bun |
-| Database | PostgreSQL, Drizzle ORM |
-| Auth | Better Auth |
-| Payments | Polar |
-| Queue | Redis Streams |
-| Storage | MinIO |
-| AI | OpenAI Whisper, Google Gemini |
+| Component | Stack |
+| --- | --- |
+| Web | React Router v7, TypeScript, Tailwind CSS, shadcn/ui |
+| API | Fastify, oRPC, Bun, Drizzle ORM |
+| Worker | Python, OpenAI Whisper, Google Gemini |
+| Data | PostgreSQL, Redis Streams, MinIO |
+| Auth & Billing | Better Auth, Polar |
+| Tooling | pnpm, Turborepo, Biome, Lefthook, Docker Compose |
 
-## Project Structure
-
-```
-apps/
-  web/          React SPA (React Router v7)
-  server/       Fastify API (oRPC + Drizzle)
-  worker/       Python AI worker (Whisper + Gemini)
-packages/
-  api/          oRPC routers and contracts
-  auth/         Better Auth config
-  db/           Drizzle schema + migrations
-  env/          Shared env validation (t3-env)
-  config/       Shared constants
-  types/        Shared TypeScript types
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 22+
-- pnpm 9+
-- Docker (for PostgreSQL, Redis, MinIO)
-- Python 3.11+ (for worker)
-
-### Setup
+## Quick Start
 
 ```bash
 pnpm install
-docker compose up -d
 cp apps/server/.env.example apps/server/.env
+cp apps/web/.env.example apps/web/.env
+docker compose up -d postgres redis minio
+pnpm db:migrate
+pnpm dev
 ```
 
-### Database
+Web: `http://localhost:5173` · API: `http://localhost:3000`
+
+
+<summary><b>Development commands</b></summary>
 
 ```bash
-pnpm db:push        # push schema
-pnpm db:migrate     # run migrations
-pnpm db:studio      # open Drizzle Studio
+pnpm dev:web          # frontend only
+pnpm dev:server       # API only
+pnpm db:studio        # inspect the database
+pnpm check-types      # type-check all workspaces
+pnpm lint             # run Biome
 ```
 
-### Development
-
-```bash
-pnpm dev             # all apps
-pnpm dev:web         # frontend only
-pnpm dev:server      # backend only
-```
-
-Web: http://localhost:5173 · API: http://localhost:3000
-
-## Key Features
-
-- Drag-and-drop media upload with file validation
-- AI processing options with credit cost preview
-- Real-time job queue with status polling
-- Timestamped transcript synced to media player
-- Summary with citation references to transcript segments
-- Keywords, main ideas, and markdown notes
-- Audio summary generation (TTS)
-- Credit-based billing with Polar integration
-
-## License
-
-MIT
+See the [product tour](docs/README.md) for screenshots and a walkthrough of the user experience.
