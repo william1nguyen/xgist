@@ -1,5 +1,5 @@
+import { env } from "@media-notes/env/server";
 import { Polar } from "@polar-sh/sdk";
-import { env } from "@xgist/env/server";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
@@ -9,17 +9,57 @@ const polarClient = new Polar({
 	server: "sandbox",
 });
 
-export type PlanTier = "free" | "pro" | "ultimate";
+export type PlanTier = "free" | "plus" | "ultimate";
+
+export type BillingPlan = {
+	tier: PlanTier;
+	productId: string;
+	name: string;
+	description: string | null;
+	credits: number;
+	priceAmount: number | null;
+	priceCurrency: string | null;
+	recurringInterval: string | null;
+	benefits: string[];
+};
+
+function toBillingPlan(
+	tier: BillingPlan["tier"],
+	product: Awaited<ReturnType<typeof polarClient.products.get>>,
+): BillingPlan {
+	const price = product.prices.find(
+		(candidate) => candidate.amountType === "fixed" && !candidate.isArchived,
+	);
+
+	return {
+		tier,
+		productId: product.id,
+		name: product.name,
+		description: product.description,
+		credits: Number(product.metadata.credits ?? 0),
+		priceAmount: price?.amountType === "fixed" ? price.priceAmount : null,
+		priceCurrency: price?.amountType === "fixed" ? price.priceCurrency : null,
+		recurringInterval: product.recurringInterval,
+		benefits: product.benefits.map((benefit) => benefit.description),
+	};
+}
 
 export const billingRouter = {
 	getPlans: protectedProcedure
 		.input(z.object({}))
-		.handler(async (): Promise<{ productIdMap: Record<string, string> }> => {
+		.handler(async (): Promise<{ plans: BillingPlan[] }> => {
+			const [free, plus, ultimate] = await Promise.all([
+				polarClient.products.get({ id: env.POLAR_PRODUCT_ID_FREE }),
+				polarClient.products.get({ id: env.POLAR_PRODUCT_ID_PLUS }),
+				polarClient.products.get({ id: env.POLAR_PRODUCT_ID_ULTIMATE }),
+			]);
+
 			return {
-				productIdMap: {
-					pro: env.POLAR_PRODUCT_ID_PRO,
-					ultimate: env.POLAR_PRODUCT_ID_ULTIMATE,
-				},
+				plans: [
+					toBillingPlan("free", free),
+					toBillingPlan("plus", plus),
+					toBillingPlan("ultimate", ultimate),
+				],
 			};
 		}),
 
@@ -54,10 +94,12 @@ export const billingRouter = {
 					cancelAtPeriodEnd: false,
 				};
 
-			const productName = active.product.name.toLowerCase();
 			let plan: PlanTier = "free";
-			if (productName.includes("ultimate")) plan = "ultimate";
-			else if (productName.includes("pro")) plan = "pro";
+			if (active.product.id === env.POLAR_PRODUCT_ID_ULTIMATE) {
+				plan = "ultimate";
+			} else if (active.product.id === env.POLAR_PRODUCT_ID_PLUS) {
+				plan = "plus";
+			}
 
 			return {
 				plan,

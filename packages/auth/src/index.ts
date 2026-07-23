@@ -1,13 +1,13 @@
-import { checkout, polar, portal } from "@polar-sh/better-auth";
-import { db } from "@xgist/db";
+import { db } from "@media-notes/db";
 import {
 	accountTable,
 	sessionTable,
 	userTable,
 	verificationTable,
-} from "@xgist/db/schema/auth";
-import { creditsTable } from "@xgist/db/schema/media";
-import { env } from "@xgist/env/server";
+} from "@media-notes/db/schema/auth";
+import { creditsTable } from "@media-notes/db/schema/media";
+import { env } from "@media-notes/env/server";
+import { checkout, polar, portal } from "@polar-sh/better-auth";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
@@ -39,9 +39,20 @@ export const auth = betterAuth({
 		user: {
 			create: {
 				after: async (user) => {
+					const freeProduct = await polarClient.products.get({
+						id: env.POLAR_PRODUCT_ID_FREE,
+					});
+					const welcomeCredits = Number(freeProduct.metadata.credits ?? 0);
+
+					if (!Number.isFinite(welcomeCredits) || welcomeCredits <= 0) {
+						throw new Error(
+							"Free Polar product must define positive credits metadata",
+						);
+					}
+
 					await db
 						.insert(creditsTable)
-						.values({ userId: user.id, balance: 50 });
+						.values({ userId: user.id, balance: welcomeCredits });
 				},
 			},
 		},

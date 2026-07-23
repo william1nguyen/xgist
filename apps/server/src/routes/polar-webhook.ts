@@ -1,7 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { db, sql } from "@xgist/db";
-import { creditsTable, creditTransactionsTable } from "@xgist/db/schema/media";
-import { env } from "@xgist/env/server";
+import { db, sql } from "@media-notes/db";
+import {
+	creditsTable,
+	creditTransactionsTable,
+} from "@media-notes/db/schema/media";
+import { env } from "@media-notes/env/server";
 import type { FastifyInstance } from "fastify";
 
 function verifySignature(payload: string, signature: string): boolean {

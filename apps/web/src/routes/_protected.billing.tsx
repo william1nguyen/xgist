@@ -1,6 +1,6 @@
+import type { BillingPlan, PlanTier } from "@media-notes/api/routers/billing";
 import type { CreditTransaction } from "@repo/types";
 import { useQuery } from "@tanstack/react-query";
-import type { PlanTier } from "@xgist/api/routers/billing";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -8,12 +8,6 @@ import TransactionRow from "@/components/billing/transactionRow";
 import UpgradeDialog from "@/components/billing/upgradeDialog";
 import UsageBar from "@/components/billing/usageBar";
 import { client, orpc } from "@/utils/orpc";
-
-const PLAN_LABELS: Record<PlanTier, string> = {
-	free: "Free",
-	pro: "Pro — 1000 credits/mo",
-	ultimate: "Ultimate — 2000 credits/mo",
-};
 
 export default function BillingPage() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -51,8 +45,9 @@ export default function BillingPage() {
 	});
 
 	const balance = balanceData?.balance ?? 0;
-	const productIdMap = plansData?.productIdMap ?? {};
+	const plans: BillingPlan[] = plansData?.plans ?? [];
 	const currentPlan: PlanTier = activePlanData?.plan ?? "free";
+	const currentPlanDetails = plans.find((plan) => plan.tier === currentPlan);
 	const subscriptionId = activePlanData?.subscriptionId ?? null;
 	const cancelAtPeriodEnd = activePlanData?.cancelAtPeriodEnd ?? false;
 
@@ -116,14 +111,36 @@ export default function BillingPage() {
 		<div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
 			<h1 className="font-semibold text-xl">Credits & Billing</h1>
 
-			<UsageBar balance={balance} plan={currentPlan} />
+			<UsageBar balance={balance} />
 
 			<div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4">
 				<div className="space-y-0.5">
 					<p className="text-muted-foreground text-xs uppercase tracking-wider">
 						Current plan
 					</p>
-					<p className="font-semibold">{PLAN_LABELS[currentPlan]}</p>
+					<p className="font-semibold">
+						{currentPlan === "free"
+							? (currentPlanDetails?.name ?? "Free")
+							: (currentPlanDetails?.name ?? currentPlan)}
+					</p>
+					{currentPlanDetails?.description && (
+						<p className="text-muted-foreground text-xs">
+							{currentPlanDetails.description}
+						</p>
+					)}
+					{currentPlanDetails && currentPlanDetails.credits > 0 && (
+						<p className="text-muted-foreground text-xs">
+							{currentPlanDetails.credits.toLocaleString()} credits per billing
+							cycle
+						</p>
+					)}
+					{currentPlanDetails && currentPlanDetails.benefits.length > 0 && (
+						<ul className="mt-2 space-y-1 text-muted-foreground text-xs">
+							{currentPlanDetails.benefits.map((benefit) => (
+								<li key={benefit}>• {benefit}</li>
+							))}
+						</ul>
+					)}
 					{cancelAtPeriodEnd && (
 						<p className="text-amber-500 text-xs">
 							Cancels at end of billing period
@@ -182,7 +199,7 @@ export default function BillingPage() {
 			{showUpgrade && (
 				<UpgradeDialog
 					currentPlan={currentPlan}
-					productIdMap={productIdMap}
+					plans={plans}
 					loadingProductId={loadingProductId}
 					onSelect={handleSelect}
 					onClose={() => setShowUpgrade(false)}
