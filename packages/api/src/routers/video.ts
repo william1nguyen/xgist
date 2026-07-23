@@ -1,12 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { ORPCError } from "@orpc/server";
-import type {
-	ProcessingOptions,
-	VideoDetail,
-	VideoStatusResponse,
-} from "@repo/types";
-import { CREDIT_COSTS, STREAM_KEYS } from "@xgist/config";
-import { and, asc, eq } from "@xgist/db";
+import { CREDIT_COSTS, STREAM_KEYS } from "@media-notes/config";
+import { and, asc, eq } from "@media-notes/db";
 import {
 	creditsTable,
 	creditTransactionsTable,
@@ -14,7 +8,14 @@ import {
 	summaryRefsTable,
 	transcriptSegmentsTable,
 	videosTable,
-} from "@xgist/db/schema/media";
+} from "@media-notes/db/schema/media";
+import { env } from "@media-notes/env/server";
+import { ORPCError } from "@orpc/server";
+import type {
+	ProcessingOptions,
+	VideoDetail,
+	VideoStatusResponse,
+} from "@repo/types";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
@@ -57,7 +58,7 @@ export const videoRouter = {
 		.handler(async ({ input, context }) => {
 			const objectName = `${randomUUID()}-${input.filename}`;
 			const uploadUrl = await context.minio.presignedPutObject(
-				"media",
+				env.MINIO_MEDIA_BUCKET,
 				objectName,
 				60 * 15,
 			);
