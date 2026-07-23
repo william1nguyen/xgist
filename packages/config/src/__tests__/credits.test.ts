@@ -1,4 +1,4 @@
-// Feature: mediamind-full-platform, Property 1: Credit cost computation is additive over options
+// Feature: media-notes-full-platform, Property 1: Credit cost computation is additive over options
 
 import type { ProcessingOptions } from "@repo/types";
 import * as fc from "fast-check";

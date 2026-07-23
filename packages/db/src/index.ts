@@ -1,4 +1,4 @@
-import { env } from "@xgist/env/server";
+import { env } from "@media-notes/env/server";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 

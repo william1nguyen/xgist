@@ -11,7 +11,7 @@
 		}
 	},
 	"scripts": {
-		"test": "ESBUILD_BINARY_PATH=../../node_modules/.pnpm/@esbuild+darwin-arm64@0.27.3/node_modules/@esbuild/darwin-arm64/bin/esbuild vitest run --config vitest.config.js"
+		"test": "vitest run --config vitest.config.js"
 	},
 	"devDependencies": {
 		"vitest": "^3.0.0",

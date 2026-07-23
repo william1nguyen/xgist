@@ -1,8 +1,8 @@
+import { computeCreditCost } from "@media-notes/config";
 import type { QueueJob, VideoStatus } from "@repo/types";
-import { computeCreditCost } from "@xgist/config";
 import { NavLink } from "react-router";
-import ProgressBar from "./ProgressBar";
-import StatusBadge from "./StatusBadge";
+import ProgressBar from "./progressBar";
+import StatusBadge from "./statusBadge";
 
 type JobCardProps = {
 	job: QueueJob;

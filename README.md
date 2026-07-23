@@ -1,11 +1,11 @@
-# xgist
+# media-notes
 
 AI-powered media transcription and summarization platform that turns video or audio into timestamped transcripts, cited summaries, keywords, notes, and audio summaries.
 
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture.png" alt="xgist system architecture" width="100%" />
+  <img src="docs/architecture.png" alt="media-notes system architecture" width="100%" />
 </p>
 
 ## System Design
@@ -35,7 +35,7 @@ AI-powered media transcription and summarization platform that turns video or au
 ### Communication
 
 <p align="center">
-  <img src="docs/communication.png" alt="xgist communication flow" width="100%" />
+  <img src="docs/communication.png" alt="media-notes communication flow" width="100%" />
 </p>
 
 ## Tech Stack

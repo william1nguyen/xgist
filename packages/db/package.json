@@ -1,5 +1,5 @@
 {
-	"name": "@xgist/db",
+	"name": "@media-notes/db",
 	"type": "module",
 	"exports": {
 		".": {
@@ -20,7 +20,7 @@
 		"db:down": "docker compose down"
 	},
 	"dependencies": {
-		"@xgist/env": "workspace:*",
+		"@media-notes/env": "workspace:*",
 		"dotenv": "^17.2.2",
 		"drizzle-orm": "^0.45.1",
 		"pg": "^8.17.1",
@@ -28,7 +28,7 @@
 	},
 	"devDependencies": {
 		"@types/pg": "^8.16.0",
-		"@xgist/config": "workspace:*",
+		"@media-notes/config": "workspace:*",
 		"drizzle-kit": "^0.31.8",
 		"typescript": "^5"
 	}

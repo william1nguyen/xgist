@@ -1,5 +1,5 @@
+import { env } from "@media-notes/env/web";
 import { polarClient } from "@polar-sh/better-auth";
-import { env } from "@xgist/env/web";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({

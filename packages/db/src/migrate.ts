@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { env } from "@xgist/env/server";
+import { env } from "@media-notes/env/server";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate as drizzleMigrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";

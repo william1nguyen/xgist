@@ -1,13 +1,13 @@
-import type { ResultPayload } from "@repo/types";
-import { patchJobInCache } from "@xgist/api/lib/queue-cache";
-import { CONSUMER_GROUPS, STREAM_KEYS } from "@xgist/config";
-import { db, eq } from "@xgist/db";
+import { patchJobInCache } from "@media-notes/api/lib/queue-cache";
+import { CONSUMER_GROUPS, STREAM_KEYS } from "@media-notes/config";
+import { db, eq } from "@media-notes/db";
 import {
 	summariesTable,
 	summaryRefsTable,
 	transcriptSegmentsTable,
 	videosTable,
-} from "@xgist/db/schema/media";
+} from "@media-notes/db/schema/media";
+import type { ResultPayload } from "@repo/types";
 import type { Redis } from "ioredis";
 
 type TranscriptItem = ResultPayload["transcript"][number];

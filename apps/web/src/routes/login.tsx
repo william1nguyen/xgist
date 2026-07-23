@@ -23,7 +23,9 @@ export default function Login() {
 				{ email: value.email, password: value.password },
 				{
 					onSuccess: () => navigate("/upload"),
-					onError: (ctx) => toast.error(ctx.error.message ?? "Sign in failed"),
+					onError: (ctx) => {
+						toast.error(ctx.error.message ?? "Sign in failed");
+					},
 				},
 			);
 		},
@@ -33,7 +35,7 @@ export default function Login() {
 		<div className="flex min-h-screen items-center justify-center bg-background">
 			<div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-sm">
 				<h1 className="mb-6 text-center font-semibold text-2xl">
-					Sign in to MediaMind
+					Sign in to Media Notes
 				</h1>
 
 				<form

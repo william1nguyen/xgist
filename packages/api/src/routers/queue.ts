@@ -1,7 +1,7 @@
+import { CREDIT_COSTS } from "@media-notes/config";
+import { and, desc, eq, gte, inArray, lt, lte } from "@media-notes/db";
+import { videosTable } from "@media-notes/db/schema/media";
 import type { ProcessingOptions, QueueJob, VideoStatus } from "@repo/types";
-import { CREDIT_COSTS } from "@xgist/config";
-import { and, desc, eq, gte, inArray, lt, lte } from "@xgist/db";
-import { videosTable } from "@xgist/db/schema/media";
 import { ilike } from "drizzle-orm";
 import { z } from "zod";
 

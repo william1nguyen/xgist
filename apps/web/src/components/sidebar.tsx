@@ -48,7 +48,9 @@ export default function Sidebar() {
 		>
 			<div className="flex h-14 items-center justify-between border-border border-b px-3">
 				{!collapsed && (
-					<span className="truncate font-semibold text-primary">MediaMind</span>
+					<span className="truncate font-semibold text-primary">
+						Media Notes
+					</span>
 				)}
 				<Button
 					variant="ghost"

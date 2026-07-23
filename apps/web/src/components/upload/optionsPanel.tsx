@@ -1,5 +1,5 @@
+import { CREDIT_COSTS } from "@media-notes/config";
 import type { ProcessingOptions } from "@repo/types";
-import { CREDIT_COSTS } from "@xgist/config";
 
 type OptionsPanelProps = {
 	options: ProcessingOptions;

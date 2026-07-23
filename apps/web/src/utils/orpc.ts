@@ -1,9 +1,9 @@
+import type { AppRouterClient } from "@media-notes/api/routers/index";
+import { env } from "@media-notes/env/web";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
-import type { AppRouterClient } from "@xgist/api/routers/index";
-import { env } from "@xgist/env/web";
 import { toast } from "sonner";
 
 export const queryClient = new QueryClient({

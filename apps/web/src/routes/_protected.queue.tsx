@@ -1,6 +1,6 @@
+import { computeCreditCost } from "@media-notes/config";
 import type { QueueJob, VideoStatus } from "@repo/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { computeCreditCost } from "@xgist/config";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";

@@ -1,6 +1,9 @@
+import { and, desc, eq, lt, sum } from "@media-notes/db";
+import {
+	creditsTable,
+	creditTransactionsTable,
+} from "@media-notes/db/schema/media";
 import type { CreditTransaction } from "@repo/types";
-import { and, desc, eq, lt, sum } from "@xgist/db";
-import { creditsTable, creditTransactionsTable } from "@xgist/db/schema/media";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";

@@ -1,6 +1,6 @@
-# xgist Product Tour
+# media-notes Product Tour
 
-xgist turns uploaded video and audio into structured, searchable knowledge. The workflow covers media upload, asynchronous AI processing, timestamped playback, evidence-linked summaries, generated notes, and credit-based billing.
+media-notes turns uploaded video and audio into structured, searchable knowledge. The workflow covers media upload, asynchronous AI processing, timestamped playback, evidence-linked summaries, generated notes, and credit-based billing.
 
 ## Upload Media
 
@@ -36,7 +36,7 @@ The Notes view turns the transcript into a more detailed, organized document. It
 
 ## Credits and Billing
 
-xgist uses credits to make AI-processing usage visible. The billing dashboard shows the available balance, monthly allowance, current subscription, cancellation state, and payment history in one place.
+media-notes uses credits to make AI-processing usage visible. The billing dashboard shows the available balance, monthly allowance, current subscription, cancellation state, and payment history in one place.
 
 ![View credit usage, subscription status, and payment history](demo/billing.png)
 

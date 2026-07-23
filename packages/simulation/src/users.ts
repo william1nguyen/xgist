@@ -1,6 +1,9 @@
-import { accountTable, userTable } from "@xgist/db/schema/auth";
-import type * as schema from "@xgist/db/schema/index";
-import { creditsTable, creditTransactionsTable } from "@xgist/db/schema/media";
+import { accountTable, userTable } from "@media-notes/db/schema/auth";
+import type * as schema from "@media-notes/db/schema/index";
+import {
+	creditsTable,
+	creditTransactionsTable,
+} from "@media-notes/db/schema/media";
 import { hashPassword } from "better-auth/crypto";
 import { eq } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";

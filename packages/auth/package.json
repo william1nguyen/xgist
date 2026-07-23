@@ -1,5 +1,5 @@
 {
-	"name": "@xgist/auth",
+	"name": "@media-notes/auth",
 	"type": "module",
 	"exports": {
 		".": {
@@ -13,14 +13,14 @@
 	"dependencies": {
 		"@polar-sh/better-auth": "^1.6.4",
 		"@polar-sh/sdk": "^0.42.2",
-		"@xgist/db": "workspace:*",
-		"@xgist/env": "workspace:*",
+		"@media-notes/db": "workspace:*",
+		"@media-notes/env": "workspace:*",
 		"better-auth": "^1.4.18",
 		"dotenv": "^17.2.2",
 		"zod": "^4.1.13"
 	},
 	"devDependencies": {
-		"@xgist/config": "workspace:*",
+		"@media-notes/config": "workspace:*",
 		"typescript": "^5"
 	}
 }

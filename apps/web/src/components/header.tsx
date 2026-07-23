@@ -23,7 +23,7 @@ export default function Header() {
 		<div>
 			<div className="flex flex-row items-center justify-between px-4 py-2">
 				<nav className="flex items-center gap-6">
-					<span className="font-semibold text-primary">MediaMind</span>
+					<span className="font-semibold text-primary">Media Notes</span>
 					{session && (
 						<>
 							<NavLink

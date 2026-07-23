@@ -1,4 +1,4 @@
-import * as schema from "@xgist/db/schema/index";
+import * as schema from "@media-notes/db/schema/index";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { env } from "./env";

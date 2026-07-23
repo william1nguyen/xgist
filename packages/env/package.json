@@ -1,5 +1,5 @@
 {
-	"name": "@xgist/env",
+	"name": "@media-notes/env",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -14,7 +14,7 @@
 	},
 	"devDependencies": {
 		"@types/node": "^22.13.14",
-		"@xgist/config": "workspace:*",
+		"@media-notes/config": "workspace:*",
 		"typescript": "^5"
 	}
 }

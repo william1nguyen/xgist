@@ -1,6 +1,6 @@
 import type { IncomingHttpHeaders } from "node:http";
-import { auth } from "@xgist/auth";
-import { db } from "@xgist/db";
+import { auth } from "@media-notes/auth";
+import { db } from "@media-notes/db";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Redis } from "ioredis";
 import type { Client as MinioClient } from "minio";
