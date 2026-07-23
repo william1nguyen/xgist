@@ -8,7 +8,7 @@ const runtimeEnv = (import.meta as unknown as { env: ViteEnv }).env ?? {};
 export const env = createEnv({
 	clientPrefix: "VITE_",
 	client: {
-		VITE_SERVER_URL: z.url().default("http://localhost:8080"),
+		VITE_SERVER_URL: z.url().default("http://localhost:3000"),
 	},
 	runtimeEnv,
 	emptyStringAsUndefined: true,
