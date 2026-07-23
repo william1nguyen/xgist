@@ -1,11 +1,13 @@
 import fastifyCors from "@fastify/cors";
+import { createContext } from "@media-notes/api/context";
+import { appRouter } from "@media-notes/api/routers/index";
+import { auth } from "@media-notes/auth";
+import { runMigrations } from "@media-notes/db/migrate";
+import { env } from "@media-notes/env/server";
+import { OpenAPIHandler } from "@orpc/openapi/fastify";
+import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fastify";
-import { createContext } from "@xgist/api/context";
-import { appRouter } from "@xgist/api/routers/index";
-import { auth } from "@xgist/auth";
-import { runMigrations } from "@xgist/db/migrate";
-import { env } from "@xgist/env/server";
 import Fastify from "fastify";
 
 import { initBuckets, minioClient } from "./lib/minio";
@@ -14,6 +16,28 @@ import { startResultConsumer } from "./lib/result-consumer";
 import { polarWebhookRoute } from "./routes/polar-webhook";
 
 const rpcHandler = new RPCHandler(appRouter, {
+	interceptors: [
+		onError((error) => {
+			console.error(error);
+		}),
+	],
+});
+
+const openAPIHandler = new OpenAPIHandler(appRouter, {
+	plugins: [
+		new OpenAPIReferencePlugin({
+			docsPath: "/api-reference",
+			docsProvider: "scalar",
+			docsTitle: "media-notes API Reference",
+			specPath: "/openapi.json",
+			specGenerateOptions: {
+				info: {
+					title: "media-notes API",
+					version: "1.0.0",
+				},
+			},
+		}),
+	],
 	interceptors: [
 		onError((error) => {
 			console.error(error);
@@ -41,6 +65,23 @@ fastify.register(async (rpcApp) => {
 			prefix: "/rpc",
 		});
 		if (!matched) reply.status(404).send();
+	});
+});
+
+fastify.register(async (openAPIApp) => {
+	openAPIApp.addContentTypeParser("*", (_, _payload, done) => {
+		done(null, undefined);
+	});
+
+	openAPIApp.route({
+		method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+		url: "/*",
+		async handler(request, reply) {
+			const { matched } = await openAPIHandler.handle(request, reply, {
+				context: await createContext(request.headers, redis, minioClient),
+			});
+			if (!matched) reply.status(404).send();
+		},
 	});
 });
 
