@@ -1,6 +1,6 @@
+import { computeCreditCost } from "@media-notes/config";
 import type { ProcessingOptions } from "@repo/types";
 import { useQuery } from "@tanstack/react-query";
-import { computeCreditCost } from "@xgist/config";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -96,8 +96,8 @@ export default function UploadPage() {
 		<div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
 			<div className="flex items-center justify-between">
 				<h1 className="font-semibold text-xl">Upload Media</h1>
-				<span className="text-muted-foreground text-sm">
-					Balance: {balance}c
+				<span className="rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary text-sm">
+					Balance: {balance.toLocaleString()} credits
 				</span>
 			</div>
 

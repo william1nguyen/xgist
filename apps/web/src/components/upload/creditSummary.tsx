@@ -56,8 +56,8 @@ export default function CreditSummary({
 				</span>
 			</div>
 			<div className="flex items-center gap-2">
-				<span className="text-muted-foreground text-xs">
-					Balance: {balance}c
+				<span className="rounded-full bg-primary/10 px-2.5 py-1 font-semibold text-primary text-xs">
+					Balance: {balance.toLocaleString()} credits
 				</span>
 				{insufficient && (
 					<NavLink

@@ -75,8 +75,8 @@ export default function GenerateOptionsDialog({
 			<div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
 				<div className="mb-4 flex items-center justify-between">
 					<h2 className="font-semibold text-base">Generate More AI Options</h2>
-					<span className="text-muted-foreground text-xs">
-						Balance: {balance}c
+					<span className="rounded-full bg-primary/10 px-2.5 py-1 font-semibold text-primary text-xs">
+						Balance: {balance.toLocaleString()} credits
 					</span>
 				</div>
 
