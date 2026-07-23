@@ -7,7 +7,7 @@ services:
     image: postgres:16
     container_name: postgres
     environment:
-      POSTGRES_DB: mediamind
+      POSTGRES_DB: media_notes
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
     ports:

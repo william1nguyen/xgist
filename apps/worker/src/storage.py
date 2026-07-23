@@ -25,8 +25,9 @@ def download_media(url: str) -> bytes:
 def upload_audio(data: bytes, filename: str) -> str:
     client = get_minio()
     object_name = f"{uuid.uuid4()}-{filename}"
+    bucket = os.environ["MINIO_SUMMARY_BUCKET"]
     client.put_object(
-        bucket_name="summaries",
+        bucket_name=bucket,
         object_name=object_name,
         data=io.BytesIO(data),
         length=len(data),
@@ -35,4 +36,4 @@ def upload_audio(data: bytes, filename: str) -> str:
     endpoint = os.environ["MINIO_ENDPOINT"]
     use_ssl = os.environ.get("MINIO_USE_SSL", "false").lower() == "true"
     protocol = "https" if use_ssl else "http"
-    return f"{protocol}://{endpoint}/summaries/{object_name}"
+    return f"{protocol}://{endpoint}/{bucket}/{object_name}"

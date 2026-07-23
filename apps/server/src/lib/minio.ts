@@ -1,4 +1,4 @@
-import { env } from "@xgist/env/server";
+import { env } from "@media-notes/env/server";
 import { Client } from "minio";
 
 export const minioClient = new Client({
@@ -31,8 +31,8 @@ async function ensureBucket(name: string) {
 }
 
 export async function initBuckets() {
-	await ensureBucket("media");
-	await ensureBucket("summaries");
+	await ensureBucket(env.MINIO_MEDIA_BUCKET);
+	await ensureBucket(env.MINIO_SUMMARY_BUCKET);
 }
 
 export function getPublicUrl(bucket: string, objectName: string): string {
