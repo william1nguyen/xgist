@@ -8,6 +8,20 @@ AI-powered media transcription and summarization platform that turns video or au
   <img src="docs/architecture.png" alt="media-notes system architecture" width="100%" />
 </p>
 
+## Version 2 Migration
+
+Media Notes 2 is currently a design package; its implementation is intentionally
+not present in this branch. The existing version 1 application remains the
+executable system and the migration can be implemented afresh from the accepted
+decisions.
+
+Start with the [target design](proposal/mn2_design.md), the
+[brainstorm and open questions](proposal/mn2_brainstorm.md), the
+[accepted architecture decisions](docs/adr/), and the
+[planned service boundaries](services/README.md). The infrastructure, CI, and
+database documents under `docs/` are implementation specifications, not
+instructions for commands that exist today.
+
 ## System Design
 
 ### Web (React)
@@ -55,7 +69,7 @@ AI-powered media transcription and summarization platform that turns video or au
 pnpm install
 cp apps/server/.env.example apps/server/.env
 cp apps/web/.env.example apps/web/.env
-docker compose up -d postgres redis minio
+make infra:up
 pnpm db:migrate
 pnpm dev
 ```

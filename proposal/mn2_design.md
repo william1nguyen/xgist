@@ -101,6 +101,12 @@ Kafka stores only small messages:
 Media bytes, transcript text, and generated long-form content do not travel
 through Kafka.
 
+Media size, duration, upload-session, API traffic, and payload guardrails are
+defined in
+[`ADR 0004`](../docs/adr/0004-media-and-traffic-limits.md). These limits are
+enforced from client feedback through authoritative object metadata and worker
+probing; client-declared size and duration are never trusted.
+
 ## Media list and thumbnail delivery
 
 The main page never requests the original audio/video object. After upload,
@@ -265,6 +271,14 @@ conductorsvc
 The step completes only after the audio object is durable and its metadata is
 committed.
 
+Gemini and TTS calls use deployment-specific quota admission before a step is
+published. `conductorsvc` owns aggregate reservations and retries; workers
+apply local concurrency and timeouts. Production TTS must use an authenticated,
+supported provider rather than the development-only `edge-tts` integration.
+Quota verification, backpressure, failure classification, observability, and
+rollout are defined in
+[`ADR 0007`](../docs/adr/0007-provider-quota-and-admission-control.md).
+
 ### 6. Completion
 
 When all required steps are complete:
@@ -278,6 +292,18 @@ conductorsvc
 
 `web` reads progress through `mediasvc` and generated content through
 `contentsvc`; `hermes` aggregates both responses.
+
+Progress delivery initially uses adaptive polling through a dedicated batched
+GraphQL query. The interval, cache behavior, failure handling, delivery
+objective, and criteria for reconsidering SSE are defined in
+[`ADR 0005`](../docs/adr/0005-progress-update-delivery.md).
+
+Media and account deletion are asynchronous cross-service workflows. The
+lifecycle owner immediately removes product access, while each service deletes
+only its own rows and object keys and reports durable completion. Retention
+defaults, tombstones, failure recovery, backup behavior, and rollout controls
+are defined in
+[`ADR 0006`](../docs/adr/0006-data-retention-and-deletion.md).
 
 ### 7. Failure and retry
 
@@ -334,6 +360,14 @@ Constraints:
 
 The ledger is append-only. `credit_accounts` is a current-balance projection
 updated with optimistic locking through `version`.
+
+Launch pricing preserves the version 1 additive option costs. `billingsvc`
+issues an immutable versioned quote and reserves the quoted maximum before work
+starts. Each selected item settles exactly once only after its durable outcome;
+failed or cancelled items release their remainder, and retries are not newly
+billable. Pricing compatibility, quote lifecycle, reservation expiry, refunds,
+reconciliation, and rollout are defined in
+[`ADR 0008`](../docs/adr/0008-credit-pricing-and-settlement.md).
 
 ### `mediasvc` — `media db`
 
@@ -426,7 +460,9 @@ processing a command. Durable text outputs must be committed through
 | `mn.processing.dlq.v1` | original key | retry policy | operations |
 
 Topics are partitioned by `media_id` for processing order and by `user_id` for
-billing order.
+billing order. Partition counts, retention, consumer groups, retry ownership,
+and DLQ replay are defined in
+[`ADR 0003`](../docs/adr/0003-kafka-topic-and-partition-strategy.md).
 
 ## Delivery and consistency
 

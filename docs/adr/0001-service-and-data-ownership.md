@@ -1,0 +1,154 @@
+# ADR 0001: Service and Data Ownership Boundaries
+
+- Status: Accepted
+- Date: 2026-07-25
+- Decision owners: Media Notes maintainers
+- Related Jira issue: KAN-18
+- Related design: `proposal/mn2_design.md`
+
+## Context
+
+Media Notes version 1 combines public API handling, authentication, billing,
+media management, job publication, result consumption, and persistence in one
+TypeScript server. Its Python worker performs the processing pipeline
+sequentially.
+
+Media Notes version 2 introduces independently deployable services and an
+explicit asynchronous workflow. Without strict ownership rules, the new
+services could still behave as a distributed monolith by sharing tables,
+domain models, or internal implementations.
+
+## Decision
+
+Media Notes 2 will use the following application-service boundaries:
+
+| Service | Owns | Does not own |
+| --- | --- | --- |
+| `hermes` | Public GraphQL schema, request authentication context, batching, response aggregation | Domain records or domain database tables |
+| `identitysvc` | Users, accounts, sessions, verification records, roles | Media, content, workflow, or billing records |
+| `billingsvc` | Billing accounts, subscriptions, credit balances, reservations, ledger entries, Polar webhook state | Media processing state or generated content |
+| `mediasvc` | Upload sessions, source-media metadata, processing requests, media derivatives | Transcripts, generated content, workflow attempts, or credit balances |
+| `contentsvc` | Transcripts, transcript segments, summaries, citations, keywords, keypoints, notes, summary-audio metadata | Source-media lifecycle, workflow decisions, or billing |
+| `conductorsvc` | Workflows, steps, dependencies, attempts, retry decisions, timeouts, and joins | AI execution, media bytes, generated content, or credit ledger entries |
+| `conductor-worker` | Stateless execution of Whisper, Gemini, FFmpeg, and TTS commands | Durable workflow or domain state |
+
+Kafka, PostgreSQL, MinIO/S3, Redis, and OpenTelemetry are infrastructure rather
+than application services.
+
+## Database Rules
+
+1. Each stateful service owns a dedicated PostgreSQL schema and database
+   credential.
+2. A service may read or write only its own schema.
+3. Cross-service identifiers are UUID values without cross-schema foreign keys.
+4. Cross-service reads use versioned gRPC contracts.
+5. Cross-service state changes use gRPC commands or versioned Kafka events.
+6. Consumers use inbox records or idempotency keys for at-least-once delivery.
+7. Database writes coupled to event publication use a transactional outbox.
+8. Schema migrations are packaged and executed independently per service.
+
+One PostgreSQL cluster may host multiple schemas during the initial deployment.
+Sharing a cluster does not relax service ownership.
+
+## Storage Rules
+
+PostgreSQL stores queryable text and structured state, including transcripts,
+segments, summaries, citations, notes, keywords, keypoints, workflow state, and
+billing records.
+
+Object storage stores:
+
+- Uploaded audio and video.
+- Generated thumbnails, cover images, and waveform previews.
+- Generated summary-audio bytes.
+
+Kafka messages contain identifiers, idempotency keys, state, object keys,
+attempt numbers, timestamps, error codes, and small metadata. Media bytes,
+complete transcripts, and long-form generated content must not be transported
+through Kafka.
+
+## Source-Code Boundaries
+
+Services may share small technical libraries for:
+
+- Observability bootstrap.
+- Correlation and trace propagation.
+- Kafka message envelopes.
+- gRPC middleware.
+- Configuration loading.
+- Test utilities.
+
+Services must not share:
+
+- Domain entities or database models.
+- Repository implementations.
+- Migration files.
+- Business rules.
+- Another service's `internal` package.
+
+Protobuf and event schemas live in a shared, versioned contracts area. Generated
+clients are the allowed compile-time dependency; server implementations remain
+private to their owning service.
+
+## Consistency Model
+
+Cross-service workflows are eventually consistent. Exactly-once business
+behavior is achieved through idempotent state transitions, inbox deduplication,
+unique idempotency keys, and transactional outboxes—not by assuming a message
+is delivered only once.
+
+Generated content is durable before `processing.step.completed.v1` is
+published. A worker acknowledges a command only after the owning service has
+accepted the durable result, or after an object and its metadata are durable.
+
+## Enforcement
+
+The repository and CI will enforce these boundaries through:
+
+- A separate Go module and migration directory for each Go service.
+- No imports from another service's `internal` tree.
+- Contract compatibility checks for Protobuf and event schemas.
+- Path-scoped builds and tests for independently deployable artifacts.
+- Integration tests that access services through public contracts.
+- Separate database credentials in local and deployed environments.
+
+## Consequences
+
+### Positive
+
+- Ownership and operational responsibility are explicit.
+- Services can be migrated, deployed, and scaled independently.
+- Workflow recovery does not depend on worker process lifetime.
+- Contract and integration testing can detect incompatible changes.
+- A future repository split remains possible without redesigning domain
+  boundaries.
+
+### Costs
+
+- Cross-domain queries require aggregation in `hermes`.
+- Workflows must handle eventual consistency and duplicate delivery.
+- Contract evolution and deployment compatibility require deliberate
+  versioning.
+- Local development needs multiple schemas, services, and infrastructure
+  dependencies.
+
+## Rejected Alternatives
+
+- **Shared database access across services:** creates hidden coupling and makes
+  independent migrations unsafe.
+- **A shared domain-model package:** couples service releases and transfers
+  ownership into a common library.
+- **Full transcripts in Kafka or object storage:** weakens queryability and
+  creates inefficient broker payloads.
+- **One repository per service immediately:** adds coordination overhead before
+  separate team ownership or release cadence exists.
+
+## Follow-up Decisions
+
+Separate ADRs will define:
+
+- Protobuf and event-schema compatibility policy.
+- Kafka topic and partition strategy.
+- Credit pricing and reservation calculation.
+- Progress delivery through polling, SSE, or GraphQL subscriptions.
+- Data retention and cross-service deletion.

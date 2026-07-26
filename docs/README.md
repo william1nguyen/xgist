@@ -1,5 +1,8 @@
 # media-notes Product Tour
 
+Architecture decisions for the version 2 migration are recorded in
+[`docs/adr`](adr/).
+
 media-notes turns uploaded video and audio into structured, searchable knowledge. The workflow covers media upload, asynchronous AI processing, timestamped playback, evidence-linked summaries, generated notes, and credit-based billing.
 
 ## Upload Media
