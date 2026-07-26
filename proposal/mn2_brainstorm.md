@@ -193,10 +193,13 @@ conductorsvc
 ## Open questions
 
 - Expected media volume, duration, and maximum upload size.
-- CPU versus GPU execution for Whisper.
-- Whether different step types eventually require separate Kafka topics.
-- Gemini and TTS quotas and rate limits.
-- Retention and deletion policy across PostgreSQL and object storage.
+- GPU execution is selected for production Whisper workers after the
+  maintainer measured it at 17 times faster than CPU. CPU `int8` remains the
+  local-development and bounded fallback configuration. Evidence and
+  provenance are recorded in
+  [`docs/benchmarks/whisper-cpu-gpu.md`](../docs/benchmarks/whisper-cpu-gpu.md).
+- Whether measured step latency or resource isolation eventually justifies
+  splitting the shared step-command topic by capability.
 - Whether progress delivery initially uses polling, SSE, or GraphQL
   subscriptions.
 - When read traffic is large enough to justify extracting `querysvc`.

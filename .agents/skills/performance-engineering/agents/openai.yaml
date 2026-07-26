@@ -1,0 +1,4 @@
+interface:
+  display_name: "Performance Engineering"
+  short_description: "Measure and improve system performance"
+  default_prompt: "Use $performance-engineering to investigate and improve this performance issue."

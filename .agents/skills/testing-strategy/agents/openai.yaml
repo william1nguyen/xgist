@@ -1,0 +1,4 @@
+interface:
+  display_name: "Testing Strategy"
+  short_description: "Design focused and reliable test coverage"
+  default_prompt: "Use $testing-strategy to plan and verify tests for this change."
