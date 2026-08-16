@@ -105,6 +105,7 @@ change.
 
 - Follow `.agents/skills/william-git-commit/SKILL.md` for commits and pull
   requests.
+- Commit messages must be exactly one line, with no body or footer.
 - Never include secrets, generated local state, co-author trailers, or unrelated
   changes.
 - Do not commit, push, create a branch, or open a pull request unless the user
