@@ -17,3 +17,12 @@ infra\:kafka-topics: ## Create v2 Kafka topics (idempotent)
 	$(COMPOSE) exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
 		--create --if-not-exists --topic mn.identity.account.deletion.requested.v1 \
 		--partitions 3 --replication-factor 1
+	@for topic in \
+		mn.billing.credit.reserve.v1 \
+		mn.billing.credit.reserved.v1 \
+		mn.billing.credit.settle.v1 \
+		mn.billing.credit.settled.v1 \
+	; do \
+		$(COMPOSE) exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
+			--create --if-not-exists --topic $$topic --partitions 3 --replication-factor 1; \
+	done

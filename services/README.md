@@ -11,7 +11,10 @@ application.
   authentication, session issuance/validation/revocation, and the account
   deletion workflow (outbox publish, inbox consumer, reconciler). See
   [docs/services/identity.md](../docs/services/identity.md).
-- `billing`: subscriptions, credit reservations, and ledger. Not started.
+- `billing`: subscriptions, credit reservations, and ledger. Implemented:
+  catalog-backed quotes, credit reservation/settlement/release (outbox,
+  Kafka command consumer, append-only ledger), and Polar purchase webhook
+  handling. See [docs/services/billing.md](../docs/services/billing.md).
 - `media`: uploads, source-media metadata, and processing requests. Not
   started.
 - `content`: transcripts and generated content. Not started.

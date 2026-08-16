@@ -1,0 +1,91 @@
+// Package media_notes.billing.v1 defines the billing service's synchronous
+// read contract: quotes and billing summaries. Credit reservation and
+// settlement are workflow mutations that enter through Kafka commands
+// (mn.billing.credit.reserve.v1, mn.billing.credit.settle.v1), not gRPC —
+// see docs/services/billing.md and ADR 0008.
+syntax = "proto3";
+
+package media_notes.billing.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// BillingService owns billing accounts, subscriptions, catalog/quotes, and
+// credit balances. Only hermes calls this service.
+service BillingService {
+  // GetQuote prices a set of processing options against the active catalog
+  // version and returns a time-limited, immutable quote snapshot.
+  rpc GetQuote(GetQuoteRequest) returns (GetQuoteResponse);
+  // GetBillingSummary returns current credit balance and subscription
+  // state for one user.
+  rpc GetBillingSummary(GetBillingSummaryRequest) returns (GetBillingSummaryResponse);
+}
+
+// QuoteItem is one priced option within a quote.
+message QuoteItem {
+  string item_id = 1;
+  int64 credits = 2;
+}
+
+// Quote is an immutable, time-limited price snapshot for a set of
+// processing options.
+message Quote {
+  string id = 1;
+  string user_id = 2;
+  string catalog_version = 3;
+  repeated QuoteItem items = 4;
+  int64 total_credits = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// GetQuoteRequest carries a caller idempotency key and the canonical price
+// item identifiers the user selected (for example "transcribe",
+// "summarize", "generate_audio_summary").
+message GetQuoteRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  repeated string options = 3;
+}
+
+// GetQuoteResponse returns the priced quote.
+message GetQuoteResponse {
+  Quote quote = 1;
+}
+
+// SubscriptionStatus is the lifecycle state of a billing subscription.
+enum SubscriptionStatus {
+  SUBSCRIPTION_STATUS_UNSPECIFIED = 0;
+  SUBSCRIPTION_STATUS_NONE = 1;
+  SUBSCRIPTION_STATUS_ACTIVE = 2;
+  SUBSCRIPTION_STATUS_CANCELED = 3;
+  SUBSCRIPTION_STATUS_PAST_DUE = 4;
+}
+
+// Subscription is the user's current subscription, if any.
+message Subscription {
+  string id = 1;
+  string plan = 2;
+  SubscriptionStatus status = 3;
+  google.protobuf.Timestamp period_start = 4;
+  google.protobuf.Timestamp period_end = 5;
+}
+
+// BillingSummary is current credit balance and subscription state for one
+// user.
+message BillingSummary {
+  string user_id = 1;
+  int64 available_credits = 2;
+  int64 reserved_credits = 3;
+  // subscription is unset when the user has never subscribed.
+  Subscription subscription = 4;
+}
+
+// GetBillingSummaryRequest identifies the user to summarize.
+message GetBillingSummaryRequest {
+  string user_id = 1;
+}
+
+// GetBillingSummaryResponse returns the requested summary.
+message GetBillingSummaryResponse {
+  BillingSummary summary = 1;
+}

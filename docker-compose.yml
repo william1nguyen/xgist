@@ -139,6 +139,49 @@ services:
       - default
     restart: unless-stopped
 
+  billing-migrate:
+    image: flyway/flyway:11
+    container_name: billing-migrate
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/billing/migrations:/flyway/migrations:ro
+    command: >
+      -url=jdbc:postgresql://postgres:5432/billing
+      -user=billing -password=billing
+      -locations=filesystem:/flyway/migrations
+      -connectRetries=10
+      migrate
+    networks:
+      - default
+
+  billing:
+    build:
+      context: .
+      dockerfile: services/billing/billing.dockerfile
+    container_name: billing
+    profiles: ["app"]
+    environment:
+      DATABASE_URL: postgres://billing:billing@postgres:5432/billing?sslmode=disable
+      KAFKA_BROKERS: kafka:29092
+      BILLING_HTTP_ADDR: :8082
+      BILLING_GRPC_ADDR: :9093
+      BILLING_POLAR_WEBHOOK_SECRET: ${BILLING_POLAR_WEBHOOK_SECRET:-}
+      LOG_LEVEL: info
+    ports:
+      - "8082:8082"
+      - "9093:9093"
+    depends_on:
+      billing-migrate:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_started
+    networks:
+      - default
+    restart: unless-stopped
+
   worker:
     build:
       context: apps/worker
