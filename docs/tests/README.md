@@ -11,6 +11,7 @@ complement to the automated unit/integration tests under each
 | Identity | [identity/manual.md](identity/manual.md) |
 | Billing | [billing/manual.md](billing/manual.md) |
 | Media | [media/manual.md](media/manual.md) |
+| Content | [content/manual.md](content/manual.md) |
 
 Only services with a working gRPC implementation get a guide here; see
 [`docs/services/README.md`](../services/README.md) for every service's

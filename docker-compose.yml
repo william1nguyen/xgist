@@ -231,6 +231,48 @@ services:
       - default
     restart: unless-stopped
 
+  content-migrate:
+    image: flyway/flyway:11
+    container_name: content-migrate
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/content/migrations:/flyway/migrations:ro
+    command: >
+      -url=jdbc:postgresql://postgres:5432/content
+      -user=content -password=content
+      -locations=filesystem:/flyway/migrations
+      -connectRetries=10
+      migrate
+    networks:
+      - default
+
+  content:
+    build:
+      context: .
+      dockerfile: services/content/content.dockerfile
+    container_name: content
+    profiles: ["app"]
+    environment:
+      DATABASE_URL: postgres://content:content@postgres:5432/content?sslmode=disable
+      KAFKA_BROKERS: kafka:29092
+      CONTENT_HTTP_ADDR: :8084
+      CONTENT_GRPC_ADDR: :9095
+      LOG_LEVEL: info
+    ports:
+      - "8084:8084"
+      - "9095:9095"
+    depends_on:
+      content-migrate:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_started
+    networks:
+      - default
+    restart: unless-stopped
+
   worker:
     build:
       context: apps/worker
