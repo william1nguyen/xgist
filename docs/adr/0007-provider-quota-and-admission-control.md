@@ -4,7 +4,7 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-46
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
@@ -20,8 +20,8 @@ is not guaranteed:
 
 - <https://ai.google.dev/gemini-api/docs/rate-limits>
 
-Version 1 uses `edge-tts`, a third-party Python client for Microsoft Edge's
-online TTS service without an API key:
+Local development and tests use `edge-tts`, a third-party Python client for
+Microsoft Edge's online TTS service without an API key:
 
 - <https://github.com/rany2/edge-tts>
 

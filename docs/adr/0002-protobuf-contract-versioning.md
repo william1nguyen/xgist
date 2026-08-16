@@ -4,11 +4,11 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-11
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
-Media Notes 2 services are deployed independently. A producer and consumer can
+Media Notes services are deployed independently. A producer and consumer can
 therefore run different revisions of a gRPC contract during rollout, rollback,
 local development, or a partial deployment.
 

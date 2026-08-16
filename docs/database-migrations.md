@@ -2,7 +2,7 @@
 
 Status: proposed implementation specification.
 
-Each stateful Media Notes 2 service must own one PostgreSQL schema, credential,
+Each stateful Media Notes service must own one PostgreSQL schema, credential,
 migration directory, and migration version table.
 
 | Service | Role | Schema | Migration directory |

@@ -2,9 +2,8 @@
 
 Status: proposed implementation specification.
 
-The existing Docker Compose stack supports version 1. A future Media Notes 2
-local profile must provide PostgreSQL, Redis, MinIO, and Kafka without changing
-the version 1 developer workflow.
+The local development profile provides PostgreSQL, Redis, MinIO, and Kafka
+through Docker Compose.
 
 ## Required topology
 
@@ -28,5 +27,4 @@ deployed environments.
 - Credentials are overridable without committing environment files.
 - Purge removes only project-owned containers and volumes; it must not run
   global Docker prune commands.
-- Version 1 can continue running without Kafka.
 - Port conflicts and volume initialization behavior are documented.

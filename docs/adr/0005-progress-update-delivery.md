@@ -5,7 +5,7 @@
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-20
 - Related implementation issue: KAN-125
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
@@ -13,11 +13,10 @@ Media processing is asynchronous and may take minutes. The Web application
 needs timely status updates on the queue and detail pages without exposing
 Kafka, workflow internals, or another service's database.
 
-Version 1 polls queue and detail queries every three seconds while a job is
-non-terminal. Media Notes 2 introduces `hermes` as the public GraphQL boundary
-and `media` as the owner of the user-facing media status projection. Hermes
-does not yet have a streaming GraphQL runtime or cross-instance connection
-fan-out. Initial concurrent-user and active-workflow traffic is not measured.
+`hermes` is the public GraphQL boundary and `media` owns the user-facing
+media status projection. Hermes does not have a streaming GraphQL runtime or
+cross-instance connection fan-out. Initial concurrent-user and
+active-workflow traffic is not measured.
 
 The launch mechanism must remain correct across duplicate Kafka delivery,
 missed intermediate transitions, browser suspension, Hermes restarts, and
@@ -25,7 +24,7 @@ horizontally scaled stateless instances.
 
 ## Decision
 
-Media Notes 2 launches with adaptive GraphQL polling. The Web polls a dedicated
+Media Notes uses adaptive GraphQL polling. The Web polls a dedicated
 batched progress query every three seconds only while visible media items are
 non-terminal.
 
@@ -119,7 +118,8 @@ Revisit the transport when representative measurements show any of:
 - progress updates must be delivered while the application is not foreground;
 - repeated reads materially increase database or network cost.
 
-These are investigation triggers, not automatic migration rules. If a push
+These are investigation triggers, not rules for switching transport
+automatically. If a push
 transport becomes necessary, SSE is the preferred next candidate because the
 flow is server-to-client and does not require bidirectional WebSocket
 semantics.

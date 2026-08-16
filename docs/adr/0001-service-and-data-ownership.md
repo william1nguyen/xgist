@@ -4,23 +4,20 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-18
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
-Media Notes version 1 combines public API handling, authentication, billing,
-media management, job publication, result consumption, and persistence in one
-TypeScript server. Its Python worker performs the processing pipeline
-sequentially.
-
-Media Notes version 2 introduces independently deployable services and an
-explicit asynchronous workflow. Without strict ownership rules, the new
+Media Notes is built as independently deployable services with an explicit
+asynchronous workflow, rather than one server handling public API,
+authentication, billing, media management, job publication, result
+consumption, and persistence together. Without strict ownership rules, the
 services could still behave as a distributed monolith by sharing tables,
 domain models, or internal implementations.
 
 ## Decision
 
-Media Notes 2 will use the following application-service boundaries:
+Media Notes uses the following application-service boundaries:
 
 | Service | Owns | Does not own |
 | --- | --- | --- |
@@ -117,7 +114,7 @@ The repository and CI will enforce these boundaries through:
 ### Positive
 
 - Ownership and operational responsibility are explicit.
-- Services can be migrated, deployed, and scaled independently.
+- Services can be deployed, scaled, and evolved independently.
 - Workflow recovery does not depend on worker process lifetime.
 - Contract and integration testing can detect incompatible changes.
 - A future repository split remains possible without redesigning domain

@@ -5,24 +5,24 @@
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-49
 - Related implementation issues: KAN-95, KAN-99
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
-Media Notes version 1 displays a fixed credit cost for each selected processing
-option and deducts the complete additive total when a job is created. Version 2
-introduces parallel outputs, retries, cancellation, partial completion, and
-credit reservation. Pricing must remain predictable to users while duplicate
-delivery and retries must not charge more than once.
+Media Notes displays a fixed credit cost for each selected processing option.
+Parallel outputs, retries, cancellation, and partial completion mean pricing
+cannot simply deduct the full total up front: credit reservation must remain
+predictable to users while duplicate delivery and retries must not charge
+more than once.
 
 Provider and infrastructure cost per job is not yet measured across the
-allowed media-duration distribution. The launch prices are therefore a
-backward-compatible product contract, not a claim that one credit maps directly
-to a token, compute-second, or currency amount.
+allowed media-duration distribution. The launch prices are therefore a fixed
+product contract, not a claim that one credit maps directly to a token,
+compute-second, or currency amount.
 
 ## Decision
 
-Version 2 preserves the version 1 additive option prices for launch:
+The launch catalog uses additive per-option pricing:
 
 | Price item | Credits | Durable outcome |
 | --- | ---: | --- |
@@ -34,11 +34,9 @@ Version 2 preserves the version 1 additive option prices for launch:
 | `generate_audio_summary` | 30 | Audio object and metadata committed |
 
 The maximum initial quote is 90 credits when every option is selected.
-`extract_keypoints` is the version 2 canonical name for version 1
-`extractMainIdeas`; the migration preserves its 10-credit price.
 
 Pricing is represented by an immutable, versioned catalog owned by
-`billing`. The initial catalog version is `mn2-launch-v1`. A processing
+`billing`. The initial catalog version is `launch-v1`. A processing
 request stores:
 
 - catalog version;
@@ -145,18 +143,18 @@ state through versioned contracts. It reports mismatches and issues only
 idempotent missing settlement or release commands; it never edits another
 service's database.
 
-## Rollout and Compatibility
+## Rollout and Review
 
-The launch catalog exactly preserves the version 1 values. During migration,
-the existing frontend constants may remain as display fallback, but the server
-quote is authoritative and a mismatch blocks submission with a refreshed
-quote.
+The server quote is authoritative; a client-displayed estimate that
+mismatches it blocks submission with a refreshed quote.
 
-Rollout first shadows quote and reservation decisions without mutating
-balances, then compares them with version 1 deductions. Enforcement starts
-after additive totals and insufficient-balance outcomes match. Rollback routes
-new work to the previous active catalog and reservation path; already accepted
-version 2 workflows finish using their snapshots.
+New billing behavior rolls out in shadow mode first: quote and reservation
+decisions are computed and compared without mutating balances, and
+enforcement starts only after additive totals and insufficient-balance
+outcomes are verified correct. Catalog changes use a versioned catalog: a new
+version takes effect for new quotes only, and rollback routes new work to the
+previous active catalog while already-accepted workflows finish using their
+snapshots.
 
 Review product prices after 30 days of representative production traffic using
 measured media duration, provider usage, GPU time, storage, retry rate,
@@ -173,7 +171,7 @@ contract; it does not reinterpret existing quotes.
 | Recalculate price at settlement | Allows catalog changes to alter an accepted user quote |
 | Let `conductor` mutate balances | Violates billing ownership and bypasses the ledger |
 | Price directly from tokens or GPU seconds now | Cost distribution and user contract are not yet measured |
-| Change launch prices while extracting billing | Breaks version 1 compatibility without a product decision |
+| Change launch prices while introducing reservation and settlement | Conflates a pricing change with a mechanism change without a separate product decision |
 
 ## Validation
 
@@ -187,6 +185,7 @@ Implementation must include:
   regeneration, refund, overflow, and insufficient-credit tests;
 - property tests that available plus reserved plus net settled movement
   reconciles with the append-only ledger;
-- migration shadow comparison against version 1 additive pricing;
+- a shadow-mode comparison of quote and reservation decisions before
+  enforcement is enabled;
 - an operational reconciliation exercise that repairs missing idempotent
   commands without direct cross-service database access.

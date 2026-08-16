@@ -4,11 +4,11 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-47
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
-Media Notes 2 uses Kafka to connect independently deployed domain services and
+Media Notes uses Kafka to connect independently deployed domain services and
 a horizontally scaled executor pool. Delivery is at least once, workflow steps
 may complete in parallel, and billing mutations must remain ordered for one
 account.

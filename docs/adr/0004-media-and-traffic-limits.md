@@ -4,20 +4,20 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-17
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
 Media Notes accepts user-controlled audio and video, stores source bytes in
 object storage, and schedules expensive transcription and generation work.
-Version 1 rejects files larger than 500 MiB in the Web client and API, but it
-does not define a duration limit, concurrent-upload policy, or traffic budget.
+The product rejects files larger than 500 MiB in the Web client and API, but
+duration limits, concurrent-upload policy, and traffic budget must be defined
+before upload sessions and worker capacity are implemented.
 
-Media Notes 2 needs explicit limits before upload sessions and worker capacity
-are implemented. The limits must protect storage, provider quota, and database
-connections without transporting media bytes through `hermes`, gRPC, or Kafka.
-Initial production traffic is not measured, so these values are launch
-guardrails rather than capacity claims.
+Limits must protect storage, provider quota, and database connections without
+transporting media bytes through `hermes`, gRPC, or Kafka. Initial production
+traffic is not measured, so these values are launch guardrails rather than
+capacity claims.
 
 ## Decision
 
@@ -136,8 +136,8 @@ proposed maximum; it is not an emergency response to queue lag.
 
 - Duration is known only after probing, so some invalid objects are uploaded
   before rejection.
-- A 60-minute session keeps abandoned object keys valid longer than version 1's
-  15-minute URL.
+- A 60-minute upload-session lifetime keeps abandoned object keys valid for up
+  to an hour before cleanup.
 - Redis rate limiting requires a defined fail-open or fail-closed policy per
   operation during implementation.
 - Launch values may be too strict or too permissive until production

@@ -5,7 +5,7 @@
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-21
 - Related implementation issue: KAN-132
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 

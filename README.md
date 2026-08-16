@@ -5,7 +5,7 @@ AI-powered media transcription and summarization platform that turns video or au
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture.png" alt="media-notes system architecture" width="100%" />
+  <img src="assets/architecture.png" alt="media-notes system architecture" width="100%" />
 </p>
 
 ## Version 2 Migration
@@ -15,12 +15,11 @@ not present in this branch. The existing version 1 application remains the
 executable system and the migration can be implemented afresh from the accepted
 decisions.
 
-Start with the [target design](proposal/mn2_design.md), the
-[brainstorm and open questions](proposal/mn2_brainstorm.md), the
+Start with the [system design](docs/architecture.md), the
 [accepted architecture decisions](docs/adr/), and the
-[planned service boundaries](services/README.md). The infrastructure, CI, and
-database documents under `docs/` are implementation specifications, not
-instructions for commands that exist today.
+[service designs](docs/services/). The infrastructure, CI, and database
+documents under `docs/` are implementation specifications, not instructions
+for commands that exist today.
 
 ## System Design
 
@@ -49,7 +48,7 @@ instructions for commands that exist today.
 ### Communication
 
 <p align="center">
-  <img src="docs/communication.png" alt="media-notes communication flow" width="100%" />
+  <img src="assets/communication.png" alt="media-notes communication flow" width="100%" />
 </p>
 
 ## Tech Stack
@@ -87,4 +86,3 @@ pnpm check-types      # type-check all workspaces
 pnpm lint             # run Biome
 ```
 
-See the [product tour](docs/README.md) for screenshots and a walkthrough of the user experience.
