@@ -7,7 +7,7 @@ COMPOSE := docker compose -f $(INFRA_COMPOSE_FILE) -p $(INFRA_PROJECT)
 .DEFAULT_GOAL := help
 
 .PHONY: help install dev\:web dev\:server dev\:worker build lint typecheck test check \
-	db\:migrate db\:studio infra\:up infra\:down infra\:purge
+	db\:migrate db\:studio
 
 help: ## Show available commands
 	@awk 'BEGIN {FS = ": ## "; printf "Usage: make <target>\n\nTargets:\n"} /^[a-zA-Z0-9_\\:-]+: ## / {name = $$1; gsub(/\\/, "", name); printf "  %-16s %s\n", name, $$2}' $(MAKEFILE_LIST)
@@ -49,13 +49,6 @@ db\:migrate: ## Run database migrations
 db\:studio: ## Open Drizzle Studio
 	pnpm db:studio
 
-infra\:up: ## Start infrastructure
-	$(COMPOSE) up -d
-
-infra\:down: ## Stop infrastructure
-	$(COMPOSE) down
-
-infra\:purge: ## Remove infrastructure completely
-	$(COMPOSE) down --rmi local -v
-	docker system prune -a -f
-	docker volume prune -a -f
+# v2 services and infrastructure: each has its own makefile under make/,
+# included here so this file stays an index rather than growing per service.
+include make/*.mk

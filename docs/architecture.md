@@ -312,10 +312,11 @@ conductor-worker
 
 ## Database ownership
 
-The first deployment may use one PostgreSQL cluster, but every service uses a
-separate schema and database credential. A service never writes another
-service's schema, and cross-service IDs are plain UUID references with no
-foreign keys across service boundaries.
+The first deployment may use one PostgreSQL server, but every service uses a
+separate database and credential — not just a separate schema in a shared
+database. A service never writes another service's database, and
+cross-service IDs are plain UUID references with no foreign keys across
+service boundaries.
 
 | Service | Owns |
 | --- | --- |

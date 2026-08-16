@@ -34,18 +34,20 @@ than application services.
 
 ## Database Rules
 
-1. Each stateful service owns a dedicated PostgreSQL schema and database
-   credential.
-2. A service may read or write only its own schema.
-3. Cross-service identifiers are UUID values without cross-schema foreign keys.
+1. Each stateful service owns a dedicated PostgreSQL database and
+   credential — not just a dedicated schema in a shared database.
+2. A service may read or write only its own database.
+3. Cross-service identifiers are UUID values without cross-database foreign
+   keys.
 4. Cross-service reads use versioned gRPC contracts.
 5. Cross-service state changes use gRPC commands or versioned Kafka events.
 6. Consumers use inbox records or idempotency keys for at-least-once delivery.
 7. Database writes coupled to event publication use a transactional outbox.
-8. Schema migrations are packaged and executed independently per service.
+8. Migrations are packaged and executed independently per service.
 
-One PostgreSQL cluster may host multiple schemas during the initial deployment.
-Sharing a cluster does not relax service ownership.
+One PostgreSQL server may host multiple service databases during the initial
+deployment. Sharing a server does not relax service ownership: each service
+credential can connect only to its own database.
 
 ## Storage Rules
 
@@ -126,7 +128,7 @@ The repository and CI will enforce these boundaries through:
 - Workflows must handle eventual consistency and duplicate delivery.
 - Contract evolution and deployment compatibility require deliberate
   versioning.
-- Local development needs multiple schemas, services, and infrastructure
+- Local development needs multiple databases, services, and infrastructure
   dependencies.
 
 ## Rejected Alternatives

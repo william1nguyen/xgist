@@ -14,6 +14,56 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - default
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d media_notes"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: mukI3zVZQx-6q9pdGOQp2w
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      # PLAINTEXT is for host clients (go run ... on the host machine,
+      # matching how postgres/redis/minio are reached below); INTERNAL is
+      # for other containers on the default network. See
+      # docs/local-infrastructure.md for the required topology.
+      KAFKA_LISTENERS: PLAINTEXT://:9092,INTERNAL://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - default
+    restart: unless-stopped
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      DYNAMIC_CONFIG_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
     networks:
       - default
     restart: unless-stopped
@@ -47,6 +97,48 @@ services:
       - default
     restart: unless-stopped
 
+  identity-migrate:
+    image: flyway/flyway:11
+    container_name: identity-migrate
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/identity/migrations:/flyway/migrations:ro
+    command: >
+      -url=jdbc:postgresql://postgres:5432/identity
+      -user=identity -password=identity
+      -locations=filesystem:/flyway/migrations
+      -connectRetries=10
+      migrate
+    networks:
+      - default
+
+  identity:
+    build:
+      context: .
+      dockerfile: services/identity/identity.dockerfile
+    container_name: identity
+    profiles: ["app"]
+    environment:
+      DATABASE_URL: postgres://identity:identity@postgres:5432/identity?sslmode=disable
+      KAFKA_BROKERS: kafka:29092
+      IDENTITY_HTTP_ADDR: :8081
+      IDENTITY_GRPC_ADDR: :9091
+      LOG_LEVEL: info
+    ports:
+      - "8081:8081"
+      - "9091:9091"
+    depends_on:
+      identity-migrate:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_started
+    networks:
+      - default
+    restart: unless-stopped
+
   worker:
     build:
       context: apps/worker
@@ -64,3 +156,4 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  kafka_data:

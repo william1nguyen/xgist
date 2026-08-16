@@ -59,8 +59,10 @@ idempotent.
 
 ## gRPC contract
 
-Create `contracts/proto/identity/v1/identity.proto`, package
-`media_notes.identity.v1`:
+Create `contracts/proto/media_notes/identity/v1/identity.proto`, package
+`media_notes.identity.v1` (the directory mirrors the full package name,
+including the `media_notes` segment, per ADR 0002 and Buf's
+`PACKAGE_DIRECTORY_MATCH` lint rule):
 
 ```text
 IdentityService:
@@ -101,42 +103,46 @@ Integration-test migrations, unique constraints, outbox atomicity, duplicate or
 reordered completions, restart after publish failure, health and shutdown.
 
 
-## Initial migration: `00001_init.sql`
+## Initial migration: `V1__init.sql`
+
+identity has its own PostgreSQL database (not just its own schema in a
+shared database — see `docs/database-migrations.md`), so tables live in the
+default `public` schema, unqualified. Migrations use Flyway; see
+`docs/database-migrations.md` for tooling and rollback conventions.
 
 ```sql
--- +goose Up
-CREATE SCHEMA IF NOT EXISTS identity;
-CREATE TYPE identity.account_state AS ENUM ('active', 'deletion_pending', 'tombstoned');
-CREATE TABLE identity.users (
+CREATE TYPE account_state AS ENUM ('active', 'deletion_pending', 'tombstoned');
+CREATE TABLE users (
   id uuid PRIMARY KEY, email text NOT NULL, normalized_email text NOT NULL UNIQUE,
   name text, image_url text, email_verified_at timestamptz,
-  state identity.account_state NOT NULL DEFAULT 'active',
+  state account_state NOT NULL DEFAULT 'active',
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE TABLE identity.accounts (
-  id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES identity.users(id),
+CREATE TABLE accounts (
+  id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id),
   provider text NOT NULL, provider_account_id text NOT NULL,
   credential_hash bytea, created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (provider, provider_account_id)
 );
-CREATE TABLE identity.sessions (
-  id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES identity.users(id),
+CREATE TABLE sessions (
+  id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id),
   token_hash bytea NOT NULL UNIQUE, expires_at timestamptz NOT NULL,
   revoked_at timestamptz, created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX sessions_active_by_user ON identity.sessions (user_id, expires_at)
+CREATE INDEX sessions_active_by_user ON sessions (user_id, expires_at)
   WHERE revoked_at IS NULL;
-CREATE TABLE identity.verification_records (
+CREATE TABLE verification_records (
   id uuid PRIMARY KEY, identifier text NOT NULL, value_hash bytea NOT NULL UNIQUE,
   purpose text NOT NULL, expires_at timestamptz NOT NULL, consumed_at timestamptz
 );
-CREATE TABLE identity.user_roles (user_id uuid NOT NULL REFERENCES identity.users(id), role text NOT NULL, PRIMARY KEY (user_id, role));
-CREATE TABLE identity.account_deletions (
-  deletion_id uuid PRIMARY KEY, user_id uuid NOT NULL UNIQUE REFERENCES identity.users(id),
+CREATE TABLE user_roles (user_id uuid NOT NULL REFERENCES users(id), role text NOT NULL, PRIMARY KEY (user_id, role));
+CREATE TABLE account_deletions (
+  deletion_id uuid PRIMARY KEY, user_id uuid NOT NULL UNIQUE REFERENCES users(id),
   state text NOT NULL, participants jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), completed_at timestamptz
 );
-CREATE TABLE identity.inbox_events (consumer_name text NOT NULL, event_id uuid NOT NULL, received_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (consumer_name, event_id));
-CREATE TABLE identity.outbox_events (id uuid PRIMARY KEY, topic text NOT NULL, event_key text NOT NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), published_at timestamptz, attempts integer NOT NULL DEFAULT 0);
--- +goose Down
-DROP SCHEMA identity CASCADE;
+CREATE TABLE inbox_events (consumer_name text NOT NULL, event_id uuid NOT NULL, received_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (consumer_name, event_id));
+CREATE TABLE outbox_events (id uuid PRIMARY KEY, topic text NOT NULL, event_key text NOT NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), published_at timestamptz, attempts integer NOT NULL DEFAULT 0);
 ```
+
+Rollback is a hand-maintained script under `rollback/`, applied
+manually with `psql` — Flyway Community has no automatic undo.

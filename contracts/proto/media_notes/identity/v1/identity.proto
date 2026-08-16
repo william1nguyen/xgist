@@ -1,0 +1,161 @@
+// Package media_notes.identity.v1 defines the identity service contract:
+// users, accounts, sessions, and account deletion.
+syntax = "proto3";
+
+package media_notes.identity.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// IdentityService owns users, accounts, sessions, and account deletion.
+// Only hermes calls this service; other services hold user_id references.
+service IdentityService {
+  // RegisterAccount creates a user and a credential account.
+  rpc RegisterAccount(RegisterAccountRequest) returns (RegisterAccountResponse);
+  // Authenticate validates a credential and issues a session.
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+  // ValidateSession resolves a session token to its principal.
+  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+  // RevokeSession invalidates one session. Idempotent.
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+  // GetUser returns public profile data for one user.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // UpdateUser updates mutable profile fields.
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  // RequestAccountDeletion starts the account deletion workflow. Idempotent
+  // per caller idempotency key; a duplicate request returns the existing
+  // operation.
+  rpc RequestAccountDeletion(RequestAccountDeletionRequest) returns (RequestAccountDeletionResponse);
+  // GetAccountDeletionStatus returns the current state of a deletion
+  // operation.
+  rpc GetAccountDeletionStatus(GetAccountDeletionStatusRequest) returns (GetAccountDeletionStatusResponse);
+}
+
+// AccountState is the lifecycle state of a user account.
+enum AccountState {
+  ACCOUNT_STATE_UNSPECIFIED = 0;
+  ACCOUNT_STATE_ACTIVE = 1;
+  ACCOUNT_STATE_DELETION_PENDING = 2;
+  ACCOUNT_STATE_TOMBSTONED = 3;
+}
+
+// DeletionState is the state of an account deletion operation.
+enum DeletionState {
+  DELETION_STATE_UNSPECIFIED = 0;
+  DELETION_STATE_PENDING = 1;
+  DELETION_STATE_COMPLETED = 2;
+  DELETION_STATE_FAILED_ATTENTION_REQUIRED = 3;
+}
+
+// User is public account data. It never carries a credential or session
+// token.
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string image_url = 4;
+  bool email_verified = 5;
+  AccountState state = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// DeletionOperation tracks one account deletion request.
+message DeletionOperation {
+  string deletion_id = 1;
+  string user_id = 2;
+  DeletionState state = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp completed_at = 5;
+}
+
+// RegisterAccountRequest carries a caller idempotency key and credentials.
+message RegisterAccountRequest {
+  string idempotency_key = 1;
+  string email = 2;
+  string password = 3;
+  string name = 4;
+}
+
+// RegisterAccountResponse returns the created user.
+message RegisterAccountResponse {
+  User user = 1;
+}
+
+// AuthenticateRequest carries a caller idempotency key and credentials.
+message AuthenticateRequest {
+  string idempotency_key = 1;
+  string email = 2;
+  string password = 3;
+}
+
+// AuthenticateResponse returns the principal and an opaque session token.
+// The token appears only in this response; it is never stored or returned
+// elsewhere in plaintext.
+message AuthenticateResponse {
+  User user = 1;
+  string session_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+// ValidateSessionRequest carries an opaque session token.
+message ValidateSessionRequest {
+  string session_token = 1;
+}
+
+// ValidateSessionResponse returns the resolved principal and session id.
+message ValidateSessionResponse {
+  User user = 1;
+  string session_id = 2;
+}
+
+// RevokeSessionRequest identifies the session to revoke.
+message RevokeSessionRequest {
+  string session_id = 1;
+}
+
+// RevokeSessionResponse is empty; revocation has no return data.
+message RevokeSessionResponse {}
+
+// GetUserRequest identifies the user to read.
+message GetUserRequest {
+  string user_id = 1;
+}
+
+// GetUserResponse returns the requested user.
+message GetUserResponse {
+  User user = 1;
+}
+
+// UpdateUserRequest carries a caller idempotency key and the mutable
+// profile fields to change. Unset optional fields are left unchanged.
+message UpdateUserRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  optional string name = 3;
+  optional string image_url = 4;
+}
+
+// UpdateUserResponse returns the updated user.
+message UpdateUserResponse {
+  User user = 1;
+}
+
+// RequestAccountDeletionRequest carries a caller idempotency key.
+message RequestAccountDeletionRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+}
+
+// RequestAccountDeletionResponse returns the deletion operation.
+message RequestAccountDeletionResponse {
+  DeletionOperation operation = 1;
+}
+
+// GetAccountDeletionStatusRequest identifies the deletion operation.
+message GetAccountDeletionStatusRequest {
+  string deletion_id = 1;
+}
+
+// GetAccountDeletionStatusResponse returns the deletion operation.
+message GetAccountDeletionStatusResponse {
+  DeletionOperation operation = 1;
+}
