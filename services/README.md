@@ -10,11 +10,11 @@ shared application.
 ## Services
 
 - `hermes`: public GraphQL gateway and response aggregation.
-- `identitysvc`: users, accounts, and sessions.
-- `billingsvc`: subscriptions, credit reservations, and ledger.
-- `mediasvc`: uploads, source-media metadata, and processing requests.
-- `contentsvc`: transcripts and generated content.
-- `conductorsvc`: workflow state, dependencies, joins, retries, and timeouts.
+- `identity`: users, accounts, and sessions.
+- `billing`: subscriptions, credit reservations, and ledger.
+- `media`: uploads, source-media metadata, and processing requests.
+- `content`: transcripts and generated content.
+- `conductor`: workflow state, dependencies, joins, retries, and timeouts.
 
 Every service must expose operational liveness and readiness endpoints:
 

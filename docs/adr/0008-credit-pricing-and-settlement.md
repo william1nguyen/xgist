@@ -38,7 +38,7 @@ The maximum initial quote is 90 credits when every option is selected.
 `extractMainIdeas`; the migration preserves its 10-credit price.
 
 Pricing is represented by an immutable, versioned catalog owned by
-`billingsvc`. The initial catalog version is `mn2-launch-v1`. A processing
+`billing`. The initial catalog version is `mn2-launch-v1`. A processing
 request stores:
 
 - catalog version;
@@ -54,13 +54,13 @@ change the active version for new quotes only.
 
 ### Quote and reservation
 
-1. `hermes` asks `billingsvc` for a quote using canonical option identifiers.
+1. `hermes` asks `billing` for a quote using canonical option identifiers.
 2. The Web displays that quote; it does not calculate an authoritative price
    from a bundled constant.
-3. `mediasvc` stores the accepted quote snapshot with the processing request.
-4. `conductorsvc` requests one reservation for the quoted maximum before
+3. `media` stores the accepted quote snapshot with the processing request.
+4. `conductor` requests one reservation for the quoted maximum before
    publishing the first billable step.
-5. `billingsvc` atomically moves the amount from available to reserved credit
+5. `billing` atomically moves the amount from available to reserved credit
    and appends a ledger entry.
 
 The reservation idempotency key is derived from billing account and workflow
@@ -71,7 +71,7 @@ The accepted quote has a 15-minute lifetime before workflow admission. Once a
 reservation succeeds, the snapshot remains valid for that workflow. A
 reservation expires after 24 hours without workflow activity; active workflows
 renew it through an idempotent command. Expiry and renewal are bounded
-scheduled operations in `billingsvc`.
+scheduled operations in `billing`.
 
 ### Settlement
 
@@ -118,8 +118,8 @@ totals, expired quotes, and unsupported catalog versions are rejected.
 
 ## Ownership and Events
 
-`billingsvc` owns catalogs, quotes, balances, reservations, settlements,
-releases, refunds, and the append-only ledger. `conductorsvc` owns workflow
+`billing` owns catalogs, quotes, balances, reservations, settlements,
+releases, refunds, and the append-only ledger. `conductor` owns workflow
 state and decides when an outcome is durable or terminal. Neither service
 reads or writes the other's schema.
 
@@ -171,7 +171,7 @@ contract; it does not reinterpret existing quotes.
 | Deduct the full quote at request creation | Charges failed outputs and makes cancellation correction harder |
 | Charge every provider attempt | Makes retries user-visible and rewards platform failure |
 | Recalculate price at settlement | Allows catalog changes to alter an accepted user quote |
-| Let `conductorsvc` mutate balances | Violates billing ownership and bypasses the ledger |
+| Let `conductor` mutate balances | Violates billing ownership and bypasses the ledger |
 | Price directly from tokens or GPU seconds now | Cost distribution and user contract are not yet measured |
 | Change launch prices while extracting billing | Breaks version 1 compatibility without a product decision |
 

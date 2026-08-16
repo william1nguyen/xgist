@@ -12,25 +12,25 @@ flowchart LR
     USER(["user"]) -->|"uses"| WEB["web"]
     WEB -->|"graphql"| HERMES["hermes"]
 
-    HERMES -->|"grpc"| IDENTITY["identitysvc"]
-    HERMES -->|"grpc"| BILLING["billingsvc"]
-    HERMES -->|"grpc"| MEDIA["mediasvc"]
-    HERMES -->|"grpc"| CONTENT_QUERY["contentsvc"]
+    HERMES -->|"grpc"| IDENTITY["identity"]
+    HERMES -->|"grpc"| BILLING["billing"]
+    HERMES -->|"grpc"| MEDIA["media"]
+    HERMES -->|"grpc"| CONTENT_QUERY["content"]
 
     MEDIA -->|"presigned upload"| UPLOAD_OBJECTS[("object storage")]
     MEDIA -->|"job + outbox"| OUTBOX["outbox relay"]
     OUTBOX -->|"processing.requested"| K_REQUESTED[("kafka requested")]
-    K_REQUESTED -->|"consume"| CONDUCTOR_START["conductorsvc"]
+    K_REQUESTED -->|"consume"| CONDUCTOR_START["conductor"]
     CONDUCTOR_START -->|"step.requested"| K_COMMANDS[("kafka commands")]
     K_COMMANDS -->|"consume"| WORKER["conductor-worker"]
     WORKER -->|"whisper / gemini / tts"| PROVIDERS["ai providers"]
     WORKER -->|"read media / write summary audio"| AUDIO_OBJECTS[("object storage")]
-    WORKER -->|"grpc: result"| CONTENT_RESULT["contentsvc"]
+    WORKER -->|"grpc: result"| CONTENT_RESULT["content"]
     CONTENT_RESULT -->|"step.completed"| K_RESULTS[("kafka results")]
-    K_RESULTS -->|"consume"| CONDUCTOR_RESULT["conductorsvc"]
+    K_RESULTS -->|"consume"| CONDUCTOR_RESULT["conductor"]
     CONDUCTOR_RESULT -->|"status.changed"| K_STATUS[("kafka status")]
-    K_STATUS -->|"update media"| MEDIA_STATUS["mediasvc"]
-    K_STATUS -->|"settle or release credit"| BILLING_STATUS["billingsvc"]
+    K_STATUS -->|"update media"| MEDIA_STATUS["media"]
+    K_STATUS -->|"settle or release credit"| BILLING_STATUS["billing"]
 
     IDENTITY --> IDDB[("identity db")]
     BILLING --> BILLINGDB[("billing db")]
@@ -49,10 +49,10 @@ flowchart LR
 
 All connectors use Mermaid's linear curve so each connection is a straight
 segment rather than an orthogonal bent path. Kafka nodes are topic groups in one
-cluster. Repeated `mediasvc`, `contentsvc`, `conductorsvc`, and `billingsvc`
+cluster. Repeated `media`, `content`, `conductor`, and `billing`
 nodes are the same deployments shown at
 different points in the left-to-right data flow. When another step is required,
-`conductorsvc` repeats the Kafka command segment; the overview draws one
+`conductor` repeats the Kafka command segment; the overview draws one
 iteration to remain readable. The two `object storage` nodes represent the same
 MinIO/S3 deployment and are repeated to keep both storage paths straight.
 
@@ -61,11 +61,11 @@ MinIO/S3 deployment and are repeated to keep both storage paths straight.
 | Service | Runtime | Responsibility |
 | --- | --- | --- |
 | `hermes` | Go, GraphQL | Public API, authentication context, batching, aggregation |
-| `identitysvc` | Go, gRPC | Users, accounts, sessions, roles |
-| `billingsvc` | Go, gRPC, Kafka | Polar, subscriptions, credit reservation, settlement, ledger |
-| `mediasvc` | Go, gRPC, Kafka | Uploads, media metadata, processing requests |
-| `contentsvc` | Go, gRPC, Kafka | Transcript, generated content, summary-audio metadata, content queries |
-| `conductorsvc` | Go, Kafka | Workflow state machine, commands, dependencies, joins, retry, timeout |
+| `identity` | Go, gRPC | Users, accounts, sessions, roles |
+| `billing` | Go, gRPC, Kafka | Polar, subscriptions, credit reservation, settlement, ledger |
+| `media` | Go, gRPC, Kafka | Uploads, media metadata, processing requests |
+| `content` | Go, gRPC, Kafka | Transcript, generated content, summary-audio metadata, content queries |
+| `conductor` | Go, Kafka | Workflow state machine, commands, dependencies, joins, retry, timeout |
 | `conductor-worker` | Python, Kafka | Whisper, Gemini, TTS; deployed as a consumer-group pool |
 
 Kafka, PostgreSQL, MinIO/S3, Redis, and OpenTelemetry are infrastructure, not
@@ -110,7 +110,7 @@ probing; client-declared size and duration are never trusted.
 ## Media list and thumbnail delivery
 
 The main page never requests the original audio/video object. After upload,
-`conductorsvc` schedules `generate_thumbnail` independently from transcription:
+`conductor` schedules `generate_thumbnail` independently from transcription:
 
 ```text
 upload confirmed
@@ -125,7 +125,7 @@ For video, `conductor-worker`:
 3. Resizes it to 320×180.
 4. Encodes it as WebP.
 5. Writes the image to object storage.
-6. Calls `mediasvc` to register the derivative metadata.
+6. Calls `media` to register the derivative metadata.
 
 For audio, the executor prefers embedded cover art. If none exists, it may
 generate a waveform preview or use a default media-type image.
@@ -149,8 +149,8 @@ uses lazy-loaded images and a placeholder while `thumbnail_status` is pending.
 
 When the detail page opens, `hermes` fetches:
 
-- Metadata and a short-lived playback URL from `mediasvc`.
-- Transcript and generated content from `contentsvc`.
+- Metadata and a short-lived playback URL from `media`.
+- Transcript and generated content from `content`.
 
 The video element uses `preload="none"` unless metadata is required before the
 user presses play.
@@ -175,55 +175,55 @@ batched signing operation.
 ```text
 web
   → hermes
-  → mediasvc
+  → media
   → presigned URL
   → web uploads directly to object storage
-  → mediasvc confirms upload
+  → media confirms upload
 ```
 
 1. `web` requests an upload session through `hermes`.
-2. `hermes` calls `mediasvc` through gRPC.
-3. `mediasvc` creates a media record and returns a presigned URL.
+2. `hermes` calls `media` through gRPC.
+3. `media` creates a media record and returns a presigned URL.
 4. `web` uploads audio/video directly to object storage.
 5. `web` confirms the upload.
-6. `mediasvc` atomically creates a processing request and outbox event.
+6. `media` atomically creates a processing request and outbox event.
 
 ### 2. Start workflow
 
 ```text
-mediasvc
+media
   → kafka: processing.requested
-  → conductorsvc
+  → conductor
 ```
 
 1. The outbox relay publishes `media.processing.requested`.
-2. `conductorsvc` creates a workflow and required steps.
-3. `conductorsvc` requests a credit reservation from `billingsvc`.
-4. After reservation succeeds, `conductorsvc` publishes
+2. `conductor` creates a workflow and required steps.
+3. `conductor` requests a credit reservation from `billing`.
+4. After reservation succeeds, `conductor` publishes
    `processing.step.requested` for `transcribe`.
 
 ### 3. Transcription
 
 ```text
-conductorsvc
+conductor
   → kafka: transcribe requested
   → conductor-worker
   → object storage: read media
   → whisper
-  → contentsvc: save transcript
+  → content: save transcript
   → kafka: transcribe completed
-  → conductorsvc
+  → conductor
 ```
 
 Kafka assigns the command to one available `conductor-worker` replica. The
-executor reads the uploaded media, runs Whisper, and calls `contentsvc` through
+executor reads the uploaded media, runs Whisper, and calls `content` through
 gRPC with the transcript and ordered segments.
 
-`contentsvc` commits the transcript before publishing the completion event.
+`content` commits the transcript before publishing the completion event.
 
 ### 4. Enrichment
 
-After transcription, `conductorsvc` publishes only the steps selected by the
+After transcription, `conductor` publishes only the steps selected by the
 user:
 
 ```text
@@ -244,13 +244,13 @@ conductor-worker d → notes
 
 Each executor:
 
-1. Reads the transcript from `contentsvc`.
+1. Reads the transcript from `content`.
 2. Runs Gemini.
-3. Sends the structured result to `contentsvc` through gRPC.
-4. Waits for `contentsvc` to commit.
+3. Sends the structured result to `content` through gRPC.
+4. Waits for `content` to commit.
 5. Causes a small completion event to be published.
 
-`conductorsvc` consumes completion events and joins only the outputs selected by
+`conductor` consumes completion events and joins only the outputs selected by
 the user.
 
 ### 5. Summary audio
@@ -258,13 +258,13 @@ the user.
 If summary audio is selected:
 
 ```text
-conductorsvc
+conductor
   → kafka: audio summary requested
   → conductor-worker
-  → contentsvc: read summary text
+  → content: read summary text
   → tts
   → object storage: write summary audio
-  → contentsvc: save object key and metadata
+  → content: save object key and metadata
   → kafka: audio summary completed
 ```
 
@@ -272,7 +272,7 @@ The step completes only after the audio object is durable and its metadata is
 committed.
 
 Gemini and TTS calls use deployment-specific quota admission before a step is
-published. `conductorsvc` owns aggregate reservations and retries; workers
+published. `conductor` owns aggregate reservations and retries; workers
 apply local concurrency and timeouts. Production TTS must use an authenticated,
 supported provider rather than the development-only `edge-tts` integration.
 Quota verification, backpressure, failure classification, observability, and
@@ -284,14 +284,14 @@ rollout are defined in
 When all required steps are complete:
 
 ```text
-conductorsvc
+conductor
   → kafka: processing.completed
-  ├→ mediasvc: mark media completed
-  └→ billingsvc: settle reserved credit
+  ├→ media: mark media completed
+  └→ billing: settle reserved credit
 ```
 
-`web` reads progress through `mediasvc` and generated content through
-`contentsvc`; `hermes` aggregates both responses.
+`web` reads progress through `media` and generated content through
+`content`; `hermes` aggregates both responses.
 
 Progress delivery initially uses adaptive polling through a dedicated batched
 GraphQL query. The interval, cache behavior, failure handling, delivery
@@ -310,14 +310,14 @@ are defined in
 ```text
 conductor-worker
   → kafka: step.failed
-  → conductorsvc
+  → conductor
   → retry or fail workflow
 ```
 
-- Retriable failure: `conductorsvc` publishes a new command with an incremented
+- Retriable failure: `conductor` publishes a new command with an incremented
   attempt.
 - Retry exhausted: event goes to the DLQ and workflow becomes `failed`.
-- Terminal failure: `billingsvc` releases or refunds reserved credit.
+- Terminal failure: `billing` releases or refunds reserved credit.
 - Every command contains an idempotency key so a repeated delivery does not
   duplicate data.
 
@@ -330,7 +330,7 @@ service's schema.
 Cross-service IDs are plain UUID references. There are no foreign keys across
 service boundaries.
 
-### `identitysvc` — `identity db`
+### `identity` — `identity db`
 
 | Table | Important columns |
 | --- | --- |
@@ -345,7 +345,7 @@ Constraints:
 - Unique `(provider, provider_account_id)`.
 - Index `sessions(user_id, expires_at)`.
 
-### `billingsvc` — `billing db`
+### `billing` — `billing db`
 
 | Table | Important columns |
 | --- | --- |
@@ -361,7 +361,7 @@ Constraints:
 The ledger is append-only. `credit_accounts` is a current-balance projection
 updated with optimistic locking through `version`.
 
-Launch pricing preserves the version 1 additive option costs. `billingsvc`
+Launch pricing preserves the version 1 additive option costs. `billing`
 issues an immutable versioned quote and reserves the quoted maximum before work
 starts. Each selected item settles exactly once only after its durable outcome;
 failed or cancelled items release their remainder, and retries are not newly
@@ -369,7 +369,7 @@ billable. Pricing compatibility, quote lifecycle, reservation expiry, refunds,
 reconciliation, and rollout are defined in
 [`ADR 0008`](../docs/adr/0008-credit-pricing-and-settlement.md).
 
-### `mediasvc` — `media db`
+### `media` — `media db`
 
 | Table | Important columns |
 | --- | --- |
@@ -380,14 +380,14 @@ reconciliation, and rollout are defined in
 | `inbox_events` | `event_id`, `topic`, `processed_at` |
 | `outbox_events` | `id`, `topic`, `event_key`, `payload`, `published_at`, `attempts` |
 
-`media.object_key` points to uploaded audio/video. `mediasvc` does not store
+`media.object_key` points to uploaded audio/video. `media` does not store
 transcript or generated content.
 
 `media_derivatives` initially stores `thumbnail`, `cover`, or `waveform`
 metadata. Unique `(media_id, derivative_type, version)` prevents duplicate
 variants. The binary derivative remains in object storage.
 
-### `contentsvc` — `content db`
+### `content` — `content db`
 
 | Table | Important columns |
 | --- | --- |
@@ -414,7 +414,7 @@ Important constraints:
 `audio_summaries.object_key` points to generated summary audio. All text is
 stored directly in PostgreSQL.
 
-### `conductorsvc` — `workflow db`
+### `conductor` — `workflow db`
 
 | Table | Important columns |
 | --- | --- |
@@ -441,22 +441,22 @@ may use Redis, but domain records remain in their owning services.
 
 `conductor-worker` is stateless. It uses temporary local disk only while
 processing a command. Durable text outputs must be committed through
-`contentsvc`; summary audio must be written to object storage and registered in
-`contentsvc` before the command is acknowledged.
+`content`; summary audio must be written to object storage and registered in
+`content` before the command is acknowledged.
 
 ## Kafka topics
 
 | Topic | Key | Producer | Consumer |
 | --- | --- | --- | --- |
-| `mn.media.processing.requested.v1` | `media_id` | `mediasvc` | `conductorsvc` |
-| `mn.processing.step.requested.v1` | `media_id` | `conductorsvc` | `conductor-worker` |
-| `mn.processing.step.completed.v1` | `media_id` | `contentsvc` | `conductorsvc` |
-| `mn.processing.step.failed.v1` | `media_id` | `conductor-worker` | `conductorsvc` |
-| `mn.media.derivative.ready.v1` | `media_id` | `mediasvc` | `conductorsvc` |
-| `mn.media.status.changed.v1` | `media_id` | `conductorsvc` | `mediasvc` |
-| `mn.billing.credit.reserve.v1` | `user_id` | `conductorsvc` | `billingsvc` |
-| `mn.billing.credit.reserved.v1` | `user_id` | `billingsvc` | `conductorsvc` |
-| `mn.billing.credit.settle.v1` | `user_id` | `conductorsvc` | `billingsvc` |
+| `mn.media.processing.requested.v1` | `media_id` | `media` | `conductor` |
+| `mn.processing.step.requested.v1` | `media_id` | `conductor` | `conductor-worker` |
+| `mn.processing.step.completed.v1` | `media_id` | `content` | `conductor` |
+| `mn.processing.step.failed.v1` | `media_id` | `conductor-worker` | `conductor` |
+| `mn.media.derivative.ready.v1` | `media_id` | `media` | `conductor` |
+| `mn.media.status.changed.v1` | `media_id` | `conductor` | `media` |
+| `mn.billing.credit.reserve.v1` | `user_id` | `conductor` | `billing` |
+| `mn.billing.credit.reserved.v1` | `user_id` | `billing` | `conductor` |
+| `mn.billing.credit.settle.v1` | `user_id` | `conductor` | `billing` |
 | `mn.processing.dlq.v1` | original key | retry policy | operations |
 
 Topics are partitioned by `media_id` for processing order and by `user_id` for
@@ -469,8 +469,8 @@ and DLQ replay are defined in
 - Kafka delivery is at-least-once.
 - Consumers use inbox tables or idempotency keys.
 - Database writes and event publication use transactional outbox.
-- `contentsvc` publishes completion only after committing a result.
-- A worker acknowledges only after `contentsvc` accepts the text result, or
+- `content` publishes completion only after committing a result.
+- A worker acknowledges only after `content` accepts the text result, or
   after a thumbnail/summary-audio object and its metadata are durable.
 - Retries use bounded exponential backoff with jitter.
 - Exhausted retries go to the DLQ.
@@ -481,20 +481,20 @@ and DLQ replay are defined in
 
 `hermes` calls:
 
-- `identitysvc` for identity and account queries.
-- `billingsvc` for subscription and credit queries.
-- `mediasvc` for uploads, media metadata, and processing status.
-- `contentsvc` for transcript, summaries, keywords, keypoints, notes, and
+- `identity` for identity and account queries.
+- `billing` for subscription and credit queries.
+- `media` for uploads, media metadata, and processing status.
+- `content` for transcript, summaries, keywords, keypoints, notes, and
   summary-audio metadata.
 
 `conductor-worker` calls:
 
-- `mediasvc` to read media metadata, object key, and processing options.
-- `mediasvc` to register thumbnail, cover, or waveform metadata after writing
+- `media` to read media metadata, object key, and processing options.
+- `media` to register thumbnail, cover, or waveform metadata after writing
   the derivative object.
-- `contentsvc` to read transcript or summary inputs.
-- `contentsvc` to commit transcript and structured text results.
-- `contentsvc` to commit summary-audio metadata after uploading the audio
+- `content` to read transcript or summary inputs.
+- `content` to commit transcript and structured text results.
+- `content` to commit summary-audio metadata after uploading the audio
   object.
 
 Every call has a deadline, propagates tracing context, and uses an idempotency
@@ -505,11 +505,11 @@ key for write operations.
 | Component | Scaling signal |
 | --- | --- |
 | `hermes` | Request rate, CPU, p95 latency |
-| `identitysvc` | Authentication traffic and latency |
-| `billingsvc` | Billing event lag and webhook traffic |
-| `mediasvc` | gRPC request rate, database latency, outbox lag |
-| `contentsvc` | Content read/write rate, database latency, outbox lag |
-| `conductorsvc` | Active workflows and Kafka lag |
+| `identity` | Authentication traffic and latency |
+| `billing` | Billing event lag and webhook traffic |
+| `media` | gRPC request rate, database latency, outbox lag |
+| `content` | Content read/write rate, database latency, outbox lag |
+| `conductor` | Active workflows and Kafka lag |
 | `conductor-worker` | Kafka lag, oldest message age, CPU/GPU, provider quota |
 
 Worker parallelism is:
@@ -527,12 +527,12 @@ effective parallelism = min(
 ## Deployment sequence
 
 1. Define Protobuf gRPC contracts and versioned event schemas.
-2. Extract `mediasvc` and migrate media/upload tables from v1.
-3. Extract `contentsvc` and migrate transcript and generated-content tables.
+2. Extract `media` and migrate media/upload tables from v1.
+3. Extract `content` and migrate transcript and generated-content tables.
 4. Add transactional outbox and Kafka.
-5. Introduce `conductorsvc` with explicit workflow state.
+5. Introduce `conductor` with explicit workflow state.
 6. Run multiple `conductor-worker` replicas in one consumer group.
-7. Extract `identitysvc`.
-8. Extract `billingsvc` and introduce credit reservation.
+7. Extract `identity`.
+8. Extract `billing` and introduce credit reservation.
 9. Add `hermes` and migrate the Web client to GraphQL.
 10. Add tracing, autoscaling, DLQ operations, and recovery tooling.

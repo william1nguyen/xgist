@@ -41,11 +41,11 @@ function into a separate service.
 | Service | Runtime | Responsibility |
 | --- | --- | --- |
 | `hermes` | Go, GraphQL | Public API, auth context, batching, aggregation |
-| `identitysvc` | Go, gRPC | Users, accounts, sessions, roles |
-| `billingsvc` | Go, gRPC, Kafka | Polar, subscriptions, credit reservation and ledger |
-| `mediasvc` | Go, gRPC, Kafka | Uploads, media metadata, processing requests |
-| `contentsvc` | Go, gRPC, Kafka | Transcript, summaries, keywords, keypoints, notes, audio metadata |
-| `conductorsvc` | Go, Kafka | Workflow state machine, commands, joins, retry, timeout |
+| `identity` | Go, gRPC | Users, accounts, sessions, roles |
+| `billing` | Go, gRPC, Kafka | Polar, subscriptions, credit reservation and ledger |
+| `media` | Go, gRPC, Kafka | Uploads, media metadata, processing requests |
+| `content` | Go, gRPC, Kafka | Transcript, summaries, keywords, keypoints, notes, audio metadata |
+| `conductor` | Go, Kafka | Workflow state machine, commands, joins, retry, timeout |
 | `conductor-worker` | Python, Kafka | Whisper, Gemini enrichment, TTS; horizontally scaled pool |
 
 Infrastructure such as Kafka, PostgreSQL, MinIO/S3, Redis, and OpenTelemetry is
@@ -57,18 +57,18 @@ not counted as an application service.
 %%{init: {"themeVariables": {"fontSize": "52px"}, "flowchart": {"curve": "linear", "padding": 34, "nodeSpacing": 80, "rankSpacing": 100}}}%%
 flowchart LR
     WEB["web"] -->|"graphql"| HERMES["hermes"]
-    HERMES -->|"grpc"| MEDIA["mediasvc"]
+    HERMES -->|"grpc"| MEDIA["media"]
     MEDIA -->|"processing.requested"| K1[("kafka")]
-    K1 --> CONDUCTOR["conductorsvc"]
+    K1 --> CONDUCTOR["conductor"]
     CONDUCTOR -->|"step.requested"| K2[("kafka")]
     K2 --> WORKER["conductor-worker"]
-    WORKER -->|"grpc result"| CONTENT["contentsvc"]
+    WORKER -->|"grpc result"| CONTENT["content"]
     CONTENT -->|"step.completed"| K3[("kafka")]
-    K3 --> CONDUCTOR2["conductorsvc"]
+    K3 --> CONDUCTOR2["conductor"]
 ```
 
 Kafka and repeated service nodes represent different stages of one left-to-right
-data flow. Repeated `conductorsvc` nodes are the same deployment, not additional
+data flow. Repeated `conductor` nodes are the same deployment, not additional
 services.
 
 ## Ownership decisions
@@ -79,38 +79,38 @@ services.
 context, calls internal gRPC services, and shapes GraphQL responses. It owns no
 domain database.
 
-### `identitysvc`
+### `identity`
 
-`identitysvc` owns accounts and authentication data. Other services store
+`identity` owns accounts and authentication data. Other services store
 `user_id` as an external UUID reference and do not join identity tables.
 
-### `billingsvc`
+### `billing`
 
-`billingsvc` owns subscriptions and credits. Processing uses credit reservation
+`billing` owns subscriptions and credits. Processing uses credit reservation
 followed by settlement or release, avoiding direct balance writes from
-`mediasvc`, `contentsvc`, or `conductorsvc`.
+`media`, `content`, or `conductor`.
 
-### `mediasvc`
+### `media`
 
-`mediasvc` owns:
+`media` owns:
 
 - Media and upload metadata.
 - Processing requests and user-selected options.
 
-### `contentsvc`
+### `content`
 
-`contentsvc` owns:
+`content` owns:
 
 - Full transcript and transcript segments.
 - Summaries, keywords, keypoints, notes, and source references.
 - Summary-audio metadata and its object key.
 
 This separates the uploaded media lifecycle from generated, query-heavy
-content. `hermes` calls `mediasvc` for metadata and `contentsvc` for content.
+content. `hermes` calls `media` for metadata and `content` for content.
 
-### `conductorsvc`
+### `conductor`
 
-`conductorsvc` is the actual workflow conductor. It decides which step runs,
+`conductor` is the actual workflow conductor. It decides which step runs,
 tracks dependencies and attempts, joins parallel enrichment results, applies
 retry and timeout policy, and marks workflows completed or failed.
 
@@ -129,7 +129,7 @@ assign commands to available replicas. Each command identifies a step such as:
 - `generate_notes`
 - `generate_audio_summary`
 
-Workers send text or structured results to `contentsvc` through gRPC. They write
+Workers send text or structured results to `content` through gRPC. They write
 generated thumbnails and summary-audio bytes to object storage.
 
 ## Media-list thumbnail strategy
@@ -148,7 +148,7 @@ For video, the worker extracts a representative frame with FFmpeg, resizes it,
 encodes it as WebP, and writes it to object storage. For audio, it uses embedded
 cover art, a generated waveform, or a default media-type image.
 
-`mediasvc` owns thumbnail metadata and maps the derivative to `media_id`. The
+`media` owns thumbnail metadata and maps the derivative to `media_id`. The
 main-page query returns only media metadata and a thumbnail URL. The detail page
 requests a playback URL only when the user opens or plays the media.
 
@@ -170,20 +170,20 @@ upload
 For every processing step:
 
 ```text
-conductorsvc
+conductor
   → Kafka command
   → conductor-worker
-  → contentsvc persists result
+  → content persists result
   → Kafka completion event
-  → conductorsvc advances workflow
+  → conductor advances workflow
 ```
 
 ## Alternatives rejected for the initial design
 
 | Alternative | Reason |
 | --- | --- |
-| Keep content in `mediasvc` | Media lifecycle and generated content have different ownership, queries, and future scaling needs |
-| Separate `querysvc` | CQRS can be introduced later; `mediasvc` and `contentsvc` can initially serve their own reads |
+| Keep content in `media` | Media lifecycle and generated content have different ownership, queries, and future scaling needs |
+| Separate `querysvc` | CQRS can be introduced later; `media` and `content` can initially serve their own reads |
 | Separate worker per AI capability | Whisper, Gemini, and TTS commands can share one executor codebase while scaling through Kafka |
 | Worker calls conductor directly | Couples executors to orchestration and weakens replay and recovery |
 | Conductor selects a worker instance | Kafka consumer groups already provide distribution and rebalancing |

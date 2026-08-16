@@ -25,11 +25,11 @@ Media Notes 2 will use the following application-service boundaries:
 | Service | Owns | Does not own |
 | --- | --- | --- |
 | `hermes` | Public GraphQL schema, request authentication context, batching, response aggregation | Domain records or domain database tables |
-| `identitysvc` | Users, accounts, sessions, verification records, roles | Media, content, workflow, or billing records |
-| `billingsvc` | Billing accounts, subscriptions, credit balances, reservations, ledger entries, Polar webhook state | Media processing state or generated content |
-| `mediasvc` | Upload sessions, source-media metadata, processing requests, media derivatives | Transcripts, generated content, workflow attempts, or credit balances |
-| `contentsvc` | Transcripts, transcript segments, summaries, citations, keywords, keypoints, notes, summary-audio metadata | Source-media lifecycle, workflow decisions, or billing |
-| `conductorsvc` | Workflows, steps, dependencies, attempts, retry decisions, timeouts, and joins | AI execution, media bytes, generated content, or credit ledger entries |
+| `identity` | Users, accounts, sessions, verification records, roles | Media, content, workflow, or billing records |
+| `billing` | Billing accounts, subscriptions, credit balances, reservations, ledger entries, Polar webhook state | Media processing state or generated content |
+| `media` | Upload sessions, source-media metadata, processing requests, media derivatives | Transcripts, generated content, workflow attempts, or credit balances |
+| `content` | Transcripts, transcript segments, summaries, citations, keywords, keypoints, notes, summary-audio metadata | Source-media lifecycle, workflow decisions, or billing |
+| `conductor` | Workflows, steps, dependencies, attempts, retry decisions, timeouts, and joins | AI execution, media bytes, generated content, or credit ledger entries |
 | `conductor-worker` | Stateless execution of Whisper, Gemini, FFmpeg, and TTS commands | Durable workflow or domain state |
 
 Kafka, PostgreSQL, MinIO/S3, Redis, and OpenTelemetry are infrastructure rather

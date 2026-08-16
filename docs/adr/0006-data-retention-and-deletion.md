@@ -33,18 +33,18 @@ failure.
 
 | Data | Owner | Launch retention |
 | --- | --- | --- |
-| Active account and session data | `identitysvc` | Until account deletion |
-| Source-media metadata, processing requests, derivatives metadata | `mediasvc` | Until media or account deletion |
-| Uploaded media and derivative bytes | `mediasvc` | Until media or account deletion |
-| Transcript and generated content | `contentsvc` | Until media or account deletion |
-| Summary-audio metadata and bytes | `contentsvc` | Until media or account deletion |
-| Workflow, step, and attempt state | `conductorsvc` | 90 days after terminal state |
+| Active account and session data | `identity` | Until account deletion |
+| Source-media metadata, processing requests, derivatives metadata | `media` | Until media or account deletion |
+| Uploaded media and derivative bytes | `media` | Until media or account deletion |
+| Transcript and generated content | `content` | Until media or account deletion |
+| Summary-audio metadata and bytes | `content` | Until media or account deletion |
+| Workflow, step, and attempt state | `conductor` | 90 days after terminal state |
 | Inbox deduplication records | Consuming service | At least Kafka retention plus 7 days, initially 14 days |
 | Outbox records | Producing service | 7 days after confirmed publication |
 | Application logs | Telemetry platform | 30 days |
 | Distributed traces | Telemetry platform | 7 days |
 | Aggregated metrics | Telemetry platform | 13 months |
-| Billing ledger, subscription, and provider evidence | `billingsvc` | Deployment policy; no shorter than an applicable legal or contractual requirement |
+| Billing ledger, subscription, and provider evidence | `billing` | Deployment policy; no shorter than an applicable legal or contractual requirement |
 | Kafka domain events | Kafka | Per ADR 0003; not a domain archive |
 
 Retention durations are configuration with the values above as launch
@@ -59,7 +59,7 @@ tombstones before restored data becomes externally accessible.
 
 ### User-visible media deletion
 
-`mediasvc` owns the deletion lifecycle for a media item:
+`media` owns the deletion lifecycle for a media item:
 
 1. An authenticated command atomically changes the media state to
    `deletion_pending`, records a stable `deletion_id`, and writes an outbox
@@ -67,14 +67,14 @@ tombstones before restored data becomes externally accessible.
 2. The item is immediately excluded from normal list, detail, playback, and
    processing operations. A workflow cannot be started or retried after this
    transition.
-3. `mediasvc` publishes `mn.media.deletion.requested.v1` keyed by `media_id`.
+3. `media` publishes `mn.media.deletion.requested.v1` keyed by `media_id`.
    The event contains identifiers, reason, and timestamp only.
-4. `contentsvc` and `conductorsvc` independently delete or anonymize their
+4. `content` and `conductor` independently delete or anonymize their
    owned records and publish idempotent completion events keyed by
    `deletion_id`.
-5. `mediasvc` cancels outstanding upload sessions, deletes its owned object
+5. `media` cancels outstanding upload sessions, deletes its owned object
    keys and rows, and waits for all required service completions.
-6. After every required owner reports completion, `mediasvc` retains a minimal
+6. After every required owner reports completion, `media` retains a minimal
    tombstone containing `media_id`, owner ID hash, `deletion_id`, completion
    time, and non-sensitive audit status for 90 days.
 
@@ -85,18 +85,18 @@ is treated as an idempotent success.
 
 ### Account deletion
 
-`identitysvc` coordinates account deletion because it owns the account
+`identity` coordinates account deletion because it owns the account
 lifecycle:
 
 1. It revokes sessions and changes the account to `deletion_pending`.
 2. It writes and publishes `mn.identity.account.deletion.requested.v1` with a
    stable `deletion_id`.
-3. `mediasvc` starts deletion for every media item owned by the account.
-   `contentsvc`, `conductorsvc`, and `billingsvc` delete or anonymize any
+3. `media` starts deletion for every media item owned by the account.
+   `content`, `conductor`, and `billing` delete or anonymize any
    directly indexed account data they own.
 4. Each service records inbox state and publishes completion only after its
    durable deletion or anonymization work is committed.
-5. `identitysvc` completes deletion after all required owners report
+5. `identity` completes deletion after all required owners report
    completion, then keeps a non-reversible account tombstone for 90 days.
 
 The billing service may retain ledger or provider evidence that policy requires

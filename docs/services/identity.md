@@ -99,3 +99,44 @@ stops admission, cancels workers and closes within a deadline.
 Unit-test normalization, state transitions, expiry/revocation and idempotency.
 Integration-test migrations, unique constraints, outbox atomicity, duplicate or
 reordered completions, restart after publish failure, health and shutdown.
+
+
+## Initial migration: `00001_init.sql`
+
+```sql
+-- +goose Up
+CREATE SCHEMA IF NOT EXISTS identity;
+CREATE TYPE identity.account_state AS ENUM ('active', 'deletion_pending', 'tombstoned');
+CREATE TABLE identity.users (
+  id uuid PRIMARY KEY, email text NOT NULL, normalized_email text NOT NULL UNIQUE,
+  name text, image_url text, email_verified_at timestamptz,
+  state identity.account_state NOT NULL DEFAULT 'active',
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE identity.accounts (
+  id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES identity.users(id),
+  provider text NOT NULL, provider_account_id text NOT NULL,
+  credential_hash bytea, created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (provider, provider_account_id)
+);
+CREATE TABLE identity.sessions (
+  id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES identity.users(id),
+  token_hash bytea NOT NULL UNIQUE, expires_at timestamptz NOT NULL,
+  revoked_at timestamptz, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX sessions_active_by_user ON identity.sessions (user_id, expires_at)
+  WHERE revoked_at IS NULL;
+CREATE TABLE identity.verification_records (
+  id uuid PRIMARY KEY, identifier text NOT NULL, value_hash bytea NOT NULL UNIQUE,
+  purpose text NOT NULL, expires_at timestamptz NOT NULL, consumed_at timestamptz
+);
+CREATE TABLE identity.user_roles (user_id uuid NOT NULL REFERENCES identity.users(id), role text NOT NULL, PRIMARY KEY (user_id, role));
+CREATE TABLE identity.account_deletions (
+  deletion_id uuid PRIMARY KEY, user_id uuid NOT NULL UNIQUE REFERENCES identity.users(id),
+  state text NOT NULL, participants jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), completed_at timestamptz
+);
+CREATE TABLE identity.inbox_events (consumer_name text NOT NULL, event_id uuid NOT NULL, received_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (consumer_name, event_id));
+CREATE TABLE identity.outbox_events (id uuid PRIMARY KEY, topic text NOT NULL, event_key text NOT NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), published_at timestamptz, attempts integer NOT NULL DEFAULT 0);
+-- +goose Down
+DROP SCHEMA identity CASCADE;
+```

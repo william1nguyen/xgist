@@ -7,11 +7,11 @@ migration directory, and migration version table.
 
 | Service | Role | Schema | Migration directory |
 | --- | --- | --- | --- |
-| `identitysvc` | `identitysvc` | `identity` | `services/identitysvc/migrations` |
-| `billingsvc` | `billingsvc` | `billing` | `services/billingsvc/migrations` |
-| `mediasvc` | `mediasvc` | `media` | `services/mediasvc/migrations` |
-| `contentsvc` | `contentsvc` | `content` | `services/contentsvc/migrations` |
-| `conductorsvc` | `conductorsvc` | `workflow` | `services/conductorsvc/migrations` |
+| `identity` | `identity` | `identity` | `services/identity/migrations` |
+| `billing` | `billing` | `billing` | `services/billing/migrations` |
+| `media` | `media` | `media` | `services/media/migrations` |
+| `content` | `content` | `content` | `services/content/migrations` |
+| `conductor` | `conductor` | `workflow` | `services/conductor/migrations` |
 
 `hermes` and worker executors are stateless and do not own migrations.
 Migration version tables live inside the owning schema. PostgreSQL privileges,

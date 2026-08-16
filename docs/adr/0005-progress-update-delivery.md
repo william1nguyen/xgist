@@ -15,7 +15,7 @@ Kafka, workflow internals, or another service's database.
 
 Version 1 polls queue and detail queries every three seconds while a job is
 non-terminal. Media Notes 2 introduces `hermes` as the public GraphQL boundary
-and `mediasvc` as the owner of the user-facing media status projection. Hermes
+and `media` as the owner of the user-facing media status projection. Hermes
 does not yet have a streaming GraphQL runtime or cross-instance connection
 fan-out. Initial concurrent-user and active-workflow traffic is not measured.
 
@@ -30,9 +30,9 @@ batched progress query every three seconds only while visible media items are
 non-terminal.
 
 Polling reads the latest durable projection, so it does not require delivery
-of every intermediate transition. `mediasvc` remains authoritative for
-user-facing status; `conductorsvc` remains authoritative for workflow state.
-The `mn.media.status.changed.v1` consumer updates the mediasvc projection
+of every intermediate transition. `media` remains authoritative for
+user-facing status; `conductor` remains authoritative for workflow state.
+The `mn.media.status.changed.v1` consumer updates the media projection
 idempotently before the new state is observable through GraphQL.
 
 ### Public query
@@ -48,7 +48,7 @@ The initial contract has these bounds:
 - One request contains 1–50 unique media IDs.
 - Hermes derives the owner from the authenticated context; ownership is never
   accepted from query input.
-- Hermes calls one batched `GetMediaProgress` mediasvc gRPC method rather than
+- Hermes calls one batched `GetMediaProgress` media gRPC method rather than
   issuing one call per ID.
 - Results include `mediaId`, media `status`, processing-request `status`,
   `currentStep`, `completedSteps`, `totalSteps`, `updatedAt`, and a monotonic
@@ -91,7 +91,7 @@ polling and follow the normal session-expiry flow.
 - Hermes applies the media-read traffic guardrails from ADR 0004.
 - Hermes sets a gRPC deadline and cancels the downstream call when the client
   disconnects.
-- Mediasvc returns one consistent projection per row; a poll may observe
+- Media returns one consistent projection per row; a poll may observe
   different committed versions across different media IDs.
 - No Redis Pub/Sub, sticky sessions, WebSocket gateway, or in-memory
   subscription registry is introduced.
@@ -108,7 +108,7 @@ offline browsers.
 At the maximum batch size, one active foreground client produces 20 progress
 requests per minute regardless of whether 1 or 50 represented media items are
 active. Dashboards measure active polling clients, batch-size distribution,
-request rate, p95 latency, mediasvc gRPC latency, errors, and projection age.
+request rate, p95 latency, media gRPC latency, errors, and projection age.
 
 Revisit the transport when representative measurements show any of:
 
@@ -147,7 +147,7 @@ semantics.
 
 - Active foreground clients generate reads when no status changed.
 - Users observe transitions after an interval rather than immediately.
-- The mediasvc projection must expose enough progress detail without leaking
+- The media projection must expose enough progress detail without leaking
   conductor-owned workflow internals.
 - Projection versioning adds a field and update invariant to the media read
   model.
@@ -157,7 +157,7 @@ semantics.
 - **Poll the entire queue and detail payload:** repeatedly loads pagination,
   derivatives, transcript, and generated content that progress does not need.
 - **Consume Kafka from Hermes:** gives the public edge domain-event ownership,
-  requires replay and fan-out state, and bypasses mediasvc's durable
+  requires replay and fan-out state, and bypasses media's durable
   projection.
 - **Use Redis Pub/Sub as the source of truth:** messages can be missed during
   disconnects and Redis does not own media status.

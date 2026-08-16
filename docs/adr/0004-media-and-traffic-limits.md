@@ -50,15 +50,15 @@ metadata is untrusted.
 1. `web` performs MIME-type and size checks for immediate feedback.
 2. `hermes` rate-limits the authenticated request, but never receives media
    bytes.
-3. `mediasvc` checks the requested MIME type, declared size, active-session
+3. `media` checks the requested MIME type, declared size, active-session
    count, and account policy before creating a session.
 4. The presigned object-storage policy constrains the object key, maximum
    content length, and expiry.
-5. On confirmation, `mediasvc` reads authoritative object metadata and rejects
+5. On confirmation, `media` reads authoritative object metadata and rejects
    a missing, empty, oversized, or key-mismatched object before creating a
    processing request.
 6. `conductor-worker` probes the source before expensive work and reports the
-   actual MIME/container, duration, and media streams. `mediasvc` records the
+   actual MIME/container, duration, and media streams. `media` records the
    measured duration. A source over four hours fails permanently with
    `MEDIA_DURATION_EXCEEDED`.
 
@@ -81,7 +81,7 @@ authentication. Limits return `429 Too Many Requests` with `Retry-After`.
 | Other authenticated GraphQL operations | 120/minute | 20 |
 | Authentication attempts | 10/15 minutes per account and IP | 5 |
 
-The three-session concurrency limit is durable state in `mediasvc`, not only a
+The three-session concurrency limit is durable state in `media`, not only a
 rate-limit counter. Retries with the same idempotency key return the existing
 result and do not consume another logical mutation.
 
