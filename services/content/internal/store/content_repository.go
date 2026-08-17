@@ -32,7 +32,7 @@ func (r *ContentRepository) StoreTranscript(ctx context.Context, cmd content.Sto
 			return err
 		}
 
-		applied, err := checkStepAttempt(ctx, tx, contentID, content.StepTranscript, cmd.Attempt, cmd.IdempotencyKey)
+		applied, err := checkStepAttempt(ctx, tx, contentID, cmd.WorkflowID, content.StepTranscript, cmd.Attempt, cmd.IdempotencyKey)
 		if err != nil {
 			return err
 		}
@@ -133,7 +133,7 @@ func (r *ContentRepository) StoreSummary(ctx context.Context, cmd content.StoreS
 			return err
 		}
 
-		applied, err := checkStepAttempt(ctx, tx, contentID, step, cmd.Attempt, cmd.IdempotencyKey)
+		applied, err := checkStepAttempt(ctx, tx, contentID, cmd.WorkflowID, step, cmd.Attempt, cmd.IdempotencyKey)
 		if err != nil {
 			return err
 		}
@@ -204,7 +204,7 @@ func (r *ContentRepository) StoreKeywords(ctx context.Context, cmd content.Store
 			return err
 		}
 
-		applied, err := checkStepAttempt(ctx, tx, contentID, content.StepKeywords, cmd.Attempt, cmd.IdempotencyKey)
+		applied, err := checkStepAttempt(ctx, tx, contentID, cmd.WorkflowID, content.StepKeywords, cmd.Attempt, cmd.IdempotencyKey)
 		if err != nil {
 			return err
 		}
@@ -245,7 +245,7 @@ func (r *ContentRepository) StoreKeypoints(ctx context.Context, cmd content.Stor
 			return err
 		}
 
-		applied, err := checkStepAttempt(ctx, tx, contentID, content.StepKeypoints, cmd.Attempt, cmd.IdempotencyKey)
+		applied, err := checkStepAttempt(ctx, tx, contentID, cmd.WorkflowID, content.StepKeypoints, cmd.Attempt, cmd.IdempotencyKey)
 		if err != nil {
 			return err
 		}
@@ -288,7 +288,7 @@ func (r *ContentRepository) StoreNotes(ctx context.Context, cmd content.StoreNot
 			return err
 		}
 
-		applied, err := checkStepAttempt(ctx, tx, contentID, step, cmd.Attempt, cmd.IdempotencyKey)
+		applied, err := checkStepAttempt(ctx, tx, contentID, cmd.WorkflowID, step, cmd.Attempt, cmd.IdempotencyKey)
 		if err != nil {
 			return err
 		}
@@ -327,7 +327,7 @@ func (r *ContentRepository) StoreSummaryAudio(ctx context.Context, cmd content.S
 			return err
 		}
 
-		applied, err := checkStepAttempt(ctx, tx, contentID, step, cmd.Attempt, cmd.IdempotencyKey)
+		applied, err := checkStepAttempt(ctx, tx, contentID, cmd.WorkflowID, step, cmd.Attempt, cmd.IdempotencyKey)
 		if err != nil {
 			return err
 		}
@@ -593,16 +593,23 @@ func getOrCreateContent(ctx context.Context, tx pgx.Tx, mediaID, workflowID uuid
 // the last recorded call for this step (a pure replay, safe to skip), and
 // (false, ErrStaleAttempt) when attempt is older than the last recorded
 // attempt.
-func checkStepAttempt(ctx context.Context, tx pgx.Tx, contentID uuid.UUID, step string, attempt int, idempotencyKey string) (bool, error) {
+//
+// Attempt monotonicity is scoped to (contentID, step, workflowID), not just
+// (contentID, step): a regenerate request starts a brand new workflow whose
+// own step attempts count from 1 again, which would otherwise compare as
+// stale against a previous, unrelated workflow's higher attempt count for
+// the same step (for example if that step needed a retry the first time).
+func checkStepAttempt(ctx context.Context, tx pgx.Tx, contentID, workflowID uuid.UUID, step string, attempt int, idempotencyKey string) (bool, error) {
 	var existingAttempt int
 	var existingKey string
 	err := tx.QueryRow(ctx, `
-		SELECT attempt, idempotency_key FROM content_step_attempts WHERE content_id = $1 AND step = $2 FOR UPDATE
-	`, contentID, step).Scan(&existingAttempt, &existingKey)
+		SELECT attempt, idempotency_key FROM content_step_attempts
+		WHERE content_id = $1 AND step = $2 AND workflow_id = $3 FOR UPDATE
+	`, contentID, step, workflowID).Scan(&existingAttempt, &existingKey)
 	if errors.Is(err, pgx.ErrNoRows) {
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO content_step_attempts (content_id, step, attempt, idempotency_key) VALUES ($1, $2, $3, $4)
-		`, contentID, step, attempt, idempotencyKey); err != nil {
+			INSERT INTO content_step_attempts (content_id, step, workflow_id, attempt, idempotency_key) VALUES ($1, $2, $3, $4, $5)
+		`, contentID, step, workflowID, attempt, idempotencyKey); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -617,9 +624,9 @@ func checkStepAttempt(ctx context.Context, tx pgx.Tx, contentID uuid.UUID, step 
 		return false, content.ErrStaleAttempt
 	}
 	if _, err := tx.Exec(ctx, `
-		UPDATE content_step_attempts SET attempt = $3, idempotency_key = $4, updated_at = now()
-		WHERE content_id = $1 AND step = $2
-	`, contentID, step, attempt, idempotencyKey); err != nil {
+		UPDATE content_step_attempts SET attempt = $4, idempotency_key = $5, updated_at = now()
+		WHERE content_id = $1 AND step = $2 AND workflow_id = $3
+	`, contentID, step, workflowID, attempt, idempotencyKey); err != nil {
 		return false, err
 	}
 	return true, nil

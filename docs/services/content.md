@@ -36,28 +36,43 @@ Each successful write commits result + outbox together before
 `mn.processing.step.completed.v1` is published. Events include IDs, output
 kind, durable version and attempt, never text.
 
+`SummaryAudio.url` is a short-lived presigned GET URL for `object_key`, signed
+fresh on every `GetContent` read rather than stored — the same pattern media
+uses for `MediaDetail.playback_url`. Only `object_key` is durable; `url` must
+never be persisted or cached past one response.
+
+Writes deduplicate by `(content_id, step, workflow_id)`, not just
+`(content_id, step)`: a rejected write (`attempt` lower than the last
+recorded one for that key) is a genuine out-of-order-delivery guard *within*
+one workflow, not a cross-workflow one. Scoping by `workflow_id` matters for
+regenerate — media's `RequestProcessing` starts a brand new workflow whose
+own step attempts count from 1 again, which would otherwise compare as
+stale against a prior, unrelated workflow's higher attempt count for the
+same step (if that step needed a retry the first time). Each workflow's
+write still upserts/replaces that step's content (`ON CONFLICT` for
+single-instance types, delete-then-reinsert for list types like keywords),
+so a regenerate replaces rather than duplicates.
+
 ## Tests
 
 Test segment ordering, citations referencing valid segments, idempotent writes,
 stale attempts, durable-before-completion ordering, deletion and read ownership.
 
 
-## Initial migration: `00001_init.sql`
+## Migrations
 
-```sql
--- +goose Up
-CREATE SCHEMA IF NOT EXISTS content;
-CREATE TABLE content.contents (id uuid PRIMARY KEY, media_id uuid NOT NULL UNIQUE, workflow_id uuid NOT NULL, language text, transcript_text text, version integer NOT NULL DEFAULT 1, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
-CREATE TABLE content.transcript_segments (id uuid PRIMARY KEY, content_id uuid NOT NULL REFERENCES content.contents(id), segment_index integer NOT NULL, start_ms bigint NOT NULL CHECK (start_ms >= 0), end_ms bigint NOT NULL CHECK (end_ms >= start_ms), speaker text, text text NOT NULL, UNIQUE (content_id, segment_index));
-CREATE TABLE content.summaries (id uuid PRIMARY KEY, content_id uuid NOT NULL REFERENCES content.contents(id), summary_type text NOT NULL, text text NOT NULL, model text, prompt_version text, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE (content_id, summary_type));
-CREATE TABLE content.keywords (id uuid PRIMARY KEY, content_id uuid NOT NULL REFERENCES content.contents(id), keyword text NOT NULL, score numeric, position integer NOT NULL, UNIQUE (content_id, keyword));
-CREATE TABLE content.keypoints (id uuid PRIMARY KEY, content_id uuid NOT NULL REFERENCES content.contents(id), point_index integer NOT NULL, text text NOT NULL, start_segment integer, end_segment integer, UNIQUE (content_id, point_index));
-CREATE TABLE content.notes (id uuid PRIMARY KEY, content_id uuid NOT NULL REFERENCES content.contents(id), format text NOT NULL, body text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE (content_id, format));
-CREATE TABLE content.summary_sentences (id uuid PRIMARY KEY, summary_id uuid NOT NULL REFERENCES content.summaries(id), sentence_index integer NOT NULL, text text NOT NULL, UNIQUE (summary_id, sentence_index));
-CREATE TABLE content.summary_citations (summary_sentence_id uuid NOT NULL REFERENCES content.summary_sentences(id), transcript_segment_id uuid NOT NULL REFERENCES content.transcript_segments(id), PRIMARY KEY (summary_sentence_id, transcript_segment_id));
-CREATE TABLE content.audio_summaries (id uuid PRIMARY KEY, content_id uuid NOT NULL REFERENCES content.contents(id), summary_id uuid REFERENCES content.summaries(id), object_key text NOT NULL UNIQUE, mime_type text NOT NULL, duration_ms bigint, voice text, status text NOT NULL);
-CREATE TABLE content.inbox_events (event_id uuid PRIMARY KEY, topic text NOT NULL, processed_at timestamptz NOT NULL DEFAULT now());
-CREATE TABLE content.outbox_events (id uuid PRIMARY KEY, topic text NOT NULL, event_key text NOT NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), published_at timestamptz, attempts integer NOT NULL DEFAULT 0);
--- +goose Down
-DROP SCHEMA content CASCADE;
-```
+Flyway-managed (`services/content/migrations/V{n}__*.sql`, manual rollback
+scripts under `services/content/rollback/`), currently:
+
+- `V1__init.sql` — `contents`, `transcript_segments`, `summaries`,
+  `keywords`, `keypoints`, `notes`, `summary_sentences`,
+  `summary_citations`, `audio_summaries`, `content_step_attempts`,
+  `content_deletions`, `inbox_events`, `outbox_events`, all in the `public`
+  schema. `content_step_attempts` originally had primary key
+  `(content_id, step)`.
+- `V2__scope_step_attempts_by_workflow.sql` — adds
+  `content_step_attempts.workflow_id` and changes its primary key to
+  `(content_id, step, workflow_id)`, per the write-deduplication note
+  above. Wipes the table first (a disposable idempotency ledger, not user
+  content, and content has no access to conductor's workflow history to
+  backfill it — reaching across that boundary would violate ADR 0001).

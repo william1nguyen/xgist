@@ -242,20 +242,22 @@ class StoreNotesResponse(_message.Message):
     def __init__(self, version: _Optional[_Union[ContentVersion, _Mapping]] = ...) -> None: ...
 
 class SummaryAudio(_message.Message):
-    __slots__ = ("summary_type", "object_key", "mime_type", "duration_ms", "voice", "status")
+    __slots__ = ("summary_type", "object_key", "mime_type", "duration_ms", "voice", "status", "url")
     SUMMARY_TYPE_FIELD_NUMBER: _ClassVar[int]
     OBJECT_KEY_FIELD_NUMBER: _ClassVar[int]
     MIME_TYPE_FIELD_NUMBER: _ClassVar[int]
     DURATION_MS_FIELD_NUMBER: _ClassVar[int]
     VOICE_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
     summary_type: str
     object_key: str
     mime_type: str
     duration_ms: int
     voice: str
     status: SummaryAudioStatus
-    def __init__(self, summary_type: _Optional[str] = ..., object_key: _Optional[str] = ..., mime_type: _Optional[str] = ..., duration_ms: _Optional[int] = ..., voice: _Optional[str] = ..., status: _Optional[_Union[SummaryAudioStatus, str]] = ...) -> None: ...
+    url: str
+    def __init__(self, summary_type: _Optional[str] = ..., object_key: _Optional[str] = ..., mime_type: _Optional[str] = ..., duration_ms: _Optional[int] = ..., voice: _Optional[str] = ..., status: _Optional[_Union[SummaryAudioStatus, str]] = ..., url: _Optional[str] = ...) -> None: ...
 
 class StoreSummaryAudioMetadataRequest(_message.Message):
     __slots__ = ("idempotency_key", "media_id", "workflow_id", "attempt", "summary_type", "object_key", "mime_type", "duration_ms", "voice")

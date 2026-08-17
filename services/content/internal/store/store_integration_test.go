@@ -56,9 +56,16 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("connection string: %v", err)
 	}
 
-	migration, err := os.ReadFile("../../migrations/V1__init.sql")
-	if err != nil {
-		t.Fatalf("read migration: %v", err)
+	var migration []byte
+	for _, name := range []string{
+		"V1__init.sql",
+		"V2__scope_step_attempts_by_workflow.sql",
+	} {
+		b, err := os.ReadFile("../../migrations/" + name)
+		if err != nil {
+			t.Fatalf("read migration %s: %v", name, err)
+		}
+		migration = append(migration, b...)
 	}
 
 	// The postgres module reports ready after the log line that precedes
@@ -268,6 +275,56 @@ func TestContentRepository(t *testing.T) {
 			t.Fatalf("unexpected summary audios: %+v", got.SummaryAudios)
 		}
 	})
+}
+
+func TestStepAttemptsAreScopedPerWorkflow(t *testing.T) {
+	requireIntegration(t)
+	pool := newTestPool(t)
+	repo := store.NewContentRepository(pool)
+	ctx := context.Background()
+
+	mediaID := uuid.New()
+	firstWorkflowID := uuid.New()
+
+	// Advance the first workflow's transcribe step to attempt 2, the same
+	// way TestContentRepository does, so there is a higher recorded
+	// attempt to potentially collide with.
+	if _, err := repo.StoreTranscript(ctx, content.StoreTranscriptCommand{
+		IdempotencyKey: "w1-attempt-1", MediaID: mediaID, WorkflowID: firstWorkflowID, Attempt: 1,
+		Segments: []content.TranscriptSegment{{SegmentIndex: 0, StartMs: 0, EndMs: 100, Text: "first"}},
+	}); err != nil {
+		t.Fatalf("StoreTranscript (workflow 1, attempt 1): %v", err)
+	}
+	if _, err := repo.StoreTranscript(ctx, content.StoreTranscriptCommand{
+		IdempotencyKey: "w1-attempt-2", MediaID: mediaID, WorkflowID: firstWorkflowID, Attempt: 2,
+		Segments: []content.TranscriptSegment{{SegmentIndex: 0, StartMs: 0, EndMs: 100, Text: "first retried"}},
+	}); err != nil {
+		t.Fatalf("StoreTranscript (workflow 1, attempt 2): %v", err)
+	}
+
+	// A regenerate starts a brand new workflow whose own step attempts
+	// count from 1 again — lower than the first workflow's attempt 2 for
+	// the same step, but for a different workflow_id, so it must apply
+	// rather than being rejected as stale.
+	secondWorkflowID := uuid.New()
+	v, err := repo.StoreTranscript(ctx, content.StoreTranscriptCommand{
+		IdempotencyKey: "w2-attempt-1", MediaID: mediaID, WorkflowID: secondWorkflowID, Attempt: 1,
+		Segments: []content.TranscriptSegment{{SegmentIndex: 0, StartMs: 0, EndMs: 200, Text: "regenerated"}},
+	})
+	if err != nil {
+		t.Fatalf("StoreTranscript (workflow 2, attempt 1): %v", err)
+	}
+	if v.Version != 3 {
+		t.Errorf("version = %d, want 3 (each write bumps content's shared version)", v.Version)
+	}
+
+	got, err := repo.FindTranscript(ctx, mediaID)
+	if err != nil {
+		t.Fatalf("FindTranscript: %v", err)
+	}
+	if len(got.Segments) != 1 || got.Segments[0].Text != "regenerated" {
+		t.Fatalf("unexpected segments after regenerate: %+v", got.Segments)
+	}
 }
 
 func TestDeletionRepository(t *testing.T) {
