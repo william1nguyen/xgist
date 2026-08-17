@@ -1,4 +1,4 @@
-import { FileText, Volume2 } from "lucide-react";
+import { FileText, Loader2, Volume2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -28,6 +28,13 @@ type MediaDescriptionProps = {
 	keypoints: Content["keypoints"];
 	notes: Content["notes"];
 	hasAudio: boolean;
+	// True while an audio summary looks like it's being generated: the
+	// media item is processing and already has a summary (audio always
+	// depends on one) but no audio yet. There's no per-step signal from
+	// the backend to know for certain audio specifically is the step in
+	// flight, but this narrows it enough to be a useful hint rather than
+	// a guess that's just as often wrong.
+	audioGenerating: boolean;
 	onHoverIndices: (indices: number[]) => void;
 	onSeekToIndex: (index: number) => void;
 };
@@ -42,6 +49,7 @@ export function MediaDescription({
 	keypoints,
 	notes,
 	hasAudio,
+	audioGenerating,
 	onHoverIndices,
 	onSeekToIndex,
 }: MediaDescriptionProps) {
@@ -107,7 +115,7 @@ export function MediaDescription({
 				</div>
 			)}
 
-			{(notes.length > 0 || hasAudio) && (
+			{(notes.length > 0 || hasAudio || audioGenerating) && (
 				<div className="flex flex-wrap items-center gap-2 border-border border-t pt-3">
 					{notes.length > 0 && (
 						<Button
@@ -119,13 +127,20 @@ export function MediaDescription({
 							{t("mediaDetail.viewNotes")}
 						</Button>
 					)}
-					{hasAudio && (
+					{hasAudio ? (
 						<Button variant="outline" size="sm" asChild>
 							<Link to={`/media/${mediaId}/audio`}>
 								<Volume2 className="size-3.5" />
 								{t("mediaDetail.listenToAudio")}
 							</Link>
 						</Button>
+					) : (
+						audioGenerating && (
+							<span className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-muted-foreground text-sm">
+								<Loader2 className="size-3.5 animate-spin" />
+								{t("mediaDetail.audioGenerating")}
+							</span>
+						)
 					)}
 				</div>
 			)}

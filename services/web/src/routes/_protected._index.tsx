@@ -65,7 +65,10 @@ export default function DashboardPage() {
 	});
 
 	function handleOpen(media: MediaItem) {
-		if (media.status === "COMPLETED") navigate(`/media/${media.id}`);
+		// Processing/failed media already has real content worth viewing —
+		// only PENDING_UPLOAD (no confirmed object yet) stays unopenable,
+		// matching MediaCard's own click-gating.
+		if (media.status !== "PENDING_UPLOAD") navigate(`/media/${media.id}`);
 	}
 
 	function goToNextPage() {

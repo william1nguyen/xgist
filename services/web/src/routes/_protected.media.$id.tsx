@@ -150,6 +150,9 @@ export default function MediaDetailPage() {
 						keypoints={content?.keypoints ?? []}
 						notes={content?.notes ?? []}
 						hasAudio={(content?.summaryAudios.length ?? 0) > 0}
+						audioGenerating={
+							status === "PROCESSING" && (content?.summaries.length ?? 0) > 0
+						}
 						onHoverIndices={(indices) => setCitedIndices(new Set(indices))}
 						onSeekToIndex={seekToSegmentIndex}
 					/>

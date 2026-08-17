@@ -170,6 +170,7 @@
 		"exitFullscreen": "Exit full screen",
 		"viewNotes": "View notes",
 		"listenToAudio": "Listen to audio summary",
+		"audioGenerating": "Generating audio summary…",
 		"backToMedia": "Back to media"
 	},
 	"video": {

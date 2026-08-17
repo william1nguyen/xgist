@@ -18,8 +18,12 @@ type MediaCardProps = {
 };
 
 export function MediaCard({ media, progress, onOpen }: MediaCardProps) {
-	const isCompleted = media.status === "COMPLETED";
 	const isFailed = media.status === "FAILED";
+	// Processing (or failed) media already has real content worth viewing —
+	// title, thumbnail, whatever transcript/summary/audio has landed so
+	// far — so it stays openable the whole time, not just once COMPLETED.
+	// Only PENDING_UPLOAD has nothing to show yet (no confirmed object).
+	const isOpenable = media.status !== "PENDING_UPLOAD";
 	const percent =
 		progress && progress.totalSteps > 0
 			? Math.round((progress.completedSteps / progress.totalSteps) * 100)
@@ -29,7 +33,7 @@ export function MediaCard({ media, progress, onOpen }: MediaCardProps) {
 		<div
 			className={cn(
 				"group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all",
-				isCompleted
+				isOpenable
 					? "hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
 					: "",
 				isFailed ? "border-destructive/30 bg-destructive/5" : "border-border",
@@ -38,10 +42,10 @@ export function MediaCard({ media, progress, onOpen }: MediaCardProps) {
 			<button
 				type="button"
 				onClick={() => onOpen(media)}
-				disabled={!isCompleted}
+				disabled={!isOpenable}
 				className={cn(
 					"flex flex-col text-left",
-					isCompleted ? "cursor-pointer" : "cursor-default",
+					isOpenable ? "cursor-pointer" : "cursor-default",
 				)}
 			>
 				<div className="relative aspect-video w-full shrink-0 overflow-hidden bg-muted">
