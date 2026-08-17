@@ -96,6 +96,7 @@ type Media {
   thumbnailUrl: String
   createdAt: String!
   updatedAt: String!
+  description: String
 }
 
 type MediaPage {
@@ -118,6 +119,7 @@ type MediaDetail {
   playbackUrlExpiresAt: String
   createdAt: String!
   updatedAt: String!
+  description: String
 }
 
 # MediaProgress is the ADR 0005 batched processing-status projection.
@@ -234,6 +236,31 @@ type BillingSummary {
   subscription: BillingSubscription
 }
 
+# CreditLedgerEntry is one immutable row of the caller's credit history —
+# a reserve, settle, release, or purchase. itemId is only set on a settle
+# entry (the processing option id the reservation paid for).
+type CreditLedgerEntry {
+  id: ID!
+  delta: Int!
+  entryType: String!
+  itemId: String
+  createdAt: String!
+}
+
+type CreditLedgerPage {
+  items: [CreditLedgerEntry!]!
+  nextCursor: String
+}
+
+# PromptSetting is the caller's saved custom system prompt for one
+# section (a processing option id, e.g. "summarize"). It is appended to
+# that section's LLM prompt on every future generation until changed.
+type PromptSetting {
+  section: String!
+  promptText: String!
+  updatedAt: String!
+}
+
 type Query {
   # me returns the authenticated caller's profile.
   me: User!
@@ -257,6 +284,12 @@ type Query {
   # billingSummary returns the caller's credit balance and subscription
   # state.
   billingSummary: BillingSummary!
+  # creditLedgerHistory returns a cursor-paginated page of the caller's
+  # credit ledger, newest first — backs the usage screen's charts.
+  creditLedgerHistory(cursor: String, pageSize: Int): CreditLedgerPage!
+  # promptSettings returns every custom system prompt the caller has
+  # saved, one per section they've customized.
+  promptSettings: [PromptSetting!]!
 }
 
 type Mutation {
@@ -277,4 +310,19 @@ type Mutation {
   # in options; ignored otherwise. Omitted or null uses conductor-worker's
   # default voice.
   confirmUpload(uploadSessionId: ID!, options: [String!]!, audioVoice: String, idempotencyKey: String): MediaDetail!
+  # updateMedia changes a media item's title and/or description. Omitted
+  # (null) fields are left unchanged.
+  updateMedia(id: ID!, title: String, description: String): MediaDetail!
+  # requestProcessing starts a new processing request for a media item that
+  # has already been confirmed at least once — to generate a content type
+  # that wasn't originally selected, or to regenerate one that was. Only
+  # accepted while the media item's status is COMPLETED or FAILED: at most
+  # one processing request may be active per media item at a time.
+  # audioVoice behaves as in confirmUpload.
+  requestProcessing(mediaId: ID!, options: [String!]!, audioVoice: String, idempotencyKey: String): MediaDetail!
+  # updatePromptSetting creates or replaces the caller's custom system
+  # prompt for one section. promptText is capped at 500 characters; an
+  # empty string clears it. Applied on every future generation for that
+  # section until changed again.
+  updatePromptSetting(section: String!, promptText: String!): PromptSetting!
 }

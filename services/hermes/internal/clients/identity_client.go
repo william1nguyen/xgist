@@ -114,6 +114,42 @@ func (c *IdentityClient) RequestAccountDeletion(ctx context.Context, idempotency
 	return toDeletionOperation(resp.GetOperation())
 }
 
+// GetPromptSettings returns every custom system prompt the user has
+// saved.
+func (c *IdentityClient) GetPromptSettings(ctx context.Context, userID uuid.UUID) ([]PromptSetting, error) {
+	resp, err := c.client.GetPromptSettings(ctx, &identityv1.GetPromptSettingsRequest{UserId: userID.String()})
+	if err != nil {
+		return nil, fmt.Errorf("identity.GetPromptSettings: %w", err)
+	}
+	out := make([]PromptSetting, 0, len(resp.GetSettings()))
+	for _, s := range resp.GetSettings() {
+		out = append(out, toPromptSetting(s))
+	}
+	return out, nil
+}
+
+// UpsertPromptSetting creates or replaces the user's custom system prompt
+// for one section.
+func (c *IdentityClient) UpsertPromptSetting(ctx context.Context, userID uuid.UUID, section, promptText string) (PromptSetting, error) {
+	resp, err := c.client.UpsertPromptSetting(ctx, &identityv1.UpsertPromptSettingRequest{
+		UserId:     userID.String(),
+		Section:    section,
+		PromptText: promptText,
+	})
+	if err != nil {
+		return PromptSetting{}, fmt.Errorf("identity.UpsertPromptSetting: %w", err)
+	}
+	return toPromptSetting(resp.GetSetting()), nil
+}
+
+func toPromptSetting(s *identityv1.PromptSetting) PromptSetting {
+	return PromptSetting{
+		Section:    s.GetSection(),
+		PromptText: s.GetPromptText(),
+		UpdatedAt:  s.GetUpdatedAt().AsTime(),
+	}
+}
+
 func toUser(u *identityv1.User) (User, error) {
 	id, err := uuid.Parse(u.GetId())
 	if err != nil {

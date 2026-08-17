@@ -37,6 +37,14 @@ type Principal struct {
 	SessionID uuid.UUID
 }
 
+// PromptSetting is the caller's saved custom system prompt for one
+// section (a processing option id), as returned by identity.
+type PromptSetting struct {
+	Section    string
+	PromptText string
+	UpdatedAt  time.Time
+}
+
 // DeletionOperation tracks one account deletion request.
 type DeletionOperation struct {
 	DeletionID  uuid.UUID
@@ -70,6 +78,7 @@ type Media struct {
 	ThumbnailURL string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	Description  string
 }
 
 // MediaPage is one cursor-paginated page of media.
@@ -199,4 +208,20 @@ type BillingSummary struct {
 	AvailableCredits int64
 	ReservedCredits  int64
 	Subscription     *Subscription
+}
+
+// LedgerEntry is one immutable row of a user's credit ledger.
+type LedgerEntry struct {
+	ID        string
+	Delta     int64
+	EntryType string
+	// ItemID is only set on a "settle" entry.
+	ItemID    string
+	CreatedAt time.Time
+}
+
+// LedgerPage is one cursor-paginated page of ledger entries.
+type LedgerPage struct {
+	Entries    []LedgerEntry
+	NextCursor string
 }

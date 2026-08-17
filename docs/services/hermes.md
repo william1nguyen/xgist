@@ -24,7 +24,8 @@ deadlines, attach metadata and map safe downstream errors.
 
 ```text
 register, login, logout, me, requestAccountDeletion
-createUploadSession, confirmUpload, mediaList, mediaDetail
+createUploadSession, confirmUpload, updateMedia, requestProcessing
+mediaList, mediaDetail
 contentDetail, processingStatus
 quote, billingSummary, subscriptionCheckout
 ```
@@ -32,6 +33,23 @@ quote, billingSummary, subscriptionCheckout
 Authenticate once per request through Identity. Pass principal, request ID and
 trace context in gRPC metadata. Every read that returns a user-owned resource
 must verify ownership from the owning service response.
+
+`confirmUpload` takes an optional `audioVoice`, forwarded to media's
+`ConfirmUpload` unchanged; it only affects processing when `options` includes
+`generate_audio_summary`. `mediaList` takes an optional `search`, forwarded to
+media's `ListMedia` as a server-side case-insensitive title substring match —
+never filter an already-fetched page client-side instead.
+
+`updateMedia` and `requestProcessing` both take a bare `id`/`mediaId` with no
+session or upload context to scope them, so each resolver fetches the media
+item via `GetMedia` and compares owner before mutating — the same
+ownership-verification pattern `mediaDetail`/`contentDetail` already use, per
+the "never accepted from query input" rule above. `requestProcessing`
+forwards to media's `RequestProcessing`, which rejects with
+`FAILED_PRECONDITION` unless the media item's status is already `COMPLETED`
+or `FAILED` (at most one processing request active per media item at a
+time) — surfaced automatically via the existing gRPC-code-to-GraphQL-error
+mapping, no hermes-specific handling needed.
 
 ## Control flow
 

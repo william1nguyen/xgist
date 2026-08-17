@@ -40,6 +40,19 @@ type Content struct {
 	Version       int            `json:"version"`
 }
 
+type CreditLedgerEntry struct {
+	ID        string  `json:"id"`
+	Delta     int     `json:"delta"`
+	EntryType string  `json:"entryType"`
+	ItemID    *string `json:"itemId,omitempty"`
+	CreatedAt string  `json:"createdAt"`
+}
+
+type CreditLedgerPage struct {
+	Items      []CreditLedgerEntry `json:"items"`
+	NextCursor *string             `json:"nextCursor,omitempty"`
+}
+
 type DeletionOperation struct {
 	DeletionID  string        `json:"deletionId"`
 	UserID      string        `json:"userId"`
@@ -72,6 +85,7 @@ type Media struct {
 	ThumbnailURL *string     `json:"thumbnailUrl,omitempty"`
 	CreatedAt    string      `json:"createdAt"`
 	UpdatedAt    string      `json:"updatedAt"`
+	Description  *string     `json:"description,omitempty"`
 }
 
 type MediaDetail struct {
@@ -87,6 +101,7 @@ type MediaDetail struct {
 	PlaybackURLExpiresAt *string     `json:"playbackUrlExpiresAt,omitempty"`
 	CreatedAt            string      `json:"createdAt"`
 	UpdatedAt            string      `json:"updatedAt"`
+	Description          *string     `json:"description,omitempty"`
 }
 
 type MediaPage struct {
@@ -111,6 +126,12 @@ type Note struct {
 	Format    string `json:"format"`
 	Body      string `json:"body"`
 	CreatedAt string `json:"createdAt"`
+}
+
+type PromptSetting struct {
+	Section    string `json:"section"`
+	PromptText string `json:"promptText"`
+	UpdatedAt  string `json:"updatedAt"`
 }
 
 type Query struct {

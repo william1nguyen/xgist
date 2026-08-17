@@ -68,6 +68,19 @@ type ComplexityRoot struct {
 		Version       func(childComplexity int) int
 	}
 
+	CreditLedgerEntry struct {
+		CreatedAt func(childComplexity int) int
+		Delta     func(childComplexity int) int
+		EntryType func(childComplexity int) int
+		ID        func(childComplexity int) int
+		ItemID    func(childComplexity int) int
+	}
+
+	CreditLedgerPage struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+	}
+
 	DeletionOperation struct {
 		CompletedAt func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
@@ -91,6 +104,7 @@ type ComplexityRoot struct {
 
 	Media struct {
 		CreatedAt    func(childComplexity int) int
+		Description  func(childComplexity int) int
 		DurationMs   func(childComplexity int) int
 		ID           func(childComplexity int) int
 		MediaType    func(childComplexity int) int
@@ -104,6 +118,7 @@ type ComplexityRoot struct {
 
 	MediaDetail struct {
 		CreatedAt            func(childComplexity int) int
+		Description          func(childComplexity int) int
 		DurationMs           func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		MediaType            func(childComplexity int) int
@@ -139,6 +154,9 @@ type ComplexityRoot struct {
 		Logout                 func(childComplexity int) int
 		Register               func(childComplexity int, email string, password string, name string, idempotencyKey *string) int
 		RequestAccountDeletion func(childComplexity int, idempotencyKey *string) int
+		RequestProcessing      func(childComplexity int, mediaID string, options []string, audioVoice *string, idempotencyKey *string) int
+		UpdateMedia            func(childComplexity int, id string, title *string, description *string) int
+		UpdatePromptSetting    func(childComplexity int, section string, promptText string) int
 	}
 
 	Note struct {
@@ -147,14 +165,22 @@ type ComplexityRoot struct {
 		Format    func(childComplexity int) int
 	}
 
+	PromptSetting struct {
+		PromptText func(childComplexity int) int
+		Section    func(childComplexity int) int
+		UpdatedAt  func(childComplexity int) int
+	}
+
 	Query struct {
-		BillingSummary func(childComplexity int) int
-		ContentDetail  func(childComplexity int, mediaID string) int
-		Me             func(childComplexity int) int
-		MediaDetail    func(childComplexity int, id string) int
-		MediaList      func(childComplexity int, cursor *string, pageSize *int, search *string) int
-		MediaProgress  func(childComplexity int, ids []string) int
-		Quote          func(childComplexity int, options []string) int
+		BillingSummary      func(childComplexity int) int
+		ContentDetail       func(childComplexity int, mediaID string) int
+		CreditLedgerHistory func(childComplexity int, cursor *string, pageSize *int) int
+		Me                  func(childComplexity int) int
+		MediaDetail         func(childComplexity int, id string) int
+		MediaList           func(childComplexity int, cursor *string, pageSize *int, search *string) int
+		MediaProgress       func(childComplexity int, ids []string) int
+		PromptSettings      func(childComplexity int) int
+		Quote               func(childComplexity int, options []string) int
 	}
 
 	Quote struct {
@@ -184,6 +210,7 @@ type ComplexityRoot struct {
 		MimeType    func(childComplexity int) int
 		Status      func(childComplexity int) int
 		SummaryType func(childComplexity int) int
+		URL         func(childComplexity int) int
 		Voice       func(childComplexity int) int
 	}
 
@@ -237,6 +264,9 @@ type MutationResolver interface {
 	RequestAccountDeletion(ctx context.Context, idempotencyKey *string) (*model.DeletionOperation, error)
 	CreateUploadSession(ctx context.Context, title string, mimeType string, declaredSizeBytes int, idempotencyKey *string) (*model.UploadSession, error)
 	ConfirmUpload(ctx context.Context, uploadSessionID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error)
+	UpdateMedia(ctx context.Context, id string, title *string, description *string) (*model.MediaDetail, error)
+	RequestProcessing(ctx context.Context, mediaID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error)
+	UpdatePromptSetting(ctx context.Context, section string, promptText string) (*model.PromptSetting, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
@@ -246,6 +276,8 @@ type QueryResolver interface {
 	MediaProgress(ctx context.Context, ids []string) ([]model.MediaProgress, error)
 	Quote(ctx context.Context, options []string) (*model.Quote, error)
 	BillingSummary(ctx context.Context) (*model.BillingSummary, error)
+	CreditLedgerHistory(ctx context.Context, cursor *string, pageSize *int) (*model.CreditLedgerPage, error)
+	PromptSettings(ctx context.Context) ([]model.PromptSetting, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -384,6 +416,50 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Content.Version(childComplexity), true
 
+	case "CreditLedgerEntry.createdAt":
+		if e.ComplexityRoot.CreditLedgerEntry.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditLedgerEntry.CreatedAt(childComplexity), true
+	case "CreditLedgerEntry.delta":
+		if e.ComplexityRoot.CreditLedgerEntry.Delta == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditLedgerEntry.Delta(childComplexity), true
+	case "CreditLedgerEntry.entryType":
+		if e.ComplexityRoot.CreditLedgerEntry.EntryType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditLedgerEntry.EntryType(childComplexity), true
+	case "CreditLedgerEntry.id":
+		if e.ComplexityRoot.CreditLedgerEntry.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditLedgerEntry.ID(childComplexity), true
+	case "CreditLedgerEntry.itemId":
+		if e.ComplexityRoot.CreditLedgerEntry.ItemID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditLedgerEntry.ItemID(childComplexity), true
+
+	case "CreditLedgerPage.items":
+		if e.ComplexityRoot.CreditLedgerPage.Items == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditLedgerPage.Items(childComplexity), true
+	case "CreditLedgerPage.nextCursor":
+		if e.ComplexityRoot.CreditLedgerPage.NextCursor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditLedgerPage.NextCursor(childComplexity), true
+
 	case "DeletionOperation.completedAt":
 		if e.ComplexityRoot.DeletionOperation.CompletedAt == nil {
 			break
@@ -465,6 +541,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Media.CreatedAt(childComplexity), true
+	case "Media.description":
+		if e.ComplexityRoot.Media.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Media.Description(childComplexity), true
 	case "Media.durationMs":
 		if e.ComplexityRoot.Media.DurationMs == nil {
 			break
@@ -526,6 +608,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.MediaDetail.CreatedAt(childComplexity), true
+	case "MediaDetail.description":
+		if e.ComplexityRoot.MediaDetail.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MediaDetail.Description(childComplexity), true
 	case "MediaDetail.durationMs":
 		if e.ComplexityRoot.MediaDetail.DurationMs == nil {
 			break
@@ -710,6 +798,39 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RequestAccountDeletion(childComplexity, args["idempotencyKey"].(*string)), true
+	case "Mutation.requestProcessing":
+		if e.ComplexityRoot.Mutation.RequestProcessing == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_requestProcessing_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.RequestProcessing(childComplexity, args["mediaId"].(string), args["options"].([]string), args["audioVoice"].(*string), args["idempotencyKey"].(*string)), true
+	case "Mutation.updateMedia":
+		if e.ComplexityRoot.Mutation.UpdateMedia == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateMedia_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdateMedia(childComplexity, args["id"].(string), args["title"].(*string), args["description"].(*string)), true
+	case "Mutation.updatePromptSetting":
+		if e.ComplexityRoot.Mutation.UpdatePromptSetting == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updatePromptSetting_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdatePromptSetting(childComplexity, args["section"].(string), args["promptText"].(string)), true
 
 	case "Note.body":
 		if e.ComplexityRoot.Note.Body == nil {
@@ -730,6 +851,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Note.Format(childComplexity), true
 
+	case "PromptSetting.promptText":
+		if e.ComplexityRoot.PromptSetting.PromptText == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PromptSetting.PromptText(childComplexity), true
+	case "PromptSetting.section":
+		if e.ComplexityRoot.PromptSetting.Section == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PromptSetting.Section(childComplexity), true
+	case "PromptSetting.updatedAt":
+		if e.ComplexityRoot.PromptSetting.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PromptSetting.UpdatedAt(childComplexity), true
+
 	case "Query.billingSummary":
 		if e.ComplexityRoot.Query.BillingSummary == nil {
 			break
@@ -747,6 +887,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.ContentDetail(childComplexity, args["mediaId"].(string)), true
+	case "Query.creditLedgerHistory":
+		if e.ComplexityRoot.Query.CreditLedgerHistory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_creditLedgerHistory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.CreditLedgerHistory(childComplexity, args["cursor"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.me":
 		if e.ComplexityRoot.Query.Me == nil {
@@ -787,6 +938,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.MediaProgress(childComplexity, args["ids"].([]string)), true
+	case "Query.promptSettings":
+		if e.ComplexityRoot.Query.PromptSettings == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.PromptSettings(childComplexity), true
 	case "Query.quote":
 		if e.ComplexityRoot.Query.Quote == nil {
 			break
@@ -904,6 +1061,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SummaryAudio.SummaryType(childComplexity), true
+	case "SummaryAudio.url":
+		if e.ComplexityRoot.SummaryAudio.URL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.SummaryAudio.URL(childComplexity), true
 	case "SummaryAudio.voice":
 		if e.ComplexityRoot.SummaryAudio.Voice == nil {
 			break
@@ -1217,6 +1380,32 @@ func (ec *executionContext) childFields_Content(ctx context.Context, field graph
 	return nil, fmt.Errorf("no field named %q was found under type Content", field.Name)
 }
 
+func (ec *executionContext) childFields_CreditLedgerEntry(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_CreditLedgerEntry_id(ctx, field)
+	case "delta":
+		return ec.fieldContext_CreditLedgerEntry_delta(ctx, field)
+	case "entryType":
+		return ec.fieldContext_CreditLedgerEntry_entryType(ctx, field)
+	case "itemId":
+		return ec.fieldContext_CreditLedgerEntry_itemId(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_CreditLedgerEntry_createdAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CreditLedgerEntry", field.Name)
+}
+
+func (ec *executionContext) childFields_CreditLedgerPage(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "items":
+		return ec.fieldContext_CreditLedgerPage_items(ctx, field)
+	case "nextCursor":
+		return ec.fieldContext_CreditLedgerPage_nextCursor(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CreditLedgerPage", field.Name)
+}
+
 func (ec *executionContext) childFields_DeletionOperation(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "deletionId":
@@ -1281,6 +1470,8 @@ func (ec *executionContext) childFields_Media(ctx context.Context, field graphql
 		return ec.fieldContext_Media_createdAt(ctx, field)
 	case "updatedAt":
 		return ec.fieldContext_Media_updatedAt(ctx, field)
+	case "description":
+		return ec.fieldContext_Media_description(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Media", field.Name)
 }
@@ -1311,6 +1502,8 @@ func (ec *executionContext) childFields_MediaDetail(ctx context.Context, field g
 		return ec.fieldContext_MediaDetail_createdAt(ctx, field)
 	case "updatedAt":
 		return ec.fieldContext_MediaDetail_updatedAt(ctx, field)
+	case "description":
+		return ec.fieldContext_MediaDetail_description(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type MediaDetail", field.Name)
 }
@@ -1355,6 +1548,18 @@ func (ec *executionContext) childFields_Note(ctx context.Context, field graphql.
 		return ec.fieldContext_Note_createdAt(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Note", field.Name)
+}
+
+func (ec *executionContext) childFields_PromptSetting(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "section":
+		return ec.fieldContext_PromptSetting_section(ctx, field)
+	case "promptText":
+		return ec.fieldContext_PromptSetting_promptText(ctx, field)
+	case "updatedAt":
+		return ec.fieldContext_PromptSetting_updatedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type PromptSetting", field.Name)
 }
 
 func (ec *executionContext) childFields_Quote(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -1769,6 +1974,96 @@ func (ec *executionContext) field_Mutation_requestAccountDeletion_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_requestProcessing_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "mediaId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["mediaId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "options",
+		func(ctx context.Context, v any) ([]string, error) {
+			return ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["options"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "audioVoice",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["audioVoice"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "idempotencyKey",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["idempotencyKey"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateMedia_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "title",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["title"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "description",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["description"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updatePromptSetting_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "section",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["section"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "promptText",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["promptText"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1794,6 +2089,28 @@ func (ec *executionContext) field_Query_contentDetail_args(ctx context.Context, 
 		return nil, err
 	}
 	args["mediaId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_creditLedgerHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "cursor",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["cursor"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pageSize",
+		func(ctx context.Context, v any) (*int, error) {
+			return ec.unmarshalOInt2ᚖint(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["pageSize"] = arg1
 	return args, nil
 }
 
@@ -2438,6 +2755,176 @@ func (ec *executionContext) fieldContext_Content_version(_ context.Context, fiel
 	return graphql.NewScalarFieldContext("Content", field, false, false, errors.New("field of type Int does not have child fields"))
 }
 
+func (ec *executionContext) _CreditLedgerEntry_id(ctx context.Context, field graphql.CollectedField, obj *model.CreditLedgerEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditLedgerEntry_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditLedgerEntry_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditLedgerEntry", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CreditLedgerEntry_delta(ctx context.Context, field graphql.CollectedField, obj *model.CreditLedgerEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditLedgerEntry_delta(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Delta, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditLedgerEntry_delta(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditLedgerEntry", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _CreditLedgerEntry_entryType(ctx context.Context, field graphql.CollectedField, obj *model.CreditLedgerEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditLedgerEntry_entryType(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.EntryType, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditLedgerEntry_entryType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditLedgerEntry", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CreditLedgerEntry_itemId(ctx context.Context, field graphql.CollectedField, obj *model.CreditLedgerEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditLedgerEntry_itemId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ItemID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CreditLedgerEntry_itemId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditLedgerEntry", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CreditLedgerEntry_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.CreditLedgerEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditLedgerEntry_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditLedgerEntry_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditLedgerEntry", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CreditLedgerPage_items(ctx context.Context, field graphql.CollectedField, obj *model.CreditLedgerPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditLedgerPage_items(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Items, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.CreditLedgerEntry) graphql.Marshaler {
+			return ec.marshalNCreditLedgerEntry2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditLedgerEntryᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditLedgerPage_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreditLedgerPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CreditLedgerEntry(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreditLedgerPage_nextCursor(ctx context.Context, field graphql.CollectedField, obj *model.CreditLedgerPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditLedgerPage_nextCursor(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.NextCursor, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CreditLedgerPage_nextCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditLedgerPage", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) _DeletionOperation_deletionId(ctx context.Context, field graphql.CollectedField, obj *model.DeletionOperation) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2944,6 +3431,29 @@ func (ec *executionContext) fieldContext_Media_updatedAt(_ context.Context, fiel
 	return graphql.NewScalarFieldContext("Media", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
+func (ec *executionContext) _Media_description(ctx context.Context, field graphql.CollectedField, obj *model.Media) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Media_description(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Media_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Media", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) _MediaDetail_id(ctx context.Context, field graphql.CollectedField, obj *model.MediaDetail) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3217,6 +3727,29 @@ func (ec *executionContext) _MediaDetail_updatedAt(ctx context.Context, field gr
 	)
 }
 func (ec *executionContext) fieldContext_MediaDetail_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MediaDetail", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MediaDetail_description(ctx context.Context, field graphql.CollectedField, obj *model.MediaDetail) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MediaDetail_description(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MediaDetail_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("MediaDetail", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
@@ -3679,6 +4212,138 @@ func (ec *executionContext) fieldContext_Mutation_confirmUpload(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateMedia(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_updateMedia(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdateMedia(ctx, fc.Args["id"].(string), fc.Args["title"].(*string), fc.Args["description"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MediaDetail) graphql.Marshaler {
+			return ec.marshalNMediaDetail2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐMediaDetail(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_updateMedia(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MediaDetail(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateMedia_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_requestProcessing(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_requestProcessing(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().RequestProcessing(ctx, fc.Args["mediaId"].(string), fc.Args["options"].([]string), fc.Args["audioVoice"].(*string), fc.Args["idempotencyKey"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MediaDetail) graphql.Marshaler {
+			return ec.marshalNMediaDetail2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐMediaDetail(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_requestProcessing(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MediaDetail(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_requestProcessing_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updatePromptSetting(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_updatePromptSetting(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdatePromptSetting(ctx, fc.Args["section"].(string), fc.Args["promptText"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.PromptSetting) graphql.Marshaler {
+			return ec.marshalNPromptSetting2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPromptSetting(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_updatePromptSetting(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_PromptSetting(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updatePromptSetting_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Note_format(ctx context.Context, field graphql.CollectedField, obj *model.Note) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3746,6 +4411,75 @@ func (ec *executionContext) _Note_createdAt(ctx context.Context, field graphql.C
 }
 func (ec *executionContext) fieldContext_Note_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Note", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PromptSetting_section(ctx context.Context, field graphql.CollectedField, obj *model.PromptSetting) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PromptSetting_section(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Section, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PromptSetting_section(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PromptSetting", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PromptSetting_promptText(ctx context.Context, field graphql.CollectedField, obj *model.PromptSetting) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PromptSetting_promptText(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PromptText, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PromptSetting_promptText(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PromptSetting", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PromptSetting_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.PromptSetting) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PromptSetting_updatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PromptSetting_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PromptSetting", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4027,6 +4761,82 @@ func (ec *executionContext) fieldContext_Query_billingSummary(_ context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_BillingSummary(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_creditLedgerHistory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_creditLedgerHistory(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().CreditLedgerHistory(ctx, fc.Args["cursor"].(*string), fc.Args["pageSize"].(*int))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.CreditLedgerPage) graphql.Marshaler {
+			return ec.marshalNCreditLedgerPage2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditLedgerPage(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_creditLedgerHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CreditLedgerPage(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_creditLedgerHistory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_promptSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_promptSettings(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().PromptSettings(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.PromptSetting) graphql.Marshaler {
+			return ec.marshalNPromptSetting2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPromptSettingᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_promptSettings(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_PromptSetting(ctx, field)
 		},
 	}
 	return fc, nil
@@ -6395,6 +7205,107 @@ func (ec *executionContext) _Content(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var creditLedgerEntryImplementors = []string{"CreditLedgerEntry"}
+
+func (ec *executionContext) _CreditLedgerEntry(ctx context.Context, sel ast.SelectionSet, obj *model.CreditLedgerEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, creditLedgerEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreditLedgerEntry")
+		case "id":
+			out.Values[i] = ec._CreditLedgerEntry_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "delta":
+			out.Values[i] = ec._CreditLedgerEntry_delta(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "entryType":
+			out.Values[i] = ec._CreditLedgerEntry_entryType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "itemId":
+			out.Values[i] = ec._CreditLedgerEntry_itemId(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._CreditLedgerEntry_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
+var creditLedgerPageImplementors = []string{"CreditLedgerPage"}
+
+func (ec *executionContext) _CreditLedgerPage(ctx context.Context, sel ast.SelectionSet, obj *model.CreditLedgerPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, creditLedgerPageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreditLedgerPage")
+		case "items":
+			out.Values[i] = ec._CreditLedgerPage_items(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nextCursor":
+			out.Values[i] = ec._CreditLedgerPage_nextCursor(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
 var deletionOperationImplementors = []string{"DeletionOperation"}
 
 func (ec *executionContext) _DeletionOperation(ctx context.Context, sel ast.SelectionSet, obj *model.DeletionOperation) graphql.Marshaler {
@@ -6616,6 +7527,11 @@ func (ec *executionContext) _Media(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "description":
+			out.Values[i] = ec._Media_description(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6707,6 +7623,11 @@ func (ec *executionContext) _MediaDetail(ctx context.Context, sel ast.SelectionS
 		case "updatedAt":
 			out.Values[i] = ec._MediaDetail_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._MediaDetail_description(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
 		default:
@@ -6903,6 +7824,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "updateMedia":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateMedia(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requestProcessing":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_requestProcessing(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatePromptSetting":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updatePromptSetting(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6948,6 +7890,54 @@ func (ec *executionContext) _Note(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "createdAt":
 			out.Values[i] = ec._Note_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
+var promptSettingImplementors = []string{"PromptSetting"}
+
+func (ec *executionContext) _PromptSetting(ctx context.Context, sel ast.SelectionSet, obj *model.PromptSetting) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, promptSettingImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PromptSetting")
+		case "section":
+			out.Values[i] = ec._PromptSetting_section(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "promptText":
+			out.Values[i] = ec._PromptSetting_promptText(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._PromptSetting_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -7134,6 +8124,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_billingSummary(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "creditLedgerHistory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_creditLedgerHistory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "promptSettings":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_promptSettings(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -8148,6 +9182,40 @@ func (ec *executionContext) marshalNContent2ᚖgithubᚗcomᚋnolannguyen1212ᚋ
 	return ec._Content(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCreditLedgerEntry2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditLedgerEntry(ctx context.Context, sel ast.SelectionSet, v model.CreditLedgerEntry) graphql.Marshaler {
+	return ec._CreditLedgerEntry(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreditLedgerEntry2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditLedgerEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.CreditLedgerEntry) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCreditLedgerEntry2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditLedgerEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCreditLedgerPage2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditLedgerPage(ctx context.Context, sel ast.SelectionSet, v model.CreditLedgerPage) graphql.Marshaler {
+	return ec._CreditLedgerPage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreditLedgerPage2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditLedgerPage(ctx context.Context, sel ast.SelectionSet, v *model.CreditLedgerPage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CreditLedgerPage(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNDeletionOperation2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐDeletionOperation(ctx context.Context, sel ast.SelectionSet, v model.DeletionOperation) graphql.Marshaler {
 	return ec._DeletionOperation(ctx, sel, &v)
 }
@@ -8434,6 +9502,36 @@ func (ec *executionContext) unmarshalNProcessingStatus2githubᚗcomᚋnolannguye
 
 func (ec *executionContext) marshalNProcessingStatus2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐProcessingStatus(ctx context.Context, sel ast.SelectionSet, v model.ProcessingStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNPromptSetting2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPromptSetting(ctx context.Context, sel ast.SelectionSet, v model.PromptSetting) graphql.Marshaler {
+	return ec._PromptSetting(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPromptSetting2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPromptSettingᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PromptSetting) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPromptSetting2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPromptSetting(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPromptSetting2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPromptSetting(ctx context.Context, sel ast.SelectionSet, v *model.PromptSetting) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PromptSetting(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNQuote2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐQuote(ctx context.Context, sel ast.SelectionSet, v model.Quote) graphql.Marshaler {

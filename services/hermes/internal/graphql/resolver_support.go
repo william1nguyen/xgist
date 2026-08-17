@@ -36,6 +36,8 @@ type IdentityClient interface {
 	RevokeSession(ctx context.Context, sessionID uuid.UUID) error
 	GetUser(ctx context.Context, userID uuid.UUID) (clients.User, error)
 	RequestAccountDeletion(ctx context.Context, idempotencyKey string, userID uuid.UUID) (clients.DeletionOperation, error)
+	GetPromptSettings(ctx context.Context, userID uuid.UUID) ([]clients.PromptSetting, error)
+	UpsertPromptSetting(ctx context.Context, userID uuid.UUID, section, promptText string) (clients.PromptSetting, error)
 }
 
 // BillingClient is the billing boundary resolvers depend on.
@@ -43,17 +45,20 @@ type IdentityClient interface {
 type BillingClient interface {
 	GetQuote(ctx context.Context, idempotencyKey string, userID uuid.UUID, options []string) (clients.Quote, error)
 	GetBillingSummary(ctx context.Context, userID uuid.UUID) (clients.BillingSummary, error)
+	ListCreditLedger(ctx context.Context, userID uuid.UUID, cursor string, pageSize int32) (clients.LedgerPage, error)
 }
 
 // MediaClient is the media boundary resolvers depend on.
 // *clients.MediaClient implements it.
 type MediaClient interface {
 	CreateUploadSession(ctx context.Context, idempotencyKey string, ownerID uuid.UUID, title, mimeType string, declaredSizeBytes int64) (clients.UploadSession, error)
-	ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string) (clients.Media, error)
+	ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string, promptOverrides map[string]string) (clients.Media, error)
 	GetMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error)
 	ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32, search string) (clients.MediaPage, error)
 	SignPlaybackURL(ctx context.Context, mediaID uuid.UUID) (string, time.Time, error)
 	GetMediaProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]clients.MediaProgress, error)
+	UpdateMedia(ctx context.Context, mediaID uuid.UUID, title, description *string) (clients.Media, error)
+	RequestProcessing(ctx context.Context, idempotencyKey string, mediaID uuid.UUID, options []string, audioVoice string, promptOverrides map[string]string) (clients.Media, error)
 }
 
 // ContentClient is the content boundary resolvers depend on.

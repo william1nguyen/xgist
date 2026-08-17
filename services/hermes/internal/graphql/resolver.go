@@ -126,11 +126,127 @@ func (r *mutationResolver) ConfirmUpload(ctx context.Context, uploadSessionID st
 		voice = *audioVoice
 	}
 
-	m, err := r.media.ConfirmUpload(ctx, idempotencyKeyOrNew(idempotencyKey), sessionID, options, voice)
+	promptOverrides, err := r.buildPromptOverrides(ctx, principal.User.ID, options)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := r.media.ConfirmUpload(ctx, idempotencyKeyOrNew(idempotencyKey), sessionID, options, voice, promptOverrides)
 	if err != nil {
 		return nil, err
 	}
 	return toModelMediaDetail(m, "", time.Time{}), nil
+}
+
+// UpdateMedia is the resolver for the updateMedia field.
+func (r *mutationResolver) UpdateMedia(ctx context.Context, id string, title *string, description *string) (*model.MediaDetail, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	mediaID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("id must be a UUID: %w", err)
+	}
+
+	existing, err := r.media.GetMedia(ctx, mediaID)
+	if err != nil {
+		return nil, err
+	}
+	if existing.OwnerID != principal.User.ID {
+		return nil, ErrNotFound
+	}
+
+	m, err := r.media.UpdateMedia(ctx, mediaID, title, description)
+	if err != nil {
+		return nil, err
+	}
+	return toModelMediaDetail(m, "", time.Time{}), nil
+}
+
+// RequestProcessing is the resolver for the requestProcessing field.
+func (r *mutationResolver) RequestProcessing(ctx context.Context, mediaID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassUploadSession, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	id, err := uuid.Parse(mediaID)
+	if err != nil {
+		return nil, fmt.Errorf("mediaId must be a UUID: %w", err)
+	}
+
+	existing, err := r.media.GetMedia(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existing.OwnerID != principal.User.ID {
+		return nil, ErrNotFound
+	}
+
+	var voice string
+	if audioVoice != nil {
+		voice = *audioVoice
+	}
+
+	promptOverrides, err := r.buildPromptOverrides(ctx, principal.User.ID, options)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := r.media.RequestProcessing(ctx, idempotencyKeyOrNew(idempotencyKey), id, options, voice, promptOverrides)
+	if err != nil {
+		return nil, err
+	}
+	return toModelMediaDetail(m, "", time.Time{}), nil
+}
+
+// buildPromptOverrides fetches the caller's saved prompt settings and
+// returns only the ones relevant to this request: non-empty prompts for
+// sections present in options.
+func (r *Resolver) buildPromptOverrides(ctx context.Context, userID uuid.UUID, options []string) (map[string]string, error) {
+	settings, err := r.identity.GetPromptSettings(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if len(settings) == 0 {
+		return nil, nil
+	}
+	selected := make(map[string]bool, len(options))
+	for _, o := range options {
+		selected[o] = true
+	}
+	overrides := make(map[string]string)
+	for _, s := range settings {
+		if s.PromptText != "" && selected[s.Section] {
+			overrides[s.Section] = s.PromptText
+		}
+	}
+	return overrides, nil
+}
+
+// UpdatePromptSetting is the resolver for the updatePromptSetting field.
+func (r *mutationResolver) UpdatePromptSetting(ctx context.Context, section string, promptText string) (*model.PromptSetting, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	setting, err := r.identity.UpsertPromptSetting(ctx, principal.User.ID, section, promptText)
+	if err != nil {
+		return nil, err
+	}
+	return toModelPromptSetting(setting), nil
 }
 
 // Me is the resolver for the me field.
@@ -322,6 +438,53 @@ func (r *queryResolver) BillingSummary(ctx context.Context) (*model.BillingSumma
 		return nil, err
 	}
 	return toModelBillingSummary(summary), nil
+}
+
+// CreditLedgerHistory is the resolver for the creditLedgerHistory field.
+func (r *queryResolver) CreditLedgerHistory(ctx context.Context, cursor *string, pageSize *int) (*model.CreditLedgerPage, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	var c string
+	if cursor != nil {
+		c = *cursor
+	}
+	size := int32(20)
+	if pageSize != nil {
+		size = int32(*pageSize)
+	}
+
+	page, err := r.billing.ListCreditLedger(ctx, principal.User.ID, c, size)
+	if err != nil {
+		return nil, err
+	}
+	return toModelCreditLedgerPage(page), nil
+}
+
+// PromptSettings is the resolver for the promptSettings field.
+func (r *queryResolver) PromptSettings(ctx context.Context) ([]model.PromptSetting, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	settings, err := r.identity.GetPromptSettings(ctx, principal.User.ID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]model.PromptSetting, 0, len(settings))
+	for _, s := range settings {
+		out = append(out, *toModelPromptSetting(s))
+	}
+	return out, nil
 }
 
 // Mutation returns MutationResolver implementation.

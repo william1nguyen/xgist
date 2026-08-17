@@ -105,6 +105,7 @@ func toModelMedia(m clients.Media) *model.Media {
 		ThumbnailURL: optionalString(m.ThumbnailURL),
 		CreatedAt:    formatTime(m.CreatedAt),
 		UpdatedAt:    formatTime(m.UpdatedAt),
+		Description:  optionalString(m.Description),
 	}
 }
 
@@ -167,6 +168,7 @@ func toModelMediaDetail(m clients.Media, playbackURL string, playbackExpiresAt t
 		ThumbnailURL: optionalString(m.ThumbnailURL),
 		CreatedAt:    formatTime(m.CreatedAt),
 		UpdatedAt:    formatTime(m.UpdatedAt),
+		Description:  optionalString(m.Description),
 	}
 	if playbackURL != "" {
 		out.PlaybackURL = optionalString(playbackURL)
@@ -300,6 +302,37 @@ func toModelBillingSummary(s clients.BillingSummary) *model.BillingSummary {
 			PeriodStart: formatTime(s.Subscription.PeriodStart),
 			PeriodEnd:   formatTime(s.Subscription.PeriodEnd),
 		}
+	}
+	return out
+}
+
+func toModelPromptSetting(s clients.PromptSetting) *model.PromptSetting {
+	return &model.PromptSetting{
+		Section:    s.Section,
+		PromptText: s.PromptText,
+		UpdatedAt:  formatTime(s.UpdatedAt),
+	}
+}
+
+func toModelCreditLedgerPage(p clients.LedgerPage) *model.CreditLedgerPage {
+	items := make([]model.CreditLedgerEntry, 0, len(p.Entries))
+	for _, e := range p.Entries {
+		entry := model.CreditLedgerEntry{
+			ID:        e.ID,
+			Delta:     int(e.Delta),
+			EntryType: e.EntryType,
+			CreatedAt: formatTime(e.CreatedAt),
+		}
+		if e.ItemID != "" {
+			itemID := e.ItemID
+			entry.ItemID = &itemID
+		}
+		items = append(items, entry)
+	}
+	out := &model.CreditLedgerPage{Items: items}
+	if p.NextCursor != "" {
+		cursor := p.NextCursor
+		out.NextCursor = &cursor
 	}
 	return out
 }

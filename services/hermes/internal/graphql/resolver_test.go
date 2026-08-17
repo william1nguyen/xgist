@@ -40,6 +40,12 @@ func (f *fakeIdentity) GetUser(ctx context.Context, userID uuid.UUID) (clients.U
 func (f *fakeIdentity) RequestAccountDeletion(ctx context.Context, idempotencyKey string, userID uuid.UUID) (clients.DeletionOperation, error) {
 	return clients.DeletionOperation{DeletionID: uuid.New(), UserID: userID, State: "pending"}, nil
 }
+func (f *fakeIdentity) GetPromptSettings(ctx context.Context, userID uuid.UUID) ([]clients.PromptSetting, error) {
+	return nil, nil
+}
+func (f *fakeIdentity) UpsertPromptSetting(ctx context.Context, userID uuid.UUID, section, promptText string) (clients.PromptSetting, error) {
+	return clients.PromptSetting{Section: section, PromptText: promptText}, nil
+}
 
 type fakeBilling struct{}
 
@@ -49,6 +55,9 @@ func (f *fakeBilling) GetQuote(ctx context.Context, idempotencyKey string, userI
 func (f *fakeBilling) GetBillingSummary(ctx context.Context, userID uuid.UUID) (clients.BillingSummary, error) {
 	return clients.BillingSummary{}, nil
 }
+func (f *fakeBilling) ListCreditLedger(ctx context.Context, userID uuid.UUID, cursor string, pageSize int32) (clients.LedgerPage, error) {
+	return clients.LedgerPage{}, nil
+}
 
 type fakeMedia struct {
 	byID map[uuid.UUID]clients.Media
@@ -57,7 +66,7 @@ type fakeMedia struct {
 func (f *fakeMedia) CreateUploadSession(ctx context.Context, idempotencyKey string, ownerID uuid.UUID, title, mimeType string, declaredSizeBytes int64) (clients.UploadSession, error) {
 	return clients.UploadSession{ID: uuid.New(), OwnerID: ownerID}, nil
 }
-func (f *fakeMedia) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string) (clients.Media, error) {
+func (f *fakeMedia) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string, promptOverrides map[string]string) (clients.Media, error) {
 	return clients.Media{ID: uuid.New()}, nil
 }
 func (f *fakeMedia) GetMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error) {
@@ -75,6 +84,29 @@ func (f *fakeMedia) SignPlaybackURL(ctx context.Context, mediaID uuid.UUID) (str
 }
 func (f *fakeMedia) GetMediaProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]clients.MediaProgress, error) {
 	return nil, nil
+}
+func (f *fakeMedia) UpdateMedia(ctx context.Context, mediaID uuid.UUID, title, description *string) (clients.Media, error) {
+	m, ok := f.byID[mediaID]
+	if !ok {
+		return clients.Media{}, graphqlpkg.ErrNotFound
+	}
+	if title != nil {
+		m.Title = *title
+	}
+	if description != nil {
+		m.Description = *description
+	}
+	f.byID[mediaID] = m
+	return m, nil
+}
+func (f *fakeMedia) RequestProcessing(ctx context.Context, idempotencyKey string, mediaID uuid.UUID, options []string, audioVoice string, promptOverrides map[string]string) (clients.Media, error) {
+	m, ok := f.byID[mediaID]
+	if !ok {
+		return clients.Media{}, graphqlpkg.ErrNotFound
+	}
+	m.Status = "processing"
+	f.byID[mediaID] = m
+	return m, nil
 }
 
 type fakeContent struct{}
@@ -140,6 +172,68 @@ func TestMediaDetailReturnsOwnedMediaWithPlaybackURL(t *testing.T) {
 	}
 	if got.PlaybackURL == nil || *got.PlaybackURL == "" {
 		t.Error("expected a non-empty playback URL for owned media")
+	}
+}
+
+func TestUpdateMediaOmitsUnauthorizedMedia(t *testing.T) {
+	owner := uuid.New()
+	otherOwner := uuid.New()
+	mediaID := uuid.New()
+	media := &fakeMedia{byID: map[uuid.UUID]clients.Media{mediaID: {ID: mediaID, OwnerID: otherOwner}}}
+	r := newTestResolver(t, &fakeIdentity{}, media)
+
+	ctx := withPrincipal(t, clients.Principal{User: clients.User{ID: owner}})
+	newTitle := "new title"
+	_, err := r.Mutation().UpdateMedia(ctx, mediaID.String(), &newTitle, nil)
+	if err != graphqlpkg.ErrNotFound {
+		t.Fatalf("got %v, want ErrNotFound for a media item owned by another user", err)
+	}
+}
+
+func TestUpdateMediaChangesOwnedMedia(t *testing.T) {
+	owner := uuid.New()
+	mediaID := uuid.New()
+	media := &fakeMedia{byID: map[uuid.UUID]clients.Media{mediaID: {ID: mediaID, OwnerID: owner, Title: "old"}}}
+	r := newTestResolver(t, &fakeIdentity{}, media)
+
+	ctx := withPrincipal(t, clients.Principal{User: clients.User{ID: owner}})
+	newTitle := "new title"
+	got, err := r.Mutation().UpdateMedia(ctx, mediaID.String(), &newTitle, nil)
+	if err != nil {
+		t.Fatalf("UpdateMedia: %v", err)
+	}
+	if got.Title != "new title" {
+		t.Errorf("title = %q, want %q", got.Title, "new title")
+	}
+}
+
+func TestRequestProcessingOmitsUnauthorizedMedia(t *testing.T) {
+	owner := uuid.New()
+	otherOwner := uuid.New()
+	mediaID := uuid.New()
+	media := &fakeMedia{byID: map[uuid.UUID]clients.Media{mediaID: {ID: mediaID, OwnerID: otherOwner, Status: "completed"}}}
+	r := newTestResolver(t, &fakeIdentity{}, media)
+
+	ctx := withPrincipal(t, clients.Principal{User: clients.User{ID: owner}})
+	_, err := r.Mutation().RequestProcessing(ctx, mediaID.String(), []string{"summarize"}, nil, nil)
+	if err != graphqlpkg.ErrNotFound {
+		t.Fatalf("got %v, want ErrNotFound for a media item owned by another user", err)
+	}
+}
+
+func TestRequestProcessingStartsProcessingForOwnedMedia(t *testing.T) {
+	owner := uuid.New()
+	mediaID := uuid.New()
+	media := &fakeMedia{byID: map[uuid.UUID]clients.Media{mediaID: {ID: mediaID, OwnerID: owner, Status: "completed"}}}
+	r := newTestResolver(t, &fakeIdentity{}, media)
+
+	ctx := withPrincipal(t, clients.Principal{User: clients.User{ID: owner}})
+	got, err := r.Mutation().RequestProcessing(ctx, mediaID.String(), []string{"summarize"}, nil, nil)
+	if err != nil {
+		t.Fatalf("RequestProcessing: %v", err)
+	}
+	if string(got.Status) != "PROCESSING" {
+		t.Errorf("status = %v, want PROCESSING", got.Status)
 	}
 }
 

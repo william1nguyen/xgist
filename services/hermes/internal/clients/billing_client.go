@@ -58,6 +58,30 @@ func (c *BillingClient) GetBillingSummary(ctx context.Context, userID uuid.UUID)
 	return toBillingSummary(resp.GetSummary()), nil
 }
 
+// ListCreditLedger returns a cursor-paginated page of one user's credit
+// ledger entries, newest first.
+func (c *BillingClient) ListCreditLedger(ctx context.Context, userID uuid.UUID, cursor string, pageSize int32) (LedgerPage, error) {
+	resp, err := c.client.ListCreditLedger(ctx, &billingv1.ListCreditLedgerRequest{
+		UserId:   userID.String(),
+		Cursor:   cursor,
+		PageSize: pageSize,
+	})
+	if err != nil {
+		return LedgerPage{}, fmt.Errorf("billing.ListCreditLedger: %w", err)
+	}
+	entries := make([]LedgerEntry, 0, len(resp.GetEntries()))
+	for _, e := range resp.GetEntries() {
+		entries = append(entries, LedgerEntry{
+			ID:        e.GetId(),
+			Delta:     e.GetDelta(),
+			EntryType: e.GetEntryType(),
+			ItemID:    e.GetItemId(),
+			CreatedAt: e.GetCreatedAt().AsTime(),
+		})
+	}
+	return LedgerPage{Entries: entries, NextCursor: resp.GetNextCursor()}, nil
+}
+
 func toQuote(q *billingv1.Quote) (Quote, error) {
 	id, err := uuid.Parse(q.GetId())
 	if err != nil {

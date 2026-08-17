@@ -53,12 +53,13 @@ func (c *MediaClient) CreateUploadSession(ctx context.Context, idempotencyKey st
 
 // ConfirmUpload reads authoritative object metadata and, on success,
 // atomically creates the processing request.
-func (c *MediaClient) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string) (Media, error) {
+func (c *MediaClient) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string, promptOverrides map[string]string) (Media, error) {
 	resp, err := c.client.ConfirmUpload(ctx, &mediav1.ConfirmUploadRequest{
 		IdempotencyKey:  idempotencyKey,
 		UploadSessionId: uploadSessionID.String(),
 		Options:         options,
 		AudioVoice:      audioVoice,
+		PromptOverrides: promptOverrides,
 	})
 	if err != nil {
 		return Media{}, fmt.Errorf("media.ConfirmUpload: %w", err)
@@ -131,6 +132,36 @@ func (c *MediaClient) GetMediaProgress(ctx context.Context, ownerID uuid.UUID, i
 	return out, nil
 }
 
+// UpdateMedia changes a media item's title and/or description. A nil
+// field is left unchanged.
+func (c *MediaClient) UpdateMedia(ctx context.Context, mediaID uuid.UUID, title, description *string) (Media, error) {
+	resp, err := c.client.UpdateMedia(ctx, &mediav1.UpdateMediaRequest{
+		MediaId:     mediaID.String(),
+		Title:       title,
+		Description: description,
+	})
+	if err != nil {
+		return Media{}, fmt.Errorf("media.UpdateMedia: %w", err)
+	}
+	return toMedia(resp.GetMedia())
+}
+
+// RequestProcessing starts a new processing request for a media item that
+// has already been confirmed at least once.
+func (c *MediaClient) RequestProcessing(ctx context.Context, idempotencyKey string, mediaID uuid.UUID, options []string, audioVoice string, promptOverrides map[string]string) (Media, error) {
+	resp, err := c.client.RequestProcessing(ctx, &mediav1.RequestProcessingRequest{
+		IdempotencyKey:  idempotencyKey,
+		MediaId:         mediaID.String(),
+		Options:         options,
+		AudioVoice:      audioVoice,
+		PromptOverrides: promptOverrides,
+	})
+	if err != nil {
+		return Media{}, fmt.Errorf("media.RequestProcessing: %w", err)
+	}
+	return toMedia(resp.GetMedia())
+}
+
 func toUploadSession(s *mediav1.UploadSession) (UploadSession, error) {
 	id, err := uuid.Parse(s.GetId())
 	if err != nil {
@@ -191,6 +222,7 @@ func toMedia(m *mediav1.Media) (Media, error) {
 		ThumbnailURL: m.GetThumbnailUrl(),
 		CreatedAt:    m.GetCreatedAt().AsTime(),
 		UpdatedAt:    m.GetUpdatedAt().AsTime(),
+		Description:  m.GetDescription(),
 	}, nil
 }
 
