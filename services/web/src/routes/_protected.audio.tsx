@@ -1,8 +1,7 @@
-import { ChevronLeft, ChevronRight, Music, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AudioJobCard } from "@/components/audio/audio-job-card";
-import { CreateAudioDialog } from "@/components/audio/create-audio-dialog";
 import { ListenAudioDialog } from "@/components/audio/listen-audio-dialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ const POLL_INTERVAL_MS = 4000;
 
 export default function AudioPage() {
 	const { t } = useTranslation();
-	const [createOpen, setCreateOpen] = useState(false);
 	const [listenJobId, setListenJobId] = useState<string | null>(null);
 	// Same forward-only cursor-stack pattern as the dashboard and trash
 	// screens: audioJobs' cursor has no backward form, so "Previous" pops
@@ -62,12 +60,6 @@ export default function AudioPage() {
 			<PageHeader
 				title={t("audio.title")}
 				description={t("audio.description")}
-				actions={
-					<Button onClick={() => setCreateOpen(true)}>
-						<Plus className="size-4" />
-						{t("audio.create")}
-					</Button>
-				}
 			/>
 
 			<div className="flex flex-1 flex-col gap-5">
@@ -89,10 +81,6 @@ export default function AudioPage() {
 								{t("audio.emptyDescription")}
 							</p>
 						</div>
-						<Button onClick={() => setCreateOpen(true)}>
-							<Plus className="size-4" />
-							{t("audio.create")}
-						</Button>
 					</div>
 				) : (
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -129,7 +117,6 @@ export default function AudioPage() {
 				</div>
 			)}
 
-			<CreateAudioDialog open={createOpen} onOpenChange={setCreateOpen} />
 			<ListenAudioDialog
 				jobId={listenJobId}
 				open={listenJobId != null}

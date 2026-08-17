@@ -22,6 +22,15 @@ export const ACCEPTED_EXTENSIONS = [
 
 export const MAX_UPLOAD_BYTES = 524_288_000; // 500 MiB
 
+// Matches services/media/internal/derivative.go's allowedImageMimeTypes.
+export const ACCEPTED_THUMBNAIL_MIME_TYPES = [
+	"image/jpeg",
+	"image/png",
+	"image/webp",
+] as const;
+
+export const MAX_THUMBNAIL_UPLOAD_BYTES = 5_242_880; // 5 MiB
+
 export type ProcessingOptionId =
 	| "transcribe"
 	| "summarize"

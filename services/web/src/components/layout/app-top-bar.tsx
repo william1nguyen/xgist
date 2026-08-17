@@ -1,4 +1,4 @@
-import { AudioLines, Menu, Plus, Search } from "lucide-react";
+import { AudioLines, Menu, Music, Plus, Search, Video } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
@@ -6,11 +6,19 @@ import { CreditChip } from "@/components/layout/credit-chip";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useCreateDialogs } from "@/hooks/useCreateDialogs";
 import { useDebounce } from "@/hooks/useDebounce";
 
 export function AppTopBar({ onOpenNav }: { onOpenNav: () => void }) {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const { openCreateMedia, openCreateAudio } = useCreateDialogs();
 	const location = useLocation();
 	const isDashboard = location.pathname === "/";
 
@@ -78,14 +86,24 @@ export function AppTopBar({ onOpenNav }: { onOpenNav: () => void }) {
 						className="h-9 w-full rounded-lg border border-border bg-muted/30 pr-3 pl-9 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					/>
 				</div>
-				<Button
-					size="sm"
-					onClick={() => navigate("/create")}
-					className="shrink-0"
-				>
-					<Plus className="size-4" />
-					<span className="hidden sm:inline">{t("dashboard.create")}</span>
-				</Button>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button size="sm" className="shrink-0">
+							<Plus className="size-4" />
+							<span className="hidden sm:inline">{t("dashboard.create")}</span>
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem onSelect={openCreateMedia}>
+							<Video className="size-4" />
+							{t("dashboard.createMedia")}
+						</DropdownMenuItem>
+						<DropdownMenuItem onSelect={openCreateAudio}>
+							<Music className="size-4" />
+							{t("dashboard.createAudio")}
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 
 			<div className="flex shrink-0 items-center gap-2">

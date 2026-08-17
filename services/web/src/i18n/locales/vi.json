@@ -26,6 +26,8 @@
 	"dashboard": {
 		"searchPlaceholder": "Tìm kiếm media của bạn…",
 		"create": "Tạo mới",
+		"createMedia": "Tạo media",
+		"createAudio": "Tạo audio",
 		"previous": "Trước",
 		"next": "Sau",
 		"page": "Trang {{number}}",
@@ -113,10 +115,16 @@
 	},
 	"thumbnailStep": {
 		"title": "Ảnh thu nhỏ",
-		"description": "Không cần cấu hình gì ở đây — hệ thống sẽ tự động xử lý.",
+		"description": "Tự động tạo sẵn, hoặc bạn có thể tải ảnh riêng lên.",
 		"videoDescription": "Ảnh thu nhỏ sẽ được tạo tự động từ một khung hình tiêu biểu sau khi tải lên.",
-		"audioDescription": "Ảnh bìa nhúng sẵn sẽ được dùng nếu có, nếu không sẽ dùng ảnh mặc định.",
-		"note": "Tải ảnh thu nhỏ tùy chỉnh chưa khả dụng — bước này sẽ hiển thị bản xem trước trực tiếp khi tính năng sẵn sàng."
+		"audioDescription": "Ảnh mặc định sẽ được dùng trừ khi bạn tải ảnh riêng lên.",
+		"note": "Ảnh tải lên tùy chỉnh luôn được ưu tiên hơn ảnh tạo tự động.",
+		"uploadCustom": "Tải ảnh thu nhỏ riêng",
+		"replaceCustom": "Thay ảnh khác",
+		"removeCustom": "Xoá ảnh tùy chỉnh",
+		"customPreviewAlt": "Xem trước ảnh thu nhỏ tùy chỉnh",
+		"unsupportedType": "Vui lòng chọn ảnh JPEG, PNG hoặc WebP.",
+		"tooLarge": "Ảnh quá lớn — tối đa {{max}}."
 	},
 	"createPage": {
 		"title": "Tạo mới",
@@ -134,6 +142,7 @@
 		"startProcessing": "Bắt đầu xử lý",
 		"uploadStarted": "Đã bắt đầu tải lên",
 		"uploadFailed": "Tải lên thất bại. Vui lòng thử lại.",
+		"thumbnailUploadFailed": "Media đã được tạo, nhưng tải ảnh thu nhỏ tùy chỉnh thất bại — sẽ dùng ảnh tạo tự động thay thế.",
 		"couldNotCreateSession": "Không thể tạo phiên tải lên",
 		"couldNotStartProcessing": "Không thể bắt đầu xử lý"
 	},
@@ -227,9 +236,8 @@
 	"audio": {
 		"title": "Audio",
 		"description": "Audio text-to-speech bạn đã tạo độc lập, không gắn với media nào.",
-		"create": "Tạo audio",
 		"emptyTitle": "Chưa có audio nào",
-		"emptyDescription": "Dán văn bản hoặc mô tả nội dung bạn muốn rồi tạo audio đầu tiên.",
+		"emptyDescription": "Dùng nút Tạo mới → Tạo audio ở trên để tạo audio đầu tiên.",
 		"generationFailed": "Tạo thất bại",
 		"listenTitle": "Nghe",
 		"status": {

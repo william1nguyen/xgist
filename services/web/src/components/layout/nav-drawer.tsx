@@ -11,16 +11,19 @@ import {
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router";
 import { Button } from "@/components/ui/button";
+import { useCreateDialogs } from "@/hooks/useCreateDialogs";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
 	{ to: "/", labelKey: "nav.dashboard", icon: LayoutGrid, end: true },
-	{ to: "/create", labelKey: "nav.create", icon: Sparkles, end: false },
 	{ to: "/audio", labelKey: "nav.audio", icon: Music, end: false },
 	{ to: "/billing", labelKey: "nav.billing", icon: CreditCard, end: false },
 	{ to: "/usage", labelKey: "nav.usage", icon: BarChart3, end: false },
 	{ to: "/trash", labelKey: "nav.trash", icon: Trash2, end: false },
 ] as const;
+
+const navItemClasses =
+	"flex items-center gap-3 rounded-lg px-3 py-3 text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground";
 
 // NavDrawer is a YouTube-style overlay: closed, it reserves no layout
 // space at all (AppTopBar's hamburger is the only persistent nav
@@ -35,6 +38,7 @@ export function NavDrawer({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const { openCreateMedia } = useCreateDialogs();
 
 	if (!open) return null;
 
@@ -67,6 +71,17 @@ export function NavDrawer({
 				</div>
 
 				<nav className="flex w-full flex-col gap-1.5">
+					<button
+						type="button"
+						onClick={() => {
+							openCreateMedia();
+							onClose();
+						}}
+						className={navItemClasses}
+					>
+						<Sparkles className="size-5 shrink-0" />
+						{t("nav.create")}
+					</button>
 					{NAV_ITEMS.map(({ to, labelKey, icon: Icon, end }) => (
 						<NavLink
 							key={to}

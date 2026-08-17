@@ -8,9 +8,14 @@ import {
 } from "@/components/create/step-indicator";
 import { ThumbnailStep } from "@/components/create/thumbnail-step";
 import { VoiceStep } from "@/components/create/voice-step";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -20,6 +25,8 @@ import { OptionsPanel } from "@/components/upload/options-panel";
 import {
 	useConfirmUploadMutation,
 	useCreateUploadSessionMutation,
+	useRequestThumbnailUploadMutation,
+	useSetThumbnailMutation,
 } from "@/graphql/generated/graphql";
 import { DEFAULT_TTS_VOICE, type ProcessingOptionId } from "@/lib/constants";
 import { uploadWithProgress } from "@/lib/upload";
@@ -39,11 +46,18 @@ function stageLabel(stage: Stage, t: (key: string) => string): string {
 	}
 }
 
-export default function CreatePage() {
+export function CreateMediaDialog({
+	open,
+	onOpenChange,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+}) {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [file, setFile] = useState<File | null>(null);
 	const [title, setTitle] = useState("");
+	const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 	const [options, setOptions] = useState<Set<ProcessingOptionId>>(
 		new Set(["transcribe"]),
 	);
@@ -55,6 +69,8 @@ export default function CreatePage() {
 
 	const [createUploadSession] = useCreateUploadSessionMutation();
 	const [confirmUpload] = useConfirmUploadMutation();
+	const [requestThumbnailUpload] = useRequestThumbnailUploadMutation();
+	const [setThumbnail] = useSetThumbnailMutation();
 
 	const wantsAudio = options.has("generate_audio_summary");
 	const steps: WizardStep[] = useMemo(() => {
@@ -78,6 +94,18 @@ export default function CreatePage() {
 	const isLastStep = stepIndex === steps.length - 1;
 	const busy = stage !== "idle";
 	const optionsList = Array.from(options);
+
+	function reset() {
+		setFile(null);
+		setTitle("");
+		setThumbnailFile(null);
+		setOptions(new Set(["transcribe"]));
+		setVoice(DEFAULT_TTS_VOICE);
+		setStepId("upload");
+		setFurthestIndex(0);
+		setStage("idle");
+		setUploadPercent(0);
+	}
 
 	function goTo(id: string) {
 		setStepId(id);
@@ -104,6 +132,30 @@ export default function CreatePage() {
 
 	const canAdvance =
 		activeStepId !== "upload" || (file != null && title.trim() !== "");
+
+	// A custom thumbnail is a nice-to-have layered on top of a generation
+	// that has already started — a failure here is reported but never
+	// blocks navigating to the new media item.
+	async function uploadCustomThumbnail(mediaId: string) {
+		if (!thumbnailFile) return;
+		try {
+			const { data } = await requestThumbnailUpload({
+				variables: { mediaId, mimeType: thumbnailFile.type },
+			});
+			const target = data?.requestThumbnailUpload;
+			if (!target) throw new Error("no upload target returned");
+			await uploadWithProgress(target.uploadUrl, thumbnailFile, () => {});
+			await setThumbnail({
+				variables: {
+					mediaId,
+					objectKey: target.objectKey,
+					mimeType: thumbnailFile.type,
+				},
+			});
+		} catch {
+			toast.error(t("createPage.thumbnailUploadFailed"));
+		}
+	}
 
 	async function handleSubmit() {
 		if (!file) return;
@@ -135,8 +187,13 @@ export default function CreatePage() {
 			const media = confirmData?.confirmUpload;
 			if (!media) throw new Error(t("createPage.couldNotStartProcessing"));
 
+			await uploadCustomThumbnail(media.id);
+
 			toast.success(t("createPage.uploadStarted"));
-			navigate(`/media/${media.id}`);
+			const mediaId = media.id;
+			onOpenChange(false);
+			reset();
+			navigate(`/media/${mediaId}`);
 		} catch (err) {
 			toast.error(
 				err instanceof Error ? err.message : t("createPage.uploadFailed"),
@@ -146,21 +203,28 @@ export default function CreatePage() {
 	}
 
 	return (
-		<div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-6 md:px-6 lg:px-8">
-			<PageHeader
-				title={t("createPage.title")}
-				description={t("createPage.description")}
-			/>
+		<Dialog
+			open={open}
+			onOpenChange={(next) => {
+				if (busy) return;
+				onOpenChange(next);
+				if (!next) reset();
+			}}
+		>
+			<DialogContent className="flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-2xl">
+				<DialogHeader>
+					<DialogTitle>{t("createPage.title")}</DialogTitle>
+					<DialogDescription>{t("createPage.description")}</DialogDescription>
+				</DialogHeader>
 
-			<StepIndicator
-				steps={steps}
-				currentId={activeStepId}
-				furthestIndex={furthestIndex}
-				onJump={busy ? () => {} : goTo}
-			/>
+				<StepIndicator
+					steps={steps}
+					currentId={activeStepId}
+					furthestIndex={furthestIndex}
+					onJump={busy ? () => {} : goTo}
+				/>
 
-			<Card>
-				<CardContent className="min-h-[320px] pt-5">
+				<div className="min-h-[320px]">
 					{activeStepId === "upload" && (
 						<div className="flex flex-col gap-5">
 							<Dropzone
@@ -187,6 +251,8 @@ export default function CreatePage() {
 						<ThumbnailStep
 							fileName={file.name}
 							mediaKind={file.type.startsWith("video/") ? "video" : "audio"}
+							thumbnailFile={thumbnailFile}
+							onThumbnailFileChange={setThumbnailFile}
 						/>
 					)}
 
@@ -211,43 +277,43 @@ export default function CreatePage() {
 					{activeStepId === "voice" && (
 						<VoiceStep value={voice} onChange={setVoice} />
 					)}
-				</CardContent>
-			</Card>
-
-			{busy && (
-				<div className="flex flex-col gap-2">
-					<div className="flex items-center justify-between text-sm">
-						<span>{stageLabel(stage, t)}</span>
-						{stage === "uploading" && <span>{uploadPercent}%</span>}
-					</div>
-					<Progress value={stage === "uploading" ? uploadPercent : 100} />
 				</div>
-			)}
 
-			<div className="flex items-center justify-between">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={back}
-					disabled={busy || stepIndex === 0}
-				>
-					{t("common.back")}
-				</Button>
-				{isLastStep ? (
+				{busy && (
+					<div className="flex flex-col gap-2">
+						<div className="flex items-center justify-between text-sm">
+							<span>{stageLabel(stage, t)}</span>
+							{stage === "uploading" && <span>{uploadPercent}%</span>}
+						</div>
+						<Progress value={stage === "uploading" ? uploadPercent : 100} />
+					</div>
+				)}
+
+				<div className="flex items-center justify-between">
 					<Button
 						type="button"
-						size="lg"
-						onClick={handleSubmit}
-						disabled={!file || busy}
+						variant="outline"
+						onClick={back}
+						disabled={busy || stepIndex === 0}
 					>
-						{busy ? stageLabel(stage, t) : t("createPage.startProcessing")}
+						{t("common.back")}
 					</Button>
-				) : (
-					<Button type="button" onClick={next} disabled={busy || !canAdvance}>
-						{t("common.next")}
-					</Button>
-				)}
-			</div>
-		</div>
+					{isLastStep ? (
+						<Button
+							type="button"
+							size="lg"
+							onClick={handleSubmit}
+							disabled={!file || busy}
+						>
+							{busy ? stageLabel(stage, t) : t("createPage.startProcessing")}
+						</Button>
+					) : (
+						<Button type="button" onClick={next} disabled={busy || !canAdvance}>
+							{t("common.next")}
+						</Button>
+					)}
+				</div>
+			</DialogContent>
+		</Dialog>
 	);
 }

@@ -9,6 +9,7 @@ import {
 	type MediaListQuery,
 	useMediaListQuery,
 } from "@/graphql/generated/graphql";
+import { useCreateDialogs } from "@/hooks/useCreateDialogs";
 import { useMediaProgress } from "@/hooks/useMediaProgress";
 import { TERMINAL_MEDIA_STATUSES } from "@/lib/constants";
 
@@ -21,6 +22,7 @@ const PAGE_SIZE = 6;
 export default function DashboardPage() {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const { openCreateMedia } = useCreateDialogs();
 	// The search box lives in AppTopBar (outside this route) and drives
 	// this page purely through the ?q= param — already debounced there,
 	// so no second debounce is needed here.
@@ -109,7 +111,7 @@ export default function DashboardPage() {
 							</p>
 						</div>
 						{!isSearching && (
-							<Button onClick={() => navigate("/create")}>
+							<Button onClick={openCreateMedia}>
 								<Plus className="size-4" />
 								{t("dashboard.create")}
 							</Button>

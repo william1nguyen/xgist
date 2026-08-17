@@ -114,6 +114,21 @@ mutation ConfirmUpload(
 	}
 }
 
+mutation RequestThumbnailUpload($mediaId: ID!, $mimeType: String!) {
+	requestThumbnailUpload(mediaId: $mediaId, mimeType: $mimeType) {
+		objectKey
+		uploadUrl
+		expiresAt
+	}
+}
+
+mutation SetThumbnail($mediaId: ID!, $objectKey: String!, $mimeType: String!) {
+	setThumbnail(mediaId: $mediaId, objectKey: $objectKey, mimeType: $mimeType) {
+		id
+		thumbnailUrl
+	}
+}
+
 mutation UpdateMedia($id: ID!, $title: String, $description: String) {
 	updateMedia(id: $id, title: $title, description: $description) {
 		id
