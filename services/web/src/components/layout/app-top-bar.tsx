@@ -67,14 +67,18 @@ export function AppTopBar({ onOpenNav }: { onOpenNav: () => void }) {
 			>
 				<Menu className="size-5" />
 			</Button>
-			<div className="flex shrink-0 items-center gap-2">
+			<button
+				type="button"
+				onClick={() => navigate("/")}
+				className="flex shrink-0 items-center gap-2"
+			>
 				<div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 					<AudioLines className="size-4" />
 				</div>
 				<span className="hidden truncate font-semibold text-[15px] tracking-tight sm:inline">
 					Media Notes
 				</span>
-			</div>
+			</button>
 
 			<div className="mx-auto flex w-full max-w-lg items-center gap-2">
 				<div className="relative flex-1">
