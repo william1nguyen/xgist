@@ -207,6 +207,11 @@ message SummaryAudio {
   int64 duration_ms = 4;
   string voice = 5;
   SummaryAudioStatus status = 6;
+  // url is a short-lived presigned GET URL for object_key, populated by
+  // GetContent when status is READY and content has object-storage
+  // credentials configured; empty otherwise. Never persisted — signed
+  // fresh on every read, matching how media signs MediaDetail.playback_url.
+  string url = 7;
 }
 
 message StoreSummaryAudioMetadataRequest {

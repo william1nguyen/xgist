@@ -108,6 +108,7 @@ func toContent(ct *contentv1.Content) (Content, error) {
 			DurationMs:  a.GetDurationMs(),
 			Voice:       a.GetVoice(),
 			Status:      contentSummaryAudioStatusToString(a.GetStatus()),
+			URL:         a.GetUrl(),
 		})
 	}
 

@@ -16,6 +16,16 @@ type Config struct {
 	DatabaseURL  string
 	KafkaBrokers []string
 
+	// MinIO/S3 credentials for presigning summary-audio playback URLs
+	// (internal/objectstore). Optional: MinIOEndpoint empty means content
+	// runs without object-storage access and GetContent returns
+	// summary-audio metadata with no url, same as before this existed.
+	MinIOEndpoint  string
+	MinIOAccessKey string
+	MinIOSecretKey string
+	MinIOUseSSL    bool
+	MinIOBucket    string
+
 	ShutdownTimeout time.Duration
 	LogLevel        string
 }
@@ -28,6 +38,12 @@ func LoadConfig() (Config, error) {
 		GRPCAddr:     getEnv("CONTENT_GRPC_ADDR", ":9095"),
 		DatabaseURL:  os.Getenv("DATABASE_URL"),
 		KafkaBrokers: splitCSV(os.Getenv("KAFKA_BROKERS")),
+
+		MinIOEndpoint:  os.Getenv("MINIO_ENDPOINT"),
+		MinIOAccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+		MinIOSecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin"),
+		MinIOUseSSL:    getEnv("MINIO_USE_SSL", "false") == "true",
+		MinIOBucket:    getEnv("MINIO_MEDIA_BUCKET", "media"),
 
 		ShutdownTimeout: 10 * time.Second,
 		LogLevel:        getEnv("LOG_LEVEL", "info"),

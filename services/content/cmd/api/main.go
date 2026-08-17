@@ -25,6 +25,7 @@ import (
 	"github.com/nolannguyen1212/media-notes/services/content/internal/deletion"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/events"
 	grpcserver "github.com/nolannguyen1212/media-notes/services/content/internal/grpc"
+	"github.com/nolannguyen1212/media-notes/services/content/internal/objectstore"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/store"
 )
 
@@ -78,6 +79,21 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 	deletionSvc := deletion.NewService(deletionRepo)
 	contentSvc := content.NewService(contentRepo, deletionSvc)
 
+	// Declared as the interface, not *objectstore.Client: assigning a nil
+	// *Client to an ObjectStore-typed variable would leave a non-nil
+	// interface wrapping a nil pointer, and grpcserver's `!= nil` check
+	// would then call a method on a nil receiver instead of skipping it.
+	var objectStore grpcserver.ObjectStore
+	if cfg.MinIOEndpoint != "" {
+		client, err := objectstore.New(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
+		if err != nil {
+			return fmt.Errorf("new objectstore client: %w", err)
+		}
+		objectStore = client
+	} else {
+		logger.Warn("MINIO_ENDPOINT not set; summary-audio playback URLs are disabled")
+	}
+
 	health.SetReady(true)
 
 	grpcSrv := grpc.NewServer(
@@ -86,7 +102,7 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 			grpcserver.UnaryLoggingInterceptor(logger),
 		),
 	)
-	contentv1.RegisterContentServiceServer(grpcSrv, grpcserver.NewServer(contentSvc))
+	contentv1.RegisterContentServiceServer(grpcSrv, grpcserver.NewServer(contentSvc, objectStore, logger))
 	// Reflection lets grpcurl/grpcui introspect the API without a local
 	// copy of content.proto. content is only ever called by hermes and
 	// conductor-worker on the internal network, so exposing the schema

@@ -1385,13 +1385,18 @@ func (x *StoreNotesResponse) GetVersion() *ContentVersion {
 // SummaryAudio is the metadata of one durable summary-audio object.
 // content never stores the audio bytes themselves.
 type SummaryAudio struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SummaryType   string                 `protobuf:"bytes,1,opt,name=summary_type,json=summaryType,proto3" json:"summary_type,omitempty"`
-	ObjectKey     string                 `protobuf:"bytes,2,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	MimeType      string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
-	DurationMs    int64                  `protobuf:"varint,4,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
-	Voice         string                 `protobuf:"bytes,5,opt,name=voice,proto3" json:"voice,omitempty"`
-	Status        SummaryAudioStatus     `protobuf:"varint,6,opt,name=status,proto3,enum=media_notes.content.v1.SummaryAudioStatus" json:"status,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	SummaryType string                 `protobuf:"bytes,1,opt,name=summary_type,json=summaryType,proto3" json:"summary_type,omitempty"`
+	ObjectKey   string                 `protobuf:"bytes,2,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	MimeType    string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	DurationMs  int64                  `protobuf:"varint,4,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	Voice       string                 `protobuf:"bytes,5,opt,name=voice,proto3" json:"voice,omitempty"`
+	Status      SummaryAudioStatus     `protobuf:"varint,6,opt,name=status,proto3,enum=media_notes.content.v1.SummaryAudioStatus" json:"status,omitempty"`
+	// url is a short-lived presigned GET URL for object_key, populated by
+	// GetContent when status is READY and content has object-storage
+	// credentials configured; empty otherwise. Never persisted — signed
+	// fresh on every read, matching how media signs MediaDetail.playback_url.
+	Url           string `protobuf:"bytes,7,opt,name=url,proto3" json:"url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1466,6 +1471,13 @@ func (x *SummaryAudio) GetStatus() SummaryAudioStatus {
 		return x.Status
 	}
 	return SummaryAudioStatus_SUMMARY_AUDIO_STATUS_UNSPECIFIED
+}
+
+func (x *SummaryAudio) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
 }
 
 type StoreSummaryAudioMetadataRequest struct {
@@ -1917,7 +1929,7 @@ const file_media_notes_content_v1_content_proto_rawDesc = "" +
 	"\x06format\x18\x05 \x01(\tR\x06format\x12\x12\n" +
 	"\x04body\x18\x06 \x01(\tR\x04body\"V\n" +
 	"\x12StoreNotesResponse\x12@\n" +
-	"\aversion\x18\x01 \x01(\v2&.media_notes.content.v1.ContentVersionR\aversion\"\xe8\x01\n" +
+	"\aversion\x18\x01 \x01(\v2&.media_notes.content.v1.ContentVersionR\aversion\"\xfa\x01\n" +
 	"\fSummaryAudio\x12!\n" +
 	"\fsummary_type\x18\x01 \x01(\tR\vsummaryType\x12\x1d\n" +
 	"\n" +
@@ -1926,7 +1938,8 @@ const file_media_notes_content_v1_content_proto_rawDesc = "" +
 	"\vduration_ms\x18\x04 \x01(\x03R\n" +
 	"durationMs\x12\x14\n" +
 	"\x05voice\x18\x05 \x01(\tR\x05voice\x12B\n" +
-	"\x06status\x18\x06 \x01(\x0e2*.media_notes.content.v1.SummaryAudioStatusR\x06status\"\xb7\x02\n" +
+	"\x06status\x18\x06 \x01(\x0e2*.media_notes.content.v1.SummaryAudioStatusR\x06status\x12\x10\n" +
+	"\x03url\x18\a \x01(\tR\x03url\"\xb7\x02\n" +
 	" StoreSummaryAudioMetadataRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x19\n" +
 	"\bmedia_id\x18\x02 \x01(\tR\amediaId\x12\x1f\n" +

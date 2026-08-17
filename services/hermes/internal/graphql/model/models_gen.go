@@ -144,6 +144,7 @@ type SummaryAudio struct {
 	DurationMs  int                `json:"durationMs"`
 	Voice       string             `json:"voice"`
 	Status      SummaryAudioStatus `json:"status"`
+	URL         *string            `json:"url,omitempty"`
 }
 
 type SummarySentence struct {

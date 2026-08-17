@@ -188,6 +188,9 @@ type SummaryAudio {
   durationMs: Int!
   voice: String!
   status: SummaryAudioStatus!
+  # url is a short-lived signed playback URL, present only once status is
+  # READY and content has object-storage credentials configured.
+  url: String
 }
 
 type Content {

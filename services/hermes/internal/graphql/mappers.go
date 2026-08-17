@@ -255,6 +255,7 @@ func toModelContent(c clients.Content) *model.Content {
 			DurationMs:  int(a.DurationMs),
 			Voice:       a.Voice,
 			Status:      toModelSummaryAudioStatus(a.Status),
+			URL:         optionalString(a.URL),
 		})
 	}
 

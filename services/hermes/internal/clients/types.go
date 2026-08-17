@@ -152,6 +152,9 @@ type SummaryAudio struct {
 	DurationMs  int64
 	Voice       string
 	Status      string
+	// URL is a short-lived presigned playback URL, empty when content has
+	// no object-storage credentials configured or Status isn't ready.
+	URL string
 }
 
 // Content is every generated artifact stored for one media item.

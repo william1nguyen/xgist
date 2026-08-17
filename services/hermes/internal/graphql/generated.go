@@ -1413,6 +1413,8 @@ func (ec *executionContext) childFields_SummaryAudio(ctx context.Context, field 
 		return ec.fieldContext_SummaryAudio_voice(ctx, field)
 	case "status":
 		return ec.fieldContext_SummaryAudio_status(ctx, field)
+	case "url":
+		return ec.fieldContext_SummaryAudio_url(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type SummaryAudio", field.Name)
 }
@@ -4522,6 +4524,29 @@ func (ec *executionContext) fieldContext_SummaryAudio_status(_ context.Context, 
 	return graphql.NewScalarFieldContext("SummaryAudio", field, false, false, errors.New("field of type SummaryAudioStatus does not have child fields"))
 }
 
+func (ec *executionContext) _SummaryAudio_url(ctx context.Context, field graphql.CollectedField, obj *model.SummaryAudio) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_SummaryAudio_url(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.URL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_SummaryAudio_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("SummaryAudio", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) _SummarySentence_sentenceIndex(ctx context.Context, field graphql.CollectedField, obj *model.SummarySentence) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -7339,6 +7364,11 @@ func (ec *executionContext) _SummaryAudio(ctx context.Context, sel ast.Selection
 		case "status":
 			out.Values[i] = ec._SummaryAudio_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "url":
+			out.Values[i] = ec._SummaryAudio_url(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
 		default:

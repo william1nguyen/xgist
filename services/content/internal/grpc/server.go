@@ -6,6 +6,8 @@ package grpcserver
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -15,6 +17,11 @@ import (
 	contentv1 "github.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/content/v1"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/content"
 )
+
+// summaryAudioURLExpiry matches media's playback-URL lifetime
+// (docs/adr/0004-media-and-traffic-limits.md), since both are short-lived
+// signed reads of the same object storage.
+const summaryAudioURLExpiry = 15 * time.Minute
 
 // ContentService is the content application-service boundary the server
 // depends on. *content.Service implements it.
@@ -29,15 +36,24 @@ type ContentService interface {
 	GetContent(ctx context.Context, mediaID uuid.UUID) (content.Content, error)
 }
 
+// ObjectStore presigns read URLs for summary-audio objects.
+// *objectstore.Client implements it. Nil is valid: GetContent falls back
+// to returning summary-audio metadata with no url.
+type ObjectStore interface {
+	PresignGetObject(ctx context.Context, objectKey string, expires time.Duration) (string, error)
+}
+
 // Server implements contentv1.ContentServiceServer.
 type Server struct {
 	contentv1.UnimplementedContentServiceServer
-	content ContentService
+	content     ContentService
+	objectStore ObjectStore
+	logger      *slog.Logger
 }
 
-// NewServer returns a Server.
-func NewServer(content ContentService) *Server {
-	return &Server{content: content}
+// NewServer returns a Server. objectStore may be nil (see ObjectStore).
+func NewServer(content ContentService, objectStore ObjectStore, logger *slog.Logger) *Server {
+	return &Server{content: content, objectStore: objectStore, logger: logger}
 }
 
 func (s *Server) StoreTranscript(ctx context.Context, req *contentv1.StoreTranscriptRequest) (*contentv1.StoreTranscriptResponse, error) {
@@ -230,7 +246,7 @@ func (s *Server) GetContent(ctx context.Context, req *contentv1.GetContentReques
 	if err != nil {
 		return nil, mapError(err)
 	}
-	return &contentv1.GetContentResponse{Content: toProtoContent(c)}, nil
+	return &contentv1.GetContentResponse{Content: s.toProtoContent(ctx, c)}, nil
 }
 
 func parseMediaAndWorkflow(mediaID, workflowID string) (uuid.UUID, uuid.UUID, error) {
@@ -324,7 +340,7 @@ func toProtoSegment(seg content.TranscriptSegment) *contentv1.TranscriptSegment 
 	}
 }
 
-func toProtoContent(c content.Content) *contentv1.Content {
+func (s *Server) toProtoContent(ctx context.Context, c content.Content) *contentv1.Content {
 	out := &contentv1.Content{
 		MediaId: c.MediaID.String(),
 		Version: int32(c.Version),
@@ -350,7 +366,7 @@ func toProtoContent(c content.Content) *contentv1.Content {
 		out.Notes = append(out.Notes, &contentv1.Note{Format: n.Format, Body: n.Body, CreatedAt: timestamppb.New(n.CreatedAt)})
 	}
 	for _, a := range c.SummaryAudios {
-		out.SummaryAudios = append(out.SummaryAudios, toProtoSummaryAudio(a))
+		out.SummaryAudios = append(out.SummaryAudios, s.toProtoSummaryAudio(ctx, a))
 	}
 	return out
 }
@@ -378,8 +394,8 @@ func toProtoSummary(sum content.Summary) *contentv1.Summary {
 	}
 }
 
-func toProtoSummaryAudio(a content.SummaryAudio) *contentv1.SummaryAudio {
-	return &contentv1.SummaryAudio{
+func (s *Server) toProtoSummaryAudio(ctx context.Context, a content.SummaryAudio) *contentv1.SummaryAudio {
+	out := &contentv1.SummaryAudio{
 		SummaryType: a.SummaryType,
 		ObjectKey:   a.ObjectKey,
 		MimeType:    a.MimeType,
@@ -387,6 +403,20 @@ func toProtoSummaryAudio(a content.SummaryAudio) *contentv1.SummaryAudio {
 		Voice:       a.Voice,
 		Status:      toProtoAudioStatus(a.Status),
 	}
+	if s.objectStore != nil && a.Status == content.AudioStatusReady {
+		signedURL, err := s.objectStore.PresignGetObject(ctx, a.ObjectKey, summaryAudioURLExpiry)
+		if err != nil {
+			// A signing failure shouldn't fail the whole GetContent call —
+			// every other field is still valid. The client simply sees no
+			// url for this entry.
+			if s.logger != nil {
+				s.logger.ErrorContext(ctx, "presign summary audio url", "object_key", a.ObjectKey, "error", err)
+			}
+		} else {
+			out.Url = signedURL
+		}
+	}
+	return out
 }
 
 func toProtoAudioStatus(s content.AudioStatus) contentv1.SummaryAudioStatus {

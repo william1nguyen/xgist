@@ -260,6 +260,13 @@ services:
       KAFKA_BROKERS: kafka:29092
       CONTENT_HTTP_ADDR: :8084
       CONTENT_GRPC_ADDR: :9095
+      # Presigns summary-audio playback URLs (see internal/objectstore) —
+      # same bucket media writes to, since worker uploads audio there.
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_USE_SSL: "false"
+      MINIO_MEDIA_BUCKET: media
       LOG_LEVEL: info
     ports:
       - "8084:8084"
@@ -268,6 +275,8 @@ services:
       content-migrate:
         condition: service_completed_successfully
       kafka:
+        condition: service_started
+      minio:
         condition: service_started
     networks:
       - default
