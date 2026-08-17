@@ -33,7 +33,18 @@ export function AppTopBar({ onOpenNav }: { onOpenNav: () => void }) {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-run when the debounced query itself changes — location/navigate/isDashboard are read here purely to compare against and dispatch, not to retrigger navigation on their own.
 	useEffect(() => {
 		const trimmed = debouncedQuery.trim();
-		const target = trimmed ? `/?q=${encodeURIComponent(trimmed)}` : "/";
+		if (!trimmed) {
+			// Nothing typed: only ever clear a stale ?q= on the dashboard
+			// itself. Never navigate away from wherever the user actually
+			// is — the box resets to empty on every non-dashboard page
+			// (the effect above), so without this guard, mounting on any
+			// other route (e.g. a hard refresh on /audio) would bounce
+			// straight back to "/" as soon as this effect's first run saw
+			// an empty debounced query here.
+			if (isDashboard && location.search) navigate("/", { replace: true });
+			return;
+		}
+		const target = `/?q=${encodeURIComponent(trimmed)}`;
 		if (location.pathname + location.search === target) return;
 		navigate(target, { replace: isDashboard });
 	}, [debouncedQuery]);
