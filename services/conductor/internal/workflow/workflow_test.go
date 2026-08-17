@@ -21,17 +21,38 @@ func stepTypes(plans []workflow.StepPlan) []string {
 	return out
 }
 
-func TestPlanStepsAlwaysIncludesTranscribeAndThumbnailForVideo(t *testing.T) {
+func TestPlanStepsThumbnailForVideoIsIndependentOfOptions(t *testing.T) {
 	plans := workflow.PlanSteps(nil, "video")
+	got := stepTypes(plans)
+	want := []string{workflow.StepThumbnail}
+	if len(got) != len(want) || got[0] != want[0] {
+		t.Fatalf("PlanSteps(nil, video) = %v, want %v", got, want)
+	}
+}
+
+func TestPlanStepsOmitsTranscribeWhenNotSelected(t *testing.T) {
+	// A regenerate request for a media item that already has a transcript
+	// must not select transcribe: it would re-run (and re-bill) work the
+	// caller never asked for.
+	plans := workflow.PlanSteps([]string{"extract_keywords"}, "audio")
+	for _, p := range plans {
+		if p.StepType == workflow.StepTranscribe {
+			t.Fatal("transcribe must not be planned unless explicitly selected")
+		}
+	}
+}
+
+func TestPlanStepsIncludesTranscribeWhenSelected(t *testing.T) {
+	plans := workflow.PlanSteps([]string{"transcribe"}, "video")
 	got := stepTypes(plans)
 	want := []string{workflow.StepThumbnail, workflow.StepTranscribe}
 	sort.Strings(want)
 	if len(got) != len(want) {
-		t.Fatalf("PlanSteps(nil, video) = %v, want %v", got, want)
+		t.Fatalf("PlanSteps([transcribe], video) = %v, want %v", got, want)
 	}
 	for i := range got {
 		if got[i] != want[i] {
-			t.Fatalf("PlanSteps(nil, video) = %v, want %v", got, want)
+			t.Fatalf("PlanSteps([transcribe], video) = %v, want %v", got, want)
 		}
 	}
 }
@@ -45,7 +66,7 @@ func TestPlanStepsOmitsThumbnailForAudio(t *testing.T) {
 }
 
 func TestPlanStepsThumbnailIsNotRequired(t *testing.T) {
-	for _, p := range workflow.PlanSteps(nil, "video") {
+	for _, p := range workflow.PlanSteps([]string{"transcribe"}, "video") {
 		if p.StepType == workflow.StepThumbnail && p.Required {
 			t.Fatal("generate_thumbnail must not be required: it does not gate workflow completion")
 		}

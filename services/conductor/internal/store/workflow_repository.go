@@ -149,11 +149,23 @@ func (r *WorkflowRepository) ApplyCreditDecision(ctx context.Context, eventID, w
 			return err
 		}
 
-		transcribe, err := findStepByTypeForUpdate(ctx, tx, w.ID, workflow.StepTranscribe)
+		// Dispatch every step that has no unmet dependency, not just
+		// transcribe: since PlanSteps no longer forces transcribe into
+		// every workflow (a regenerate request omits it when the media
+		// item already has a transcript), a workflow's roots vary — they
+		// may be transcribe alone, or e.g. keywords/summary directly when
+		// transcribe wasn't selected because it already ran in an earlier
+		// workflow for this media item.
+		roots, err := findRootPendingSteps(ctx, tx, w.ID)
 		if err != nil {
 			return err
 		}
-		return dispatchStep(ctx, tx, w.ID, transcribe.ID, workflow.StepTranscribe, w.MediaID, 1, "", "")
+		for _, step := range roots {
+			if err := dispatchStep(ctx, tx, w.ID, step.ID, step.StepType, w.MediaID, 1, w.AudioVoice, promptOverrideForStep(w.PromptOverrides, step.StepType)); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 }
 
@@ -782,6 +794,42 @@ func findDependentSteps(ctx context.Context, tx pgx.Tx, stepID uuid.UUID) ([]ste
 		WHERE sd.depends_on_step_id = $1
 		FOR UPDATE OF ws
 	`, stepID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []stepRow
+	for rows.Next() {
+		s, err := scanStep(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, s)
+	}
+	return out, rows.Err()
+}
+
+// findRootPendingSteps returns every pending step of workflowID that has
+// no unmet dependency — i.e. no dependency at all (generate_thumbnail is
+// dispatched separately at CreateWorkflow time and is never 'pending' by
+// the time this runs) or every step it depends on is already completed.
+// This is what ApplyCreditDecision dispatches once credit is reserved:
+// PlanSteps no longer guarantees transcribe is always among a workflow's
+// steps, so the set of roots varies per request instead of always being
+// transcribe alone.
+func findRootPendingSteps(ctx context.Context, tx pgx.Tx, workflowID uuid.UUID) ([]stepRow, error) {
+	rows, err := tx.Query(ctx, `
+		SELECT `+stepColumns+`
+		FROM workflow_steps ws
+		WHERE ws.workflow_id = $1 AND ws.state = $2
+		  AND NOT EXISTS (
+		    SELECT 1 FROM step_dependencies sd
+		    JOIN workflow_steps dep ON dep.id = sd.depends_on_step_id
+		    WHERE sd.step_id = ws.id AND dep.state <> $3
+		  )
+		FOR UPDATE
+	`, workflowID, string(workflow.StepStatePending), string(workflow.StepStateCompleted))
 	if err != nil {
 		return nil, err
 	}

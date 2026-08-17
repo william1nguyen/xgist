@@ -113,11 +113,17 @@ type StepPlan struct {
 
 // PlanSteps resolves a processing request's selected options into the
 // full set of steps a new workflow needs, in a deterministic order.
-// transcribe is always included — every enrichment step depends on it —
-// and so is generate_thumbnail for video media, independently of any
-// selected option, per architecture.md. Selecting generate_audio_summary
-// implicitly selects summary too, since the audio step reads committed
-// summary text as its input (architecture.md's "summary audio" flow).
+// transcribe is included only when the caller selected it: the initial
+// ConfirmUpload request always selects it (nothing exists yet), but a
+// later regenerate request only selects it when the media item doesn't
+// already have a transcript — callers must not select it, and must not
+// be billed or re-run it, when one already exists. generate_thumbnail is
+// added independently of any selected option, per architecture.md.
+// Selecting generate_audio_summary implicitly selects summary too, since
+// the audio step reads committed summary text as its input
+// (architecture.md's "summary audio" flow) — unlike transcribe, this one
+// stays forced as a safety net regardless of caller intent, since a
+// caller could otherwise request unbillable, unrunnable audio.
 //
 // generate_thumbnail is omitted for audio media: architecture.md's
 // worker algorithm only extracts a video frame; audio's cover-art/
@@ -126,7 +132,7 @@ type StepPlan struct {
 // time out. mediaType is whatever media.GetMedia reports; any value
 // other than "video" is treated as non-video.
 func PlanSteps(options []string, mediaType string) []StepPlan {
-	selected := map[string]bool{StepTranscribe: true}
+	selected := map[string]bool{}
 	for _, opt := range options {
 		if step, ok := optionToStep[opt]; ok {
 			selected[step] = true
