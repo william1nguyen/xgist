@@ -28,6 +28,14 @@ service IdentityService {
   // GetAccountDeletionStatus returns the current state of a deletion
   // operation.
   rpc GetAccountDeletionStatus(GetAccountDeletionStatusRequest) returns (GetAccountDeletionStatusResponse);
+  // GetPromptSettings returns every per-section custom system prompt the
+  // caller has saved. A section with no saved row is simply absent from
+  // the response, not returned with an empty prompt_text.
+  rpc GetPromptSettings(GetPromptSettingsRequest) returns (GetPromptSettingsResponse);
+  // UpsertPromptSetting creates or replaces the caller's custom system
+  // prompt for one section (a processing option id, e.g. "summarize").
+  // prompt_text is capped at 500 characters; an empty string clears it.
+  rpc UpsertPromptSetting(UpsertPromptSettingRequest) returns (UpsertPromptSettingResponse);
 }
 
 // AccountState is the lifecycle state of a user account.
@@ -158,4 +166,33 @@ message GetAccountDeletionStatusRequest {
 // GetAccountDeletionStatusResponse returns the deletion operation.
 message GetAccountDeletionStatusResponse {
   DeletionOperation operation = 1;
+}
+
+// PromptSetting is one user's custom system prompt for one section.
+message PromptSetting {
+  string section = 1;
+  string prompt_text = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+// GetPromptSettingsRequest identifies the caller.
+message GetPromptSettingsRequest {
+  string user_id = 1;
+}
+
+// GetPromptSettingsResponse returns every saved prompt setting.
+message GetPromptSettingsResponse {
+  repeated PromptSetting settings = 1;
+}
+
+// UpsertPromptSettingRequest carries the section and its new prompt text.
+message UpsertPromptSettingRequest {
+  string user_id = 1;
+  string section = 2;
+  string prompt_text = 3;
+}
+
+// UpsertPromptSettingResponse returns the saved setting.
+message UpsertPromptSettingResponse {
+  PromptSetting setting = 1;
 }

@@ -1113,6 +1113,263 @@ func (x *GetAccountDeletionStatusResponse) GetOperation() *DeletionOperation {
 	return nil
 }
 
+// PromptSetting is one user's custom system prompt for one section.
+type PromptSetting struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Section       string                 `protobuf:"bytes,1,opt,name=section,proto3" json:"section,omitempty"`
+	PromptText    string                 `protobuf:"bytes,2,opt,name=prompt_text,json=promptText,proto3" json:"prompt_text,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PromptSetting) Reset() {
+	*x = PromptSetting{}
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PromptSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PromptSetting) ProtoMessage() {}
+
+func (x *PromptSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PromptSetting.ProtoReflect.Descriptor instead.
+func (*PromptSetting) Descriptor() ([]byte, []int) {
+	return file_media_notes_identity_v1_identity_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *PromptSetting) GetSection() string {
+	if x != nil {
+		return x.Section
+	}
+	return ""
+}
+
+func (x *PromptSetting) GetPromptText() string {
+	if x != nil {
+		return x.PromptText
+	}
+	return ""
+}
+
+func (x *PromptSetting) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+// GetPromptSettingsRequest identifies the caller.
+type GetPromptSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPromptSettingsRequest) Reset() {
+	*x = GetPromptSettingsRequest{}
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPromptSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPromptSettingsRequest) ProtoMessage() {}
+
+func (x *GetPromptSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPromptSettingsRequest.ProtoReflect.Descriptor instead.
+func (*GetPromptSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_identity_v1_identity_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetPromptSettingsRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+// GetPromptSettingsResponse returns every saved prompt setting.
+type GetPromptSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      []*PromptSetting       `protobuf:"bytes,1,rep,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPromptSettingsResponse) Reset() {
+	*x = GetPromptSettingsResponse{}
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPromptSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPromptSettingsResponse) ProtoMessage() {}
+
+func (x *GetPromptSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPromptSettingsResponse.ProtoReflect.Descriptor instead.
+func (*GetPromptSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_identity_v1_identity_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetPromptSettingsResponse) GetSettings() []*PromptSetting {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+// UpsertPromptSettingRequest carries the section and its new prompt text.
+type UpsertPromptSettingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Section       string                 `protobuf:"bytes,2,opt,name=section,proto3" json:"section,omitempty"`
+	PromptText    string                 `protobuf:"bytes,3,opt,name=prompt_text,json=promptText,proto3" json:"prompt_text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertPromptSettingRequest) Reset() {
+	*x = UpsertPromptSettingRequest{}
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertPromptSettingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertPromptSettingRequest) ProtoMessage() {}
+
+func (x *UpsertPromptSettingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertPromptSettingRequest.ProtoReflect.Descriptor instead.
+func (*UpsertPromptSettingRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_identity_v1_identity_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UpsertPromptSettingRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UpsertPromptSettingRequest) GetSection() string {
+	if x != nil {
+		return x.Section
+	}
+	return ""
+}
+
+func (x *UpsertPromptSettingRequest) GetPromptText() string {
+	if x != nil {
+		return x.PromptText
+	}
+	return ""
+}
+
+// UpsertPromptSettingResponse returns the saved setting.
+type UpsertPromptSettingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Setting       *PromptSetting         `protobuf:"bytes,1,opt,name=setting,proto3" json:"setting,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertPromptSettingResponse) Reset() {
+	*x = UpsertPromptSettingResponse{}
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertPromptSettingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertPromptSettingResponse) ProtoMessage() {}
+
+func (x *UpsertPromptSettingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_identity_v1_identity_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertPromptSettingResponse.ProtoReflect.Descriptor instead.
+func (*UpsertPromptSettingResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_identity_v1_identity_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *UpsertPromptSettingResponse) GetSetting() *PromptSetting {
+	if x != nil {
+		return x.Setting
+	}
+	return nil
+}
+
 var File_media_notes_identity_v1_identity_proto protoreflect.FileDescriptor
 
 const file_media_notes_identity_v1_identity_proto_rawDesc = "" +
@@ -1184,7 +1441,24 @@ const file_media_notes_identity_v1_identity_proto_rawDesc = "" +
 	"\vdeletion_id\x18\x01 \x01(\tR\n" +
 	"deletionId\"l\n" +
 	" GetAccountDeletionStatusResponse\x12H\n" +
-	"\toperation\x18\x01 \x01(\v2*.media_notes.identity.v1.DeletionOperationR\toperation*\x89\x01\n" +
+	"\toperation\x18\x01 \x01(\v2*.media_notes.identity.v1.DeletionOperationR\toperation\"\x85\x01\n" +
+	"\rPromptSetting\x12\x18\n" +
+	"\asection\x18\x01 \x01(\tR\asection\x12\x1f\n" +
+	"\vprompt_text\x18\x02 \x01(\tR\n" +
+	"promptText\x129\n" +
+	"\n" +
+	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"3\n" +
+	"\x18GetPromptSettingsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"_\n" +
+	"\x19GetPromptSettingsResponse\x12B\n" +
+	"\bsettings\x18\x01 \x03(\v2&.media_notes.identity.v1.PromptSettingR\bsettings\"p\n" +
+	"\x1aUpsertPromptSettingRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
+	"\asection\x18\x02 \x01(\tR\asection\x12\x1f\n" +
+	"\vprompt_text\x18\x03 \x01(\tR\n" +
+	"promptText\"_\n" +
+	"\x1bUpsertPromptSettingResponse\x12@\n" +
+	"\asetting\x18\x01 \x01(\v2&.media_notes.identity.v1.PromptSettingR\asetting*\x89\x01\n" +
 	"\fAccountState\x12\x1d\n" +
 	"\x19ACCOUNT_STATE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14ACCOUNT_STATE_ACTIVE\x10\x01\x12\"\n" +
@@ -1194,7 +1468,7 @@ const file_media_notes_identity_v1_identity_proto_rawDesc = "" +
 	"\x1aDELETION_STATE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16DELETION_STATE_PENDING\x10\x01\x12\x1c\n" +
 	"\x18DELETION_STATE_COMPLETED\x10\x02\x12,\n" +
-	"(DELETION_STATE_FAILED_ATTENTION_REQUIRED\x10\x032\xbd\a\n" +
+	"(DELETION_STATE_FAILED_ATTENTION_REQUIRED\x10\x032\xbc\t\n" +
 	"\x0fIdentityService\x12t\n" +
 	"\x0fRegisterAccount\x12/.media_notes.identity.v1.RegisterAccountRequest\x1a0.media_notes.identity.v1.RegisterAccountResponse\x12k\n" +
 	"\fAuthenticate\x12,.media_notes.identity.v1.AuthenticateRequest\x1a-.media_notes.identity.v1.AuthenticateResponse\x12t\n" +
@@ -1204,7 +1478,9 @@ const file_media_notes_identity_v1_identity_proto_rawDesc = "" +
 	"\n" +
 	"UpdateUser\x12*.media_notes.identity.v1.UpdateUserRequest\x1a+.media_notes.identity.v1.UpdateUserResponse\x12\x89\x01\n" +
 	"\x16RequestAccountDeletion\x126.media_notes.identity.v1.RequestAccountDeletionRequest\x1a7.media_notes.identity.v1.RequestAccountDeletionResponse\x12\x8f\x01\n" +
-	"\x18GetAccountDeletionStatus\x128.media_notes.identity.v1.GetAccountDeletionStatusRequest\x1a9.media_notes.identity.v1.GetAccountDeletionStatusResponseB\x82\x02\n" +
+	"\x18GetAccountDeletionStatus\x128.media_notes.identity.v1.GetAccountDeletionStatusRequest\x1a9.media_notes.identity.v1.GetAccountDeletionStatusResponse\x12z\n" +
+	"\x11GetPromptSettings\x121.media_notes.identity.v1.GetPromptSettingsRequest\x1a2.media_notes.identity.v1.GetPromptSettingsResponse\x12\x80\x01\n" +
+	"\x13UpsertPromptSetting\x123.media_notes.identity.v1.UpsertPromptSettingRequest\x1a4.media_notes.identity.v1.UpsertPromptSettingResponseB\x82\x02\n" +
 	"\x1bcom.media_notes.identity.v1B\rIdentityProtoP\x01ZZgithub.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/identity/v1;identityv1\xa2\x02\x03MIX\xaa\x02\x16MediaNotes.Identity.V1\xca\x02\x16MediaNotes\\Identity\\V1\xe2\x02\"MediaNotes\\Identity\\V1\\GPBMetadata\xea\x02\x18MediaNotes::Identity::V1b\x06proto3"
 
 var (
@@ -1220,7 +1496,7 @@ func file_media_notes_identity_v1_identity_proto_rawDescGZIP() []byte {
 }
 
 var file_media_notes_identity_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_media_notes_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_media_notes_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_media_notes_identity_v1_identity_proto_goTypes = []any{
 	(AccountState)(0),                        // 0: media_notes.identity.v1.AccountState
 	(DeletionState)(0),                       // 1: media_notes.identity.v1.DeletionState
@@ -1242,43 +1518,55 @@ var file_media_notes_identity_v1_identity_proto_goTypes = []any{
 	(*RequestAccountDeletionResponse)(nil),   // 17: media_notes.identity.v1.RequestAccountDeletionResponse
 	(*GetAccountDeletionStatusRequest)(nil),  // 18: media_notes.identity.v1.GetAccountDeletionStatusRequest
 	(*GetAccountDeletionStatusResponse)(nil), // 19: media_notes.identity.v1.GetAccountDeletionStatusResponse
-	(*timestamppb.Timestamp)(nil),            // 20: google.protobuf.Timestamp
+	(*PromptSetting)(nil),                    // 20: media_notes.identity.v1.PromptSetting
+	(*GetPromptSettingsRequest)(nil),         // 21: media_notes.identity.v1.GetPromptSettingsRequest
+	(*GetPromptSettingsResponse)(nil),        // 22: media_notes.identity.v1.GetPromptSettingsResponse
+	(*UpsertPromptSettingRequest)(nil),       // 23: media_notes.identity.v1.UpsertPromptSettingRequest
+	(*UpsertPromptSettingResponse)(nil),      // 24: media_notes.identity.v1.UpsertPromptSettingResponse
+	(*timestamppb.Timestamp)(nil),            // 25: google.protobuf.Timestamp
 }
 var file_media_notes_identity_v1_identity_proto_depIdxs = []int32{
 	0,  // 0: media_notes.identity.v1.User.state:type_name -> media_notes.identity.v1.AccountState
-	20, // 1: media_notes.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	25, // 1: media_notes.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 2: media_notes.identity.v1.DeletionOperation.state:type_name -> media_notes.identity.v1.DeletionState
-	20, // 3: media_notes.identity.v1.DeletionOperation.created_at:type_name -> google.protobuf.Timestamp
-	20, // 4: media_notes.identity.v1.DeletionOperation.completed_at:type_name -> google.protobuf.Timestamp
+	25, // 3: media_notes.identity.v1.DeletionOperation.created_at:type_name -> google.protobuf.Timestamp
+	25, // 4: media_notes.identity.v1.DeletionOperation.completed_at:type_name -> google.protobuf.Timestamp
 	2,  // 5: media_notes.identity.v1.RegisterAccountResponse.user:type_name -> media_notes.identity.v1.User
 	2,  // 6: media_notes.identity.v1.AuthenticateResponse.user:type_name -> media_notes.identity.v1.User
-	20, // 7: media_notes.identity.v1.AuthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
+	25, // 7: media_notes.identity.v1.AuthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 8: media_notes.identity.v1.ValidateSessionResponse.user:type_name -> media_notes.identity.v1.User
 	2,  // 9: media_notes.identity.v1.GetUserResponse.user:type_name -> media_notes.identity.v1.User
 	2,  // 10: media_notes.identity.v1.UpdateUserResponse.user:type_name -> media_notes.identity.v1.User
 	3,  // 11: media_notes.identity.v1.RequestAccountDeletionResponse.operation:type_name -> media_notes.identity.v1.DeletionOperation
 	3,  // 12: media_notes.identity.v1.GetAccountDeletionStatusResponse.operation:type_name -> media_notes.identity.v1.DeletionOperation
-	4,  // 13: media_notes.identity.v1.IdentityService.RegisterAccount:input_type -> media_notes.identity.v1.RegisterAccountRequest
-	6,  // 14: media_notes.identity.v1.IdentityService.Authenticate:input_type -> media_notes.identity.v1.AuthenticateRequest
-	8,  // 15: media_notes.identity.v1.IdentityService.ValidateSession:input_type -> media_notes.identity.v1.ValidateSessionRequest
-	10, // 16: media_notes.identity.v1.IdentityService.RevokeSession:input_type -> media_notes.identity.v1.RevokeSessionRequest
-	12, // 17: media_notes.identity.v1.IdentityService.GetUser:input_type -> media_notes.identity.v1.GetUserRequest
-	14, // 18: media_notes.identity.v1.IdentityService.UpdateUser:input_type -> media_notes.identity.v1.UpdateUserRequest
-	16, // 19: media_notes.identity.v1.IdentityService.RequestAccountDeletion:input_type -> media_notes.identity.v1.RequestAccountDeletionRequest
-	18, // 20: media_notes.identity.v1.IdentityService.GetAccountDeletionStatus:input_type -> media_notes.identity.v1.GetAccountDeletionStatusRequest
-	5,  // 21: media_notes.identity.v1.IdentityService.RegisterAccount:output_type -> media_notes.identity.v1.RegisterAccountResponse
-	7,  // 22: media_notes.identity.v1.IdentityService.Authenticate:output_type -> media_notes.identity.v1.AuthenticateResponse
-	9,  // 23: media_notes.identity.v1.IdentityService.ValidateSession:output_type -> media_notes.identity.v1.ValidateSessionResponse
-	11, // 24: media_notes.identity.v1.IdentityService.RevokeSession:output_type -> media_notes.identity.v1.RevokeSessionResponse
-	13, // 25: media_notes.identity.v1.IdentityService.GetUser:output_type -> media_notes.identity.v1.GetUserResponse
-	15, // 26: media_notes.identity.v1.IdentityService.UpdateUser:output_type -> media_notes.identity.v1.UpdateUserResponse
-	17, // 27: media_notes.identity.v1.IdentityService.RequestAccountDeletion:output_type -> media_notes.identity.v1.RequestAccountDeletionResponse
-	19, // 28: media_notes.identity.v1.IdentityService.GetAccountDeletionStatus:output_type -> media_notes.identity.v1.GetAccountDeletionStatusResponse
-	21, // [21:29] is the sub-list for method output_type
-	13, // [13:21] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	25, // 13: media_notes.identity.v1.PromptSetting.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 14: media_notes.identity.v1.GetPromptSettingsResponse.settings:type_name -> media_notes.identity.v1.PromptSetting
+	20, // 15: media_notes.identity.v1.UpsertPromptSettingResponse.setting:type_name -> media_notes.identity.v1.PromptSetting
+	4,  // 16: media_notes.identity.v1.IdentityService.RegisterAccount:input_type -> media_notes.identity.v1.RegisterAccountRequest
+	6,  // 17: media_notes.identity.v1.IdentityService.Authenticate:input_type -> media_notes.identity.v1.AuthenticateRequest
+	8,  // 18: media_notes.identity.v1.IdentityService.ValidateSession:input_type -> media_notes.identity.v1.ValidateSessionRequest
+	10, // 19: media_notes.identity.v1.IdentityService.RevokeSession:input_type -> media_notes.identity.v1.RevokeSessionRequest
+	12, // 20: media_notes.identity.v1.IdentityService.GetUser:input_type -> media_notes.identity.v1.GetUserRequest
+	14, // 21: media_notes.identity.v1.IdentityService.UpdateUser:input_type -> media_notes.identity.v1.UpdateUserRequest
+	16, // 22: media_notes.identity.v1.IdentityService.RequestAccountDeletion:input_type -> media_notes.identity.v1.RequestAccountDeletionRequest
+	18, // 23: media_notes.identity.v1.IdentityService.GetAccountDeletionStatus:input_type -> media_notes.identity.v1.GetAccountDeletionStatusRequest
+	21, // 24: media_notes.identity.v1.IdentityService.GetPromptSettings:input_type -> media_notes.identity.v1.GetPromptSettingsRequest
+	23, // 25: media_notes.identity.v1.IdentityService.UpsertPromptSetting:input_type -> media_notes.identity.v1.UpsertPromptSettingRequest
+	5,  // 26: media_notes.identity.v1.IdentityService.RegisterAccount:output_type -> media_notes.identity.v1.RegisterAccountResponse
+	7,  // 27: media_notes.identity.v1.IdentityService.Authenticate:output_type -> media_notes.identity.v1.AuthenticateResponse
+	9,  // 28: media_notes.identity.v1.IdentityService.ValidateSession:output_type -> media_notes.identity.v1.ValidateSessionResponse
+	11, // 29: media_notes.identity.v1.IdentityService.RevokeSession:output_type -> media_notes.identity.v1.RevokeSessionResponse
+	13, // 30: media_notes.identity.v1.IdentityService.GetUser:output_type -> media_notes.identity.v1.GetUserResponse
+	15, // 31: media_notes.identity.v1.IdentityService.UpdateUser:output_type -> media_notes.identity.v1.UpdateUserResponse
+	17, // 32: media_notes.identity.v1.IdentityService.RequestAccountDeletion:output_type -> media_notes.identity.v1.RequestAccountDeletionResponse
+	19, // 33: media_notes.identity.v1.IdentityService.GetAccountDeletionStatus:output_type -> media_notes.identity.v1.GetAccountDeletionStatusResponse
+	22, // 34: media_notes.identity.v1.IdentityService.GetPromptSettings:output_type -> media_notes.identity.v1.GetPromptSettingsResponse
+	24, // 35: media_notes.identity.v1.IdentityService.UpsertPromptSetting:output_type -> media_notes.identity.v1.UpsertPromptSettingResponse
+	26, // [26:36] is the sub-list for method output_type
+	16, // [16:26] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_media_notes_identity_v1_identity_proto_init() }
@@ -1293,7 +1581,7 @@ func file_media_notes_identity_v1_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_notes_identity_v1_identity_proto_rawDesc), len(file_media_notes_identity_v1_identity_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   18,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

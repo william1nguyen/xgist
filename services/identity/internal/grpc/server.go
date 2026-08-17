@@ -14,6 +14,7 @@ import (
 
 	identityv1 "github.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/identity/v1"
 	"github.com/nolannguyen1212/media-notes/services/identity/internal/account"
+	"github.com/nolannguyen1212/media-notes/services/identity/internal/promptsettings"
 	"github.com/nolannguyen1212/media-notes/services/identity/internal/session"
 )
 
@@ -35,16 +36,24 @@ type SessionService interface {
 	RevokeSession(ctx context.Context, sessionID uuid.UUID) error
 }
 
+// PromptSettingsService is the promptsettings application-service boundary
+// the server depends on. *promptsettings.Service implements it.
+type PromptSettingsService interface {
+	List(ctx context.Context, userID uuid.UUID) ([]promptsettings.Setting, error)
+	Upsert(ctx context.Context, userID uuid.UUID, section, promptText string) (promptsettings.Setting, error)
+}
+
 // Server implements identityv1.IdentityServiceServer.
 type Server struct {
 	identityv1.UnimplementedIdentityServiceServer
-	accounts AccountService
-	sessions SessionService
+	accounts       AccountService
+	sessions       SessionService
+	promptSettings PromptSettingsService
 }
 
 // NewServer returns a Server.
-func NewServer(accounts AccountService, sessions SessionService) *Server {
-	return &Server{accounts: accounts, sessions: sessions}
+func NewServer(accounts AccountService, sessions SessionService, promptSettings PromptSettingsService) *Server {
+	return &Server{accounts: accounts, sessions: sessions, promptSettings: promptSettings}
 }
 
 func (s *Server) RegisterAccount(ctx context.Context, req *identityv1.RegisterAccountRequest) (*identityv1.RegisterAccountResponse, error) {
@@ -158,6 +167,36 @@ func (s *Server) GetAccountDeletionStatus(ctx context.Context, req *identityv1.G
 	return &identityv1.GetAccountDeletionStatusResponse{Operation: toProtoDeletion(op)}, nil
 }
 
+func (s *Server) GetPromptSettings(ctx context.Context, req *identityv1.GetPromptSettingsRequest) (*identityv1.GetPromptSettingsResponse, error) {
+	id, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+
+	settings, err := s.promptSettings.List(ctx, id)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	out := make([]*identityv1.PromptSetting, len(settings))
+	for i, setting := range settings {
+		out[i] = toProtoPromptSetting(setting)
+	}
+	return &identityv1.GetPromptSettingsResponse{Settings: out}, nil
+}
+
+func (s *Server) UpsertPromptSetting(ctx context.Context, req *identityv1.UpsertPromptSettingRequest) (*identityv1.UpsertPromptSettingResponse, error) {
+	id, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+
+	setting, err := s.promptSettings.Upsert(ctx, id, req.GetSection(), req.GetPromptText())
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &identityv1.UpsertPromptSettingResponse{Setting: toProtoPromptSetting(setting)}, nil
+}
+
 func mapError(err error) error {
 	switch {
 	case errors.Is(err, account.ErrNotFound), errors.Is(err, account.ErrDeletionNotFound):
@@ -168,12 +207,20 @@ func mapError(err error) error {
 		return status.Error(codes.Unauthenticated, err.Error())
 	case errors.Is(err, account.ErrAccountNotActive), errors.Is(err, session.ErrAccountNotUsable):
 		return status.Error(codes.FailedPrecondition, err.Error())
-	case errors.Is(err, account.ErrUnknownDeletionOwner):
+	case errors.Is(err, account.ErrUnknownDeletionOwner), errors.Is(err, promptsettings.ErrInvalidSection), errors.Is(err, promptsettings.ErrPromptTooLong):
 		return status.Error(codes.InvalidArgument, err.Error())
 	default:
 		// Do not leak internal error detail across the gRPC boundary;
 		// the logging interceptor records the real error server-side.
 		return status.Error(codes.Internal, "internal error")
+	}
+}
+
+func toProtoPromptSetting(s promptsettings.Setting) *identityv1.PromptSetting {
+	return &identityv1.PromptSetting{
+		Section:    s.Section,
+		PromptText: s.PromptText,
+		UpdatedAt:  timestamppb.New(s.UpdatedAt),
 	}
 }
 

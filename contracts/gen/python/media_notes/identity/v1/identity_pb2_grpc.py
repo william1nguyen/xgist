@@ -76,6 +76,16 @@ class IdentityServiceStub:
                 request_serializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetAccountDeletionStatusRequest.SerializeToString,
                 response_deserializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetAccountDeletionStatusResponse.FromString,
                 _registered_method=True)
+        self.GetPromptSettings = channel.unary_unary(
+                '/media_notes.identity.v1.IdentityService/GetPromptSettings',
+                request_serializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetPromptSettingsRequest.SerializeToString,
+                response_deserializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetPromptSettingsResponse.FromString,
+                _registered_method=True)
+        self.UpsertPromptSetting = channel.unary_unary(
+                '/media_notes.identity.v1.IdentityService/UpsertPromptSetting',
+                request_serializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.UpsertPromptSettingRequest.SerializeToString,
+                response_deserializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.UpsertPromptSettingResponse.FromString,
+                _registered_method=True)
 
 
 class IdentityServiceServicer:
@@ -142,6 +152,24 @@ class IdentityServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetPromptSettings(self, request, context):
+        """GetPromptSettings returns every per-section custom system prompt the
+        caller has saved. A section with no saved row is simply absent from
+        the response, not returned with an empty prompt_text.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpsertPromptSetting(self, request, context):
+        """UpsertPromptSetting creates or replaces the caller's custom system
+        prompt for one section (a processing option id, e.g. "summarize").
+        prompt_text is capped at 500 characters; an empty string clears it.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_IdentityServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -184,6 +212,16 @@ def add_IdentityServiceServicer_to_server(servicer, server):
                     servicer.GetAccountDeletionStatus,
                     request_deserializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetAccountDeletionStatusRequest.FromString,
                     response_serializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetAccountDeletionStatusResponse.SerializeToString,
+            ),
+            'GetPromptSettings': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPromptSettings,
+                    request_deserializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetPromptSettingsRequest.FromString,
+                    response_serializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.GetPromptSettingsResponse.SerializeToString,
+            ),
+            'UpsertPromptSetting': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpsertPromptSetting,
+                    request_deserializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.UpsertPromptSettingRequest.FromString,
+                    response_serializer=media__notes_dot_identity_dot_v1_dot_identity__pb2.UpsertPromptSettingResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -404,6 +442,60 @@ class IdentityService:
             '/media_notes.identity.v1.IdentityService/GetAccountDeletionStatus',
             media__notes_dot_identity_dot_v1_dot_identity__pb2.GetAccountDeletionStatusRequest.SerializeToString,
             media__notes_dot_identity_dot_v1_dot_identity__pb2.GetAccountDeletionStatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPromptSettings(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.identity.v1.IdentityService/GetPromptSettings',
+            media__notes_dot_identity_dot_v1_dot_identity__pb2.GetPromptSettingsRequest.SerializeToString,
+            media__notes_dot_identity_dot_v1_dot_identity__pb2.GetPromptSettingsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpsertPromptSetting(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.identity.v1.IdentityService/UpsertPromptSetting',
+            media__notes_dot_identity_dot_v1_dot_identity__pb2.UpsertPromptSettingRequest.SerializeToString,
+            media__notes_dot_identity_dot_v1_dot_identity__pb2.UpsertPromptSettingResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -24,6 +24,7 @@ import (
 	"github.com/nolannguyen1212/media-notes/services/identity/internal/app"
 	"github.com/nolannguyen1212/media-notes/services/identity/internal/events"
 	grpcserver "github.com/nolannguyen1212/media-notes/services/identity/internal/grpc"
+	"github.com/nolannguyen1212/media-notes/services/identity/internal/promptsettings"
 	"github.com/nolannguyen1212/media-notes/services/identity/internal/session"
 	"github.com/nolannguyen1212/media-notes/services/identity/internal/store"
 )
@@ -78,9 +79,11 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 	sessionRepo := store.NewSessionRepository(pool)
 	outboxRepo := store.NewOutboxRepository(pool)
 	inboxRepo := store.NewInboxRepository(pool)
+	promptSettingsRepo := store.NewPromptSettingsRepository(pool)
 
 	accountSvc := account.NewService(accountRepo, cfg.BcryptCost)
 	sessionSvc := session.NewService(sessionRepo, accountSvc, cfg.SessionTTL)
+	promptSettingsSvc := promptsettings.NewService(promptSettingsRepo)
 
 	health.SetReady(true)
 
@@ -90,7 +93,7 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 			grpcserver.UnaryLoggingInterceptor(logger),
 		),
 	)
-	identityv1.RegisterIdentityServiceServer(grpcSrv, grpcserver.NewServer(accountSvc, sessionSvc))
+	identityv1.RegisterIdentityServiceServer(grpcSrv, grpcserver.NewServer(accountSvc, sessionSvc, promptSettingsSvc))
 	// Reflection lets grpcurl/grpcui introspect the API without a local
 	// copy of identity.proto. identity is only ever called by hermes and
 	// operators on the internal network, so exposing the schema this way

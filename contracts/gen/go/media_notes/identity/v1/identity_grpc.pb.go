@@ -30,6 +30,8 @@ const (
 	IdentityService_UpdateUser_FullMethodName               = "/media_notes.identity.v1.IdentityService/UpdateUser"
 	IdentityService_RequestAccountDeletion_FullMethodName   = "/media_notes.identity.v1.IdentityService/RequestAccountDeletion"
 	IdentityService_GetAccountDeletionStatus_FullMethodName = "/media_notes.identity.v1.IdentityService/GetAccountDeletionStatus"
+	IdentityService_GetPromptSettings_FullMethodName        = "/media_notes.identity.v1.IdentityService/GetPromptSettings"
+	IdentityService_UpsertPromptSetting_FullMethodName      = "/media_notes.identity.v1.IdentityService/UpsertPromptSetting"
 )
 
 // IdentityServiceClient is the client API for IdentityService service.
@@ -58,6 +60,14 @@ type IdentityServiceClient interface {
 	// GetAccountDeletionStatus returns the current state of a deletion
 	// operation.
 	GetAccountDeletionStatus(ctx context.Context, in *GetAccountDeletionStatusRequest, opts ...grpc.CallOption) (*GetAccountDeletionStatusResponse, error)
+	// GetPromptSettings returns every per-section custom system prompt the
+	// caller has saved. A section with no saved row is simply absent from
+	// the response, not returned with an empty prompt_text.
+	GetPromptSettings(ctx context.Context, in *GetPromptSettingsRequest, opts ...grpc.CallOption) (*GetPromptSettingsResponse, error)
+	// UpsertPromptSetting creates or replaces the caller's custom system
+	// prompt for one section (a processing option id, e.g. "summarize").
+	// prompt_text is capped at 500 characters; an empty string clears it.
+	UpsertPromptSetting(ctx context.Context, in *UpsertPromptSettingRequest, opts ...grpc.CallOption) (*UpsertPromptSettingResponse, error)
 }
 
 type identityServiceClient struct {
@@ -148,6 +158,26 @@ func (c *identityServiceClient) GetAccountDeletionStatus(ctx context.Context, in
 	return out, nil
 }
 
+func (c *identityServiceClient) GetPromptSettings(ctx context.Context, in *GetPromptSettingsRequest, opts ...grpc.CallOption) (*GetPromptSettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPromptSettingsResponse)
+	err := c.cc.Invoke(ctx, IdentityService_GetPromptSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) UpsertPromptSetting(ctx context.Context, in *UpsertPromptSettingRequest, opts ...grpc.CallOption) (*UpsertPromptSettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpsertPromptSettingResponse)
+	err := c.cc.Invoke(ctx, IdentityService_UpsertPromptSetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IdentityServiceServer is the server API for IdentityService service.
 // All implementations must embed UnimplementedIdentityServiceServer
 // for forward compatibility.
@@ -174,6 +204,14 @@ type IdentityServiceServer interface {
 	// GetAccountDeletionStatus returns the current state of a deletion
 	// operation.
 	GetAccountDeletionStatus(context.Context, *GetAccountDeletionStatusRequest) (*GetAccountDeletionStatusResponse, error)
+	// GetPromptSettings returns every per-section custom system prompt the
+	// caller has saved. A section with no saved row is simply absent from
+	// the response, not returned with an empty prompt_text.
+	GetPromptSettings(context.Context, *GetPromptSettingsRequest) (*GetPromptSettingsResponse, error)
+	// UpsertPromptSetting creates or replaces the caller's custom system
+	// prompt for one section (a processing option id, e.g. "summarize").
+	// prompt_text is capped at 500 characters; an empty string clears it.
+	UpsertPromptSetting(context.Context, *UpsertPromptSettingRequest) (*UpsertPromptSettingResponse, error)
 	mustEmbedUnimplementedIdentityServiceServer()
 }
 
@@ -207,6 +245,12 @@ func (UnimplementedIdentityServiceServer) RequestAccountDeletion(context.Context
 }
 func (UnimplementedIdentityServiceServer) GetAccountDeletionStatus(context.Context, *GetAccountDeletionStatusRequest) (*GetAccountDeletionStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAccountDeletionStatus not implemented")
+}
+func (UnimplementedIdentityServiceServer) GetPromptSettings(context.Context, *GetPromptSettingsRequest) (*GetPromptSettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPromptSettings not implemented")
+}
+func (UnimplementedIdentityServiceServer) UpsertPromptSetting(context.Context, *UpsertPromptSettingRequest) (*UpsertPromptSettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpsertPromptSetting not implemented")
 }
 func (UnimplementedIdentityServiceServer) mustEmbedUnimplementedIdentityServiceServer() {}
 func (UnimplementedIdentityServiceServer) testEmbeddedByValue()                         {}
@@ -373,6 +417,42 @@ func _IdentityService_GetAccountDeletionStatus_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IdentityService_GetPromptSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPromptSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).GetPromptSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_GetPromptSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).GetPromptSettings(ctx, req.(*GetPromptSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityService_UpsertPromptSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertPromptSettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).UpsertPromptSetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_UpsertPromptSetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).UpsertPromptSetting(ctx, req.(*UpsertPromptSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IdentityService_ServiceDesc is the grpc.ServiceDesc for IdentityService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -411,6 +491,14 @@ var IdentityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccountDeletionStatus",
 			Handler:    _IdentityService_GetAccountDeletionStatus_Handler,
+		},
+		{
+			MethodName: "GetPromptSettings",
+			Handler:    _IdentityService_GetPromptSettings_Handler,
+		},
+		{
+			MethodName: "UpsertPromptSetting",
+			Handler:    _IdentityService_UpsertPromptSetting_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
