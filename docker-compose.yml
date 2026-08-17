@@ -384,19 +384,6 @@ services:
       - default
     restart: unless-stopped
 
-  worker:
-    build:
-      context: apps/worker
-      dockerfile: Dockerfile
-    container_name: worker
-    env_file:
-      - apps/worker/.env
-    depends_on:
-      - redis
-      - minio
-    network_mode: host
-    restart: unless-stopped
-
 volumes:
   postgres_data:
   redis_data:

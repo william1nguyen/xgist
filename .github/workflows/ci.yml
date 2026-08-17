@@ -11,8 +11,11 @@ permissions:
   contents: read
 
 jobs:
-  quality:
+  web:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -27,6 +30,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -42,3 +46,20 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+  services:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services/hermes/go.mod
+
+      - name: Build every v2 service
+        run: make build:v2
+
+      - name: Test every v2 service
+        run: make test:v2
