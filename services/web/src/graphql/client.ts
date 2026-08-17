@@ -52,23 +52,21 @@ export const apolloClient = new ApolloClient({
 		typePolicies: {
 			Content: { keyFields: ["mediaId"] },
 			MediaProgress: { keyFields: ["mediaId"] },
-			Query: {
-				fields: {
-					mediaList: {
-						// Keyed by search so switching search terms starts a fresh
-						// cached page instead of merging into the unfiltered list;
-						// cursor pagination within one search term still merges below.
-						keyArgs: ["search"],
-						merge(existing, incoming, { args }) {
-							if (!args?.cursor || !existing) return incoming;
-							return {
-								...incoming,
-								items: [...existing.items, ...incoming.items],
-							};
-						},
-					},
-				},
-			},
+			// PromptSetting has no id field (its natural key is
+			// (user, section), and the user is implicit from the session) —
+			// without this, updatePromptSetting's result normalizes nowhere,
+			// so the promptSettings list query keeps serving the pre-save
+			// value until a full reload. keyFields: ["section"] gives it a
+			// stable identity so the mutation result and the list share one
+			// cache entry.
+			PromptSetting: { keyFields: ["section"] },
+			// mediaList/trashedMedia are true page-replacement pagination
+			// (see _protected._index.tsx's cursor stack), not infinite
+			// scroll — every fetch, including a cursor'd one, is a distinct
+			// page that should replace its own cache slot outright. No
+			// custom keyArgs/merge needed: Apollo already caches each
+			// distinct (cursor, pageSize, search) argument combination
+			// separately by default.
 		},
 	}),
 });

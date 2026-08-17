@@ -1,7 +1,7 @@
-import { LayoutGrid, List, Plus, Search, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { MediaCard } from "@/components/media/media-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,25 +9,42 @@ import {
 	type MediaListQuery,
 	useMediaListQuery,
 } from "@/graphql/generated/graphql";
-import { useDebounce } from "@/hooks/useDebounce";
 import { useMediaProgress } from "@/hooks/useMediaProgress";
 import { TERMINAL_MEDIA_STATUSES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
 
 type MediaItem = MediaListQuery["mediaList"]["items"][number];
-type ViewMode = "grid" | "list";
+
+// 3 columns x 2 rows: keeps cards a readable size instead of shrinking
+// into a dense wall as more columns get added on wide screens.
+const PAGE_SIZE = 6;
 
 export default function DashboardPage() {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
-	const [view, setView] = useState<ViewMode>("grid");
-	const [search, setSearch] = useState("");
-	const debouncedSearch = useDebounce(search, 350);
+	// The search box lives in AppTopBar (outside this route) and drives
+	// this page purely through the ?q= param — already debounced there,
+	// so no second debounce is needed here.
+	const [searchParams] = useSearchParams();
+	const trimmedSearch = searchParams.get("q")?.trim() || undefined;
 
-	const { data, loading, fetchMore } = useMediaListQuery({
+	// cursorStack[i] is the cursor that fetches page i+1; page 0 (the
+	// first page) has no cursor. "Previous" just pops the stack instead
+	// of re-deriving a backward cursor, since mediaList's cursor is
+	// forward-only.
+	const [cursorStack, setCursorStack] = useState<string[]>([]);
+	const pageIndex = cursorStack.length;
+	const currentCursor = cursorStack[cursorStack.length - 1];
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: trimmedSearch isn't read in the body — it's only here to re-run (and reset pagination) whenever the search term changes.
+	useEffect(() => {
+		setCursorStack([]);
+	}, [trimmedSearch]);
+
+	const { data, loading } = useMediaListQuery({
 		variables: {
-			pageSize: 20,
-			search: debouncedSearch.trim() || undefined,
+			cursor: currentCursor,
+			pageSize: PAGE_SIZE,
+			search: trimmedSearch,
 		},
 		fetchPolicy: "cache-and-network",
 		notifyOnNetworkStatusChange: true,
@@ -47,157 +64,97 @@ export default function DashboardPage() {
 		onAuthError: () => navigate("/login", { replace: true }),
 	});
 
-	const sentinelRef = useRef<HTMLDivElement>(null);
-	useEffect(() => {
-		const el = sentinelRef.current;
-		if (!el || !nextCursor) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				if (entry.isIntersecting) {
-					fetchMore({
-						variables: {
-							cursor: nextCursor,
-							pageSize: 20,
-							search: debouncedSearch.trim() || undefined,
-						},
-					});
-				}
-			},
-			{ threshold: 0.1 },
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	}, [nextCursor, fetchMore, debouncedSearch]);
-
 	function handleOpen(media: MediaItem) {
 		if (media.status === "COMPLETED") navigate(`/media/${media.id}`);
 	}
 
-	const isSearching = debouncedSearch.trim() !== "";
+	function goToNextPage() {
+		if (nextCursor) setCursorStack((prev) => [...prev, nextCursor]);
+	}
+
+	function goToPreviousPage() {
+		setCursorStack((prev) => prev.slice(0, -1));
+	}
+
+	const isSearching = trimmedSearch != null;
 
 	return (
-		<div className="flex flex-col gap-5 px-6 py-8 md:px-10">
-			<div className="flex justify-center">
-				<div className="flex w-full max-w-2xl items-center gap-3">
-					<div className="relative flex-1">
-						<Search className="-translate-y-1/2 absolute top-1/2 left-4 size-5 text-muted-foreground" />
-						<input
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							placeholder={t("dashboard.searchPlaceholder")}
-							className="h-12 w-full rounded-xl border border-border bg-background pr-4 pl-11 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-						/>
+		<div className="flex min-h-full flex-col gap-5 px-4 py-6 md:px-6 lg:px-8">
+			<div className="flex flex-1 flex-col gap-5">
+				{loading && items.length === 0 ? (
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{Array.from({ length: PAGE_SIZE }).map((_, i) => (
+							// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders, never reordered
+							<Skeleton key={i} className="h-56" />
+						))}
 					</div>
-					<Button
-						size="lg"
-						onClick={() => navigate("/create")}
-						className="h-12 shrink-0"
-					>
-						<Plus className="size-4" />
-						{t("dashboard.create")}
-					</Button>
-				</div>
-			</div>
-
-			<div className="flex items-center justify-end">
-				<div className="flex items-center gap-1 rounded-lg border border-border p-1">
-					<button
-						type="button"
-						onClick={() => setView("grid")}
-						title={t("dashboard.gridView")}
-						className={cn(
-							"rounded p-1.5 transition-colors",
-							view === "grid"
-								? "bg-muted text-foreground"
-								: "text-muted-foreground hover:text-foreground",
+				) : items.length === 0 ? (
+					<div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-border border-dashed py-28 text-center">
+						<div className="flex size-12 items-center justify-center rounded-full bg-muted">
+							<Sparkles className="size-5 text-muted-foreground" />
+						</div>
+						<div>
+							<p className="font-medium">
+								{isSearching
+									? t("dashboard.emptyTitleSearch")
+									: t("dashboard.emptyTitleDefault")}
+							</p>
+							<p className="mt-1 text-muted-foreground text-sm">
+								{isSearching
+									? t("dashboard.emptyDescSearch", { query: trimmedSearch })
+									: t("dashboard.emptyDescDefault")}
+							</p>
+						</div>
+						{!isSearching && (
+							<Button onClick={() => navigate("/create")}>
+								<Plus className="size-4" />
+								{t("dashboard.create")}
+							</Button>
 						)}
-					>
-						<LayoutGrid className="size-4" />
-					</button>
-					<button
-						type="button"
-						onClick={() => setView("list")}
-						title={t("dashboard.listView")}
-						className={cn(
-							"rounded p-1.5 transition-colors",
-							view === "list"
-								? "bg-muted text-foreground"
-								: "text-muted-foreground hover:text-foreground",
-						)}
-					>
-						<List className="size-4" />
-					</button>
-				</div>
-			</div>
-
-			{loading && items.length === 0 ? (
-				<div
-					className={cn(
-						view === "grid"
-							? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
-							: "flex flex-col gap-2",
-					)}
-				>
-					{Array.from({ length: 12 }).map((_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders, never reordered
-						<Skeleton key={i} className={view === "grid" ? "h-40" : "h-16"} />
-					))}
-				</div>
-			) : items.length === 0 ? (
-				<div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border border-dashed py-28 text-center">
-					<div className="flex size-12 items-center justify-center rounded-full bg-muted">
-						<Sparkles className="size-5 text-muted-foreground" />
 					</div>
-					<div>
-						<p className="font-medium">
-							{isSearching
-								? t("dashboard.emptyTitleSearch")
-								: t("dashboard.emptyTitleDefault")}
-						</p>
-						<p className="mt-1 text-muted-foreground text-sm">
-							{isSearching
-								? t("dashboard.emptyDescSearch", {
-										query: debouncedSearch.trim(),
-									})
-								: t("dashboard.emptyDescDefault")}
-						</p>
+				) : (
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{items.map((item) => {
+							const live = progress.get(item.id);
+							const merged = live ? { ...item, status: live.status } : item;
+							return (
+								<MediaCard
+									key={item.id}
+									media={merged}
+									progress={live}
+									onOpen={handleOpen}
+								/>
+							);
+						})}
 					</div>
-					{!isSearching && (
-						<Button onClick={() => navigate("/create")}>
-							<Plus className="size-4" />
-							{t("dashboard.create")}
-						</Button>
-					)}
-				</div>
-			) : (
-				<div
-					className={cn(
-						view === "grid"
-							? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
-							: "flex flex-col gap-2",
-					)}
-				>
-					{items.map((item) => {
-						const live = progress.get(item.id);
-						const merged = live ? { ...item, status: live.status } : item;
-						return (
-							<MediaCard
-								key={item.id}
-								media={merged}
-								progress={live}
-								view={view}
-								onOpen={handleOpen}
-							/>
-						);
-					})}
-				</div>
-			)}
-
-			<div ref={sentinelRef} className="py-2 text-center">
-				{nextCursor && items.length > 0 && (
-					<div className="inline-block size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
 				)}
 			</div>
+
+			{items.length > 0 && (
+				<div className="mt-auto flex items-center justify-center gap-4 pt-4">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={goToPreviousPage}
+						disabled={pageIndex === 0 || loading}
+					>
+						<ChevronLeft className="size-4" />
+						{t("dashboard.previous")}
+					</Button>
+					<span className="text-muted-foreground text-sm">
+						{t("dashboard.page", { number: pageIndex + 1 })}
+					</span>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={goToNextPage}
+						disabled={!nextCursor || loading}
+					>
+						{t("dashboard.next")}
+						<ChevronRight className="size-4" />
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 }

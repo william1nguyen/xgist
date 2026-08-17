@@ -1,6 +1,8 @@
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
 import { EditMediaDialog } from "@/components/media/edit-media-dialog";
 import { RegenerateDialog } from "@/components/media/regenerate-dialog";
 import { Button } from "@/components/ui/button";
@@ -8,11 +10,13 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
 	type MediaStatus,
 	useContentDetailQuery,
+	useTrashMediaMutation,
 } from "@/graphql/generated/graphql";
 import type { ProcessingOptionId } from "@/lib/constants";
 
@@ -47,9 +51,12 @@ export function MediaActionsMenu({
 	className,
 }: MediaActionsMenuProps) {
 	const { t } = useTranslation();
+	const navigate = useNavigate();
+	const location = useLocation();
 	const [open, setOpen] = useState(false);
 	const [editOpen, setEditOpen] = useState(false);
 	const [regenerateOpen, setRegenerateOpen] = useState(false);
+	const [trashMedia, { loading: trashing }] = useTrashMediaMutation();
 
 	const { data } = useContentDetailQuery({
 		variables: { mediaId },
@@ -71,6 +78,33 @@ export function MediaActionsMenu({
 		OPTIONAL_CONTENT_OPTIONS.filter((id) => present[id]),
 	);
 	const canRegenerate = status === "COMPLETED" || status === "FAILED";
+
+	async function handleTrash() {
+		try {
+			await trashMedia({
+				variables: { id: mediaId },
+				// A field-level cache merge (Media already normalizes by id)
+				// updates status/trashedAt on the cached item just fine, but
+				// it doesn't remove the item from mediaList's cached items
+				// array — nothing re-runs the server's "exclude trashed"
+				// filter client-side. Evicting the entity outright removes
+				// its reference from every list that held it, immediately,
+				// without waiting on a refetch.
+				update(cache) {
+					cache.evict({
+						id: cache.identify({ __typename: "Media", id: mediaId }),
+					});
+					cache.gc();
+				},
+			});
+			toast.success(t("mediaActions.trashedToast"));
+			if (location.pathname === `/media/${mediaId}`) {
+				navigate("/");
+			}
+		} catch {
+			toast.error(t("mediaActions.trashErrorToast"));
+		}
+	}
 
 	return (
 		<>
@@ -99,6 +133,15 @@ export function MediaActionsMenu({
 						onSelect={() => setRegenerateOpen(true)}
 					>
 						{t("mediaActions.generateMore")}
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						variant="destructive"
+						disabled={trashing}
+						onSelect={handleTrash}
+					>
+						<Trash2 className="size-4" />
+						{t("mediaActions.moveToTrash")}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

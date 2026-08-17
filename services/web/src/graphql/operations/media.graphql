@@ -35,6 +35,26 @@ query MediaDetail($id: ID!) {
 	}
 }
 
+query TrashedMedia($cursor: String, $pageSize: Int) {
+	trashedMedia(cursor: $cursor, pageSize: $pageSize) {
+		items {
+			id
+			title
+			mediaType
+			mimeType
+			sizeBytes
+			durationMs
+			status
+			thumbnailUrl
+			createdAt
+			updatedAt
+			description
+			trashedAt
+		}
+		nextCursor
+	}
+}
+
 query MediaProgress($ids: [ID!]!) {
 	mediaProgress(ids: $ids) {
 		mediaId
@@ -110,6 +130,26 @@ mutation UpdateMedia($id: ID!, $title: String, $description: String) {
 		updatedAt
 		description
 	}
+}
+
+mutation TrashMedia($id: ID!) {
+	trashMedia(id: $id) {
+		id
+		status
+		trashedAt
+	}
+}
+
+mutation RestoreMedia($id: ID!) {
+	restoreMedia(id: $id) {
+		id
+		status
+		trashedAt
+	}
+}
+
+mutation DeleteMediaPermanently($id: ID!) {
+	deleteMediaPermanently(id: $id)
 }
 
 mutation RequestProcessing(
