@@ -46,6 +46,14 @@ export default function UsagePage() {
 			byDay.set(d.toISOString().slice(0, 10), 0);
 		}
 		for (const entry of entries) {
+			// Only reserve (credit committed to a request) and release
+			// (unused portion of a reservation given back) net out to actual
+			// spend. purchase/refund top up available credit and aren't
+			// spend; settle always carries delta 0 (see billing's
+			// credit.go) so it wouldn't move the total either way.
+			if (entry.entryType !== "reserve" && entry.entryType !== "release") {
+				continue;
+			}
 			const key = dayKey(entry.createdAt);
 			if (byDay.has(key)) {
 				byDay.set(key, (byDay.get(key) ?? 0) - entry.delta);
