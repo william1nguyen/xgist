@@ -62,6 +62,11 @@ class MediaServiceStub:
                 request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.SignPlaybackUrlRequest.SerializeToString,
                 response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.SignPlaybackUrlResponse.FromString,
                 _registered_method=True)
+        self.GetMediaProgress = channel.unary_unary(
+                '/media_notes.media.v1.MediaService/GetMediaProgress',
+                request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetMediaProgressRequest.SerializeToString,
+                response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetMediaProgressResponse.FromString,
+                _registered_method=True)
         self.RegisterDerivative = channel.unary_unary(
                 '/media_notes.media.v1.MediaService/RegisterDerivative',
                 request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RegisterDerivativeRequest.SerializeToString,
@@ -129,6 +134,16 @@ class MediaServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetMediaProgress(self, request, context):
+        """GetMediaProgress returns a batched processing-status projection for
+        1-50 media items owned by owner_id, per ADR 0005. Unknown and
+        unauthorized ids are both omitted so the API does not reveal whether
+        another user's media exists.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def RegisterDerivative(self, request, context):
         """RegisterDerivative records a durable derivative object (thumbnail,
         cover, or waveform) after conductor-worker has written it to object
@@ -183,6 +198,11 @@ def add_MediaServiceServicer_to_server(servicer, server):
                     servicer.SignPlaybackUrl,
                     request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.SignPlaybackUrlRequest.FromString,
                     response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.SignPlaybackUrlResponse.SerializeToString,
+            ),
+            'GetMediaProgress': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetMediaProgress,
+                    request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetMediaProgressRequest.FromString,
+                    response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetMediaProgressResponse.SerializeToString,
             ),
             'RegisterDerivative': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterDerivative,
@@ -338,6 +358,33 @@ class MediaService:
             '/media_notes.media.v1.MediaService/SignPlaybackUrl',
             media__notes_dot_media_dot_v1_dot_media__pb2.SignPlaybackUrlRequest.SerializeToString,
             media__notes_dot_media_dot_v1_dot_media__pb2.SignPlaybackUrlResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetMediaProgress(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.media.v1.MediaService/GetMediaProgress',
+            media__notes_dot_media_dot_v1_dot_media__pb2.GetMediaProgressRequest.SerializeToString,
+            media__notes_dot_media_dot_v1_dot_media__pb2.GetMediaProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,

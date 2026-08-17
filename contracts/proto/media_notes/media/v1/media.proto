@@ -35,6 +35,11 @@ service MediaService {
   rpc ListMedia(ListMediaRequest) returns (ListMediaResponse);
   // SignPlaybackUrl returns a short-lived signed URL for the source object.
   rpc SignPlaybackUrl(SignPlaybackUrlRequest) returns (SignPlaybackUrlResponse);
+  // GetMediaProgress returns a batched processing-status projection for
+  // 1-50 media items owned by owner_id, per ADR 0005. Unknown and
+  // unauthorized ids are both omitted so the API does not reveal whether
+  // another user's media exists.
+  rpc GetMediaProgress(GetMediaProgressRequest) returns (GetMediaProgressResponse);
   // RegisterDerivative records a durable derivative object (thumbnail,
   // cover, or waveform) after conductor-worker has written it to object
   // storage. Idempotent per (media_id, derivative_type, version).
@@ -97,6 +102,17 @@ enum DeletionState {
   DELETION_STATE_PENDING = 1;
   DELETION_STATE_COMPLETED = 2;
   DELETION_STATE_FAILED_ATTENTION_REQUIRED = 3;
+}
+
+// ProcessingStatus is the lifecycle state of one media item's processing
+// request, as tracked by media (a coarse projection, not the workflow
+// state machine conductor owns).
+enum ProcessingStatus {
+  PROCESSING_STATUS_UNSPECIFIED = 0;
+  PROCESSING_STATUS_REQUESTED = 1;
+  PROCESSING_STATUS_ACCEPTED = 2;
+  PROCESSING_STATUS_COMPLETED = 3;
+  PROCESSING_STATUS_FAILED = 4;
 }
 
 // UploadSession is one in-progress or completed upload.
@@ -198,6 +214,35 @@ message SignPlaybackUrlRequest {
 message SignPlaybackUrlResponse {
   string url = 1;
   google.protobuf.Timestamp expires_at = 2;
+}
+
+// MediaProgress is a batched processing-status projection for one media
+// item, per ADR 0005. completed_steps and total_steps are derived from the
+// processing request's selected options count: conductor does not publish
+// per-step detail into mn.media.status.changed.v1, so this is a coarse
+// workflow-stage indicator, not a guarantee of step-level accuracy. version
+// increments on every applied status transition.
+message MediaProgress {
+  string media_id = 1;
+  MediaStatus status = 2;
+  ProcessingStatus processing_status = 3;
+  int32 completed_steps = 4;
+  int32 total_steps = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  int32 version = 7;
+}
+
+// GetMediaProgressRequest carries the caller-derived owner (never accepted
+// from client input at the hermes boundary) and 1-50 media ids.
+message GetMediaProgressRequest {
+  string owner_id = 1;
+  repeated string media_ids = 2;
+}
+
+// GetMediaProgressResponse returns the progress projection for every
+// requested id that owner_id is authorized to read.
+message GetMediaProgressResponse {
+  repeated MediaProgress items = 1;
 }
 
 // Derivative is one generated derivative object's metadata.

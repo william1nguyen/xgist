@@ -56,6 +56,37 @@ type Page struct {
 	NextCursor string
 }
 
+// ProcessingStatus is the lifecycle state of one media item's processing
+// request, as tracked by media. It mirrors internal/processing.Status;
+// FindProgress reads processing_requests directly rather than importing
+// that package, since it exposes reads only for its own owner (media.Service).
+type ProcessingStatus string
+
+const (
+	ProcessingStatusUnspecified ProcessingStatus = ""
+	ProcessingStatusRequested   ProcessingStatus = "requested"
+	ProcessingStatusAccepted    ProcessingStatus = "accepted"
+	ProcessingStatusCompleted   ProcessingStatus = "completed"
+	ProcessingStatusFailed      ProcessingStatus = "failed"
+)
+
+// Progress is one media item's processing-status projection for hermes's
+// mediaProgress query, per docs/adr/0005-progress-update-delivery.md.
+// CompletedSteps and TotalSteps are derived from the processing request's
+// selected options count: conductor does not publish per-step detail into
+// mn.media.status.changed.v1, so this is a coarse workflow-stage
+// indicator, not a guarantee of step-level accuracy. Version increments on
+// every applied status transition.
+type Progress struct {
+	MediaID          uuid.UUID
+	Status           Status
+	ProcessingStatus ProcessingStatus
+	CompletedSteps   int32
+	TotalSteps       int32
+	UpdatedAt        time.Time
+	Version          int32
+}
+
 // ErrNotFound is returned for an unknown media id, and for a media item in
 // deletion_pending state: a pending deletion is immediately excluded from
 // normal read operations, per ADR 0006.
@@ -72,6 +103,11 @@ type Repository interface {
 	// conductor may report a stale or late transition after deletion
 	// started.
 	ApplyWorkflowStatus(ctx context.Context, mediaID uuid.UUID, status Status) error
+	// FindProgress returns the progress projection for every id in ids
+	// owned by ownerID. An id that is unknown, not owned by ownerID, or
+	// deletion_pending is silently omitted, per ADR 0005 — the API must
+	// not reveal whether another user's media exists.
+	FindProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]Progress, error)
 }
 
 // ObjectSigner signs a short-lived URL for reading an object.
@@ -141,4 +177,10 @@ func (s *Service) SignPlaybackURL(ctx context.Context, id uuid.UUID) (string, ti
 // docs/services/media.md.
 func (s *Service) ApplyWorkflowStatus(ctx context.Context, mediaID uuid.UUID, status Status) error {
 	return s.repo.ApplyWorkflowStatus(ctx, mediaID, status)
+}
+
+// GetProgress returns the processing-status projection for up to 50 media
+// items owned by ownerID, per ADR 0005.
+func (s *Service) GetProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]Progress, error) {
+	return s.repo.FindProgress(ctx, ownerID, ids)
 }

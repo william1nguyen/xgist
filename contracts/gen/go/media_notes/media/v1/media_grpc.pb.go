@@ -33,6 +33,7 @@ const (
 	MediaService_GetMedia_FullMethodName            = "/media_notes.media.v1.MediaService/GetMedia"
 	MediaService_ListMedia_FullMethodName           = "/media_notes.media.v1.MediaService/ListMedia"
 	MediaService_SignPlaybackUrl_FullMethodName     = "/media_notes.media.v1.MediaService/SignPlaybackUrl"
+	MediaService_GetMediaProgress_FullMethodName    = "/media_notes.media.v1.MediaService/GetMediaProgress"
 	MediaService_RegisterDerivative_FullMethodName  = "/media_notes.media.v1.MediaService/RegisterDerivative"
 	MediaService_RequestDeletion_FullMethodName     = "/media_notes.media.v1.MediaService/RequestDeletion"
 	MediaService_GetDeletionStatus_FullMethodName   = "/media_notes.media.v1.MediaService/GetDeletionStatus"
@@ -65,6 +66,11 @@ type MediaServiceClient interface {
 	ListMedia(ctx context.Context, in *ListMediaRequest, opts ...grpc.CallOption) (*ListMediaResponse, error)
 	// SignPlaybackUrl returns a short-lived signed URL for the source object.
 	SignPlaybackUrl(ctx context.Context, in *SignPlaybackUrlRequest, opts ...grpc.CallOption) (*SignPlaybackUrlResponse, error)
+	// GetMediaProgress returns a batched processing-status projection for
+	// 1-50 media items owned by owner_id, per ADR 0005. Unknown and
+	// unauthorized ids are both omitted so the API does not reveal whether
+	// another user's media exists.
+	GetMediaProgress(ctx context.Context, in *GetMediaProgressRequest, opts ...grpc.CallOption) (*GetMediaProgressResponse, error)
 	// RegisterDerivative records a durable derivative object (thumbnail,
 	// cover, or waveform) after conductor-worker has written it to object
 	// storage. Idempotent per (media_id, derivative_type, version).
@@ -137,6 +143,16 @@ func (c *mediaServiceClient) SignPlaybackUrl(ctx context.Context, in *SignPlayba
 	return out, nil
 }
 
+func (c *mediaServiceClient) GetMediaProgress(ctx context.Context, in *GetMediaProgressRequest, opts ...grpc.CallOption) (*GetMediaProgressResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMediaProgressResponse)
+	err := c.cc.Invoke(ctx, MediaService_GetMediaProgress_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mediaServiceClient) RegisterDerivative(ctx context.Context, in *RegisterDerivativeRequest, opts ...grpc.CallOption) (*RegisterDerivativeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RegisterDerivativeResponse)
@@ -194,6 +210,11 @@ type MediaServiceServer interface {
 	ListMedia(context.Context, *ListMediaRequest) (*ListMediaResponse, error)
 	// SignPlaybackUrl returns a short-lived signed URL for the source object.
 	SignPlaybackUrl(context.Context, *SignPlaybackUrlRequest) (*SignPlaybackUrlResponse, error)
+	// GetMediaProgress returns a batched processing-status projection for
+	// 1-50 media items owned by owner_id, per ADR 0005. Unknown and
+	// unauthorized ids are both omitted so the API does not reveal whether
+	// another user's media exists.
+	GetMediaProgress(context.Context, *GetMediaProgressRequest) (*GetMediaProgressResponse, error)
 	// RegisterDerivative records a durable derivative object (thumbnail,
 	// cover, or waveform) after conductor-worker has written it to object
 	// storage. Idempotent per (media_id, derivative_type, version).
@@ -230,6 +251,9 @@ func (UnimplementedMediaServiceServer) ListMedia(context.Context, *ListMediaRequ
 }
 func (UnimplementedMediaServiceServer) SignPlaybackUrl(context.Context, *SignPlaybackUrlRequest) (*SignPlaybackUrlResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SignPlaybackUrl not implemented")
+}
+func (UnimplementedMediaServiceServer) GetMediaProgress(context.Context, *GetMediaProgressRequest) (*GetMediaProgressResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMediaProgress not implemented")
 }
 func (UnimplementedMediaServiceServer) RegisterDerivative(context.Context, *RegisterDerivativeRequest) (*RegisterDerivativeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterDerivative not implemented")
@@ -351,6 +375,24 @@ func _MediaService_SignPlaybackUrl_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediaService_GetMediaProgress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMediaProgressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).GetMediaProgress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_GetMediaProgress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).GetMediaProgress(ctx, req.(*GetMediaProgressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediaService_RegisterDerivative_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterDerivativeRequest)
 	if err := dec(in); err != nil {
@@ -431,6 +473,10 @@ var MediaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignPlaybackUrl",
 			Handler:    _MediaService_SignPlaybackUrl_Handler,
+		},
+		{
+			MethodName: "GetMediaProgress",
+			Handler:    _MediaService_GetMediaProgress_Handler,
 		},
 		{
 			MethodName: "RegisterDerivative",

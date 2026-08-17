@@ -46,6 +46,18 @@ func (f *fakeRepo) ApplyWorkflowStatus(ctx context.Context, mediaID uuid.UUID, s
 	return nil
 }
 
+func (f *fakeRepo) FindProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]media.Progress, error) {
+	var out []media.Progress
+	for _, id := range ids {
+		m, ok := f.byID[id]
+		if !ok || m.OwnerID != ownerID || m.Status == media.StatusDeletionPending {
+			continue
+		}
+		out = append(out, media.Progress{MediaID: m.ID, Status: m.Status, UpdatedAt: m.UpdatedAt})
+	}
+	return out, nil
+}
+
 type fakeSigner struct {
 	url string
 	err error
@@ -131,5 +143,25 @@ func TestApplyWorkflowStatus(t *testing.T) {
 	}
 	if repo.byID[id].Status != media.StatusCompleted {
 		t.Errorf("status = %v, want completed", repo.byID[id].Status)
+	}
+}
+
+func TestGetProgressOmitsUnauthorizedAndUnknownIDs(t *testing.T) {
+	owner := uuid.New()
+	owned := uuid.New()
+	notOwned := uuid.New()
+	unknown := uuid.New()
+	repo := &fakeRepo{byID: map[uuid.UUID]media.Media{
+		owned:    {ID: owned, OwnerID: owner, Status: media.StatusCompleted},
+		notOwned: {ID: notOwned, OwnerID: uuid.New(), Status: media.StatusCompleted},
+	}}
+	svc := media.NewService(repo, &fakeSigner{}, 15*time.Minute)
+
+	items, err := svc.GetProgress(context.Background(), owner, []uuid.UUID{owned, notOwned, unknown})
+	if err != nil {
+		t.Fatalf("GetProgress: %v", err)
+	}
+	if len(items) != 1 || items[0].MediaID != owned {
+		t.Errorf("items = %+v, want only %v", items, owned)
 	}
 }

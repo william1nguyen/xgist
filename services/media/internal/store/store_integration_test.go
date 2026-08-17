@@ -59,10 +59,15 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("connection string: %v", err)
 	}
 
-	migration, err := os.ReadFile("../../migrations/V1__init.sql")
+	v1, err := os.ReadFile("../../migrations/V1__init.sql")
 	if err != nil {
 		t.Fatalf("read migration: %v", err)
 	}
+	v2, err := os.ReadFile("../../migrations/V2__add_media_progress_version.sql")
+	if err != nil {
+		t.Fatalf("read migration: %v", err)
+	}
+	migration := append(append([]byte{}, v1...), v2...)
 
 	// The postgres module reports ready after the log line that precedes
 	// its internal init-then-restart cycle; connecting immediately can
@@ -104,6 +109,7 @@ func TestStoreIntegration(t *testing.T) {
 	deletions := store.NewDeletionRepository(pool)
 	outbox := store.NewOutboxRepository(pool)
 	inbox := store.NewInboxRepository(pool)
+	medias := store.NewMediaRepository(pool)
 
 	t.Run("Create rejects a fourth active upload session", func(t *testing.T) {
 		owner := uuid.New()
@@ -304,6 +310,69 @@ func TestStoreIntegration(t *testing.T) {
 		}
 		if final.State != deletion.StateCompleted {
 			t.Errorf("state = %v, want completed", final.State)
+		}
+	})
+
+	t.Run("FindProgress derives steps from options and omits other owners", func(t *testing.T) {
+		owner := uuid.New()
+		mediaID, sessionID := uuid.New(), uuid.New()
+		session, err := uploads.Create(ctx, mediaID, sessionID, upload.NewUploadSession{
+			OwnerID: owner, Title: "t", MimeType: "video/mp4", DeclaredSizeBytes: 100, IdempotencyKey: uuid.NewString(),
+		}, media.TypeVideo, "media/"+mediaID.String()+"/source", time.Now().Add(time.Hour), 3)
+		if err != nil {
+			t.Fatalf("create: %v", err)
+		}
+		if _, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe", "summarize"}, uuid.NewString()); err != nil {
+			t.Fatalf("confirm: %v", err)
+		}
+
+		otherOwnerID := uuid.New()
+		otherSession, err := uploads.Create(ctx, uuid.New(), uuid.New(), upload.NewUploadSession{
+			OwnerID: otherOwnerID, Title: "t", MimeType: "video/mp4", DeclaredSizeBytes: 100, IdempotencyKey: uuid.NewString(),
+		}, media.TypeVideo, "media/other/source", time.Now().Add(time.Hour), 3)
+		if err != nil {
+			t.Fatalf("create (other owner): %v", err)
+		}
+		if _, err := uploads.Confirm(ctx, otherSession.ID, 100, "video/mp4", nil, uuid.NewString()); err != nil {
+			t.Fatalf("confirm (other owner): %v", err)
+		}
+
+		items, err := medias.FindProgress(ctx, owner, []uuid.UUID{mediaID, otherSession.MediaID, uuid.New()})
+		if err != nil {
+			t.Fatalf("FindProgress: %v", err)
+		}
+		if len(items) != 1 {
+			t.Fatalf("items = %+v, want exactly one owned item", items)
+		}
+		got := items[0]
+		if got.MediaID != mediaID {
+			t.Errorf("media id = %v, want %v", got.MediaID, mediaID)
+		}
+		if got.TotalSteps != 2 {
+			t.Errorf("total steps = %d, want 2 (options count)", got.TotalSteps)
+		}
+		if got.CompletedSteps != 0 {
+			t.Errorf("completed steps = %d, want 0 while processing", got.CompletedSteps)
+		}
+		if got.Version != 1 {
+			t.Errorf("version = %d, want 1 before any workflow-status transition", got.Version)
+		}
+
+		if err := medias.ApplyWorkflowStatus(ctx, mediaID, media.StatusCompleted); err != nil {
+			t.Fatalf("ApplyWorkflowStatus: %v", err)
+		}
+		items, err = medias.FindProgress(ctx, owner, []uuid.UUID{mediaID})
+		if err != nil {
+			t.Fatalf("FindProgress (after completion): %v", err)
+		}
+		if len(items) != 1 {
+			t.Fatalf("items = %+v, want exactly one item", items)
+		}
+		if items[0].Version != 2 {
+			t.Errorf("version = %d, want 2 after one workflow-status transition", items[0].Version)
+		}
+		if items[0].CompletedSteps != items[0].TotalSteps {
+			t.Errorf("completed steps = %d, want %d once completed", items[0].CompletedSteps, items[0].TotalSteps)
 		}
 	})
 

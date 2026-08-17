@@ -53,6 +53,14 @@ class DeletionState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DELETION_STATE_PENDING: _ClassVar[DeletionState]
     DELETION_STATE_COMPLETED: _ClassVar[DeletionState]
     DELETION_STATE_FAILED_ATTENTION_REQUIRED: _ClassVar[DeletionState]
+
+class ProcessingStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    PROCESSING_STATUS_UNSPECIFIED: _ClassVar[ProcessingStatus]
+    PROCESSING_STATUS_REQUESTED: _ClassVar[ProcessingStatus]
+    PROCESSING_STATUS_ACCEPTED: _ClassVar[ProcessingStatus]
+    PROCESSING_STATUS_COMPLETED: _ClassVar[ProcessingStatus]
+    PROCESSING_STATUS_FAILED: _ClassVar[ProcessingStatus]
 MEDIA_TYPE_UNSPECIFIED: MediaType
 MEDIA_TYPE_AUDIO: MediaType
 MEDIA_TYPE_VIDEO: MediaType
@@ -79,6 +87,11 @@ DELETION_STATE_UNSPECIFIED: DeletionState
 DELETION_STATE_PENDING: DeletionState
 DELETION_STATE_COMPLETED: DeletionState
 DELETION_STATE_FAILED_ATTENTION_REQUIRED: DeletionState
+PROCESSING_STATUS_UNSPECIFIED: ProcessingStatus
+PROCESSING_STATUS_REQUESTED: ProcessingStatus
+PROCESSING_STATUS_ACCEPTED: ProcessingStatus
+PROCESSING_STATUS_COMPLETED: ProcessingStatus
+PROCESSING_STATUS_FAILED: ProcessingStatus
 
 class UploadSession(_message.Message):
     __slots__ = ("id", "media_id", "owner_id", "object_key", "upload_url", "status", "expires_at")
@@ -205,6 +218,38 @@ class SignPlaybackUrlResponse(_message.Message):
     url: str
     expires_at: _timestamp_pb2.Timestamp
     def __init__(self, url: _Optional[str] = ..., expires_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
+class MediaProgress(_message.Message):
+    __slots__ = ("media_id", "status", "processing_status", "completed_steps", "total_steps", "updated_at", "version")
+    MEDIA_ID_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    PROCESSING_STATUS_FIELD_NUMBER: _ClassVar[int]
+    COMPLETED_STEPS_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_STEPS_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    media_id: str
+    status: MediaStatus
+    processing_status: ProcessingStatus
+    completed_steps: int
+    total_steps: int
+    updated_at: _timestamp_pb2.Timestamp
+    version: int
+    def __init__(self, media_id: _Optional[str] = ..., status: _Optional[_Union[MediaStatus, str]] = ..., processing_status: _Optional[_Union[ProcessingStatus, str]] = ..., completed_steps: _Optional[int] = ..., total_steps: _Optional[int] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., version: _Optional[int] = ...) -> None: ...
+
+class GetMediaProgressRequest(_message.Message):
+    __slots__ = ("owner_id", "media_ids")
+    OWNER_ID_FIELD_NUMBER: _ClassVar[int]
+    MEDIA_IDS_FIELD_NUMBER: _ClassVar[int]
+    owner_id: str
+    media_ids: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, owner_id: _Optional[str] = ..., media_ids: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class GetMediaProgressResponse(_message.Message):
+    __slots__ = ("items",)
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    items: _containers.RepeatedCompositeFieldContainer[MediaProgress]
+    def __init__(self, items: _Optional[_Iterable[_Union[MediaProgress, _Mapping]]] = ...) -> None: ...
 
 class Derivative(_message.Message):
     __slots__ = ("id", "media_id", "derivative_type", "version", "mime_type", "width", "height", "size_bytes", "status")

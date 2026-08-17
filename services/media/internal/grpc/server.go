@@ -28,6 +28,7 @@ type MediaService interface {
 	GetMedia(ctx context.Context, id uuid.UUID) (media.Media, error)
 	ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (media.Page, error)
 	SignPlaybackURL(ctx context.Context, id uuid.UUID) (string, time.Time, error)
+	GetProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]media.Progress, error)
 }
 
 // UploadService is the upload application-service boundary the server
@@ -152,6 +153,40 @@ func (s *Server) SignPlaybackUrl(ctx context.Context, req *mediav1.SignPlaybackU
 		return nil, mapError(err)
 	}
 	return &mediav1.SignPlaybackUrlResponse{Url: url, ExpiresAt: timestamppb.New(expiresAt)}, nil
+}
+
+// maxProgressBatch is the per-request media id cap for GetMediaProgress,
+// per ADR 0005.
+const maxProgressBatch = 50
+
+func (s *Server) GetMediaProgress(ctx context.Context, req *mediav1.GetMediaProgressRequest) (*mediav1.GetMediaProgressResponse, error) {
+	ownerID, err := uuid.Parse(req.GetOwnerId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "owner_id must be a UUID")
+	}
+	if len(req.GetMediaIds()) == 0 || len(req.GetMediaIds()) > maxProgressBatch {
+		return nil, status.Error(codes.InvalidArgument, "media_ids must contain 1-50 items")
+	}
+
+	ids := make([]uuid.UUID, 0, len(req.GetMediaIds()))
+	for _, raw := range req.GetMediaIds() {
+		id, err := uuid.Parse(raw)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "media_ids must be UUIDs")
+		}
+		ids = append(ids, id)
+	}
+
+	items, err := s.media.GetProgress(ctx, ownerID, ids)
+	if err != nil {
+		return nil, mapError(err)
+	}
+
+	out := make([]*mediav1.MediaProgress, 0, len(items))
+	for _, p := range items {
+		out = append(out, toProtoMediaProgress(p))
+	}
+	return &mediav1.GetMediaProgressResponse{Items: out}, nil
 }
 
 func (s *Server) RegisterDerivative(ctx context.Context, req *mediav1.RegisterDerivativeRequest) (*mediav1.RegisterDerivativeResponse, error) {
@@ -285,6 +320,33 @@ func toProtoMediaStatus(s media.Status) mediav1.MediaStatus {
 		return mediav1.MediaStatus_MEDIA_STATUS_DELETION_PENDING
 	default:
 		return mediav1.MediaStatus_MEDIA_STATUS_UNSPECIFIED
+	}
+}
+
+func toProtoMediaProgress(p media.Progress) *mediav1.MediaProgress {
+	return &mediav1.MediaProgress{
+		MediaId:          p.MediaID.String(),
+		Status:           toProtoMediaStatus(p.Status),
+		ProcessingStatus: toProtoProcessingStatus(p.ProcessingStatus),
+		CompletedSteps:   p.CompletedSteps,
+		TotalSteps:       p.TotalSteps,
+		UpdatedAt:        timestamppb.New(p.UpdatedAt),
+		Version:          p.Version,
+	}
+}
+
+func toProtoProcessingStatus(s media.ProcessingStatus) mediav1.ProcessingStatus {
+	switch s {
+	case media.ProcessingStatusRequested:
+		return mediav1.ProcessingStatus_PROCESSING_STATUS_REQUESTED
+	case media.ProcessingStatusAccepted:
+		return mediav1.ProcessingStatus_PROCESSING_STATUS_ACCEPTED
+	case media.ProcessingStatusCompleted:
+		return mediav1.ProcessingStatus_PROCESSING_STATUS_COMPLETED
+	case media.ProcessingStatusFailed:
+		return mediav1.ProcessingStatus_PROCESSING_STATUS_FAILED
+	default:
+		return mediav1.ProcessingStatus_PROCESSING_STATUS_UNSPECIFIED
 	}
 }
 

@@ -92,10 +92,40 @@ func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor st
 
 func (r *MediaRepository) ApplyWorkflowStatus(ctx context.Context, mediaID uuid.UUID, status media.Status) error {
 	_, err := r.pool.Exec(ctx, `
-		UPDATE media SET status = $2, updated_at = now()
+		UPDATE media SET status = $2, updated_at = now(), version = version + 1
 		WHERE id = $1 AND status != 'deletion_pending'
 	`, mediaID, string(status))
 	return err
+}
+
+func (r *MediaRepository) FindProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]media.Progress, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT m.id, m.status, m.updated_at, m.version,
+		       COALESCE(pr.status, ''), COALESCE(jsonb_array_length(pr.options), 0)
+		FROM media m
+		LEFT JOIN processing_requests pr ON pr.media_id = m.id
+		WHERE m.owner_id = $1 AND m.id = ANY($2) AND m.status != 'deletion_pending'
+	`, ownerID, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []media.Progress
+	for rows.Next() {
+		var p media.Progress
+		var status, processingStatus string
+		if err := rows.Scan(&p.MediaID, &status, &p.UpdatedAt, &p.Version, &processingStatus, &p.TotalSteps); err != nil {
+			return nil, err
+		}
+		p.Status = media.Status(status)
+		p.ProcessingStatus = media.ProcessingStatus(processingStatus)
+		if p.Status == media.StatusCompleted {
+			p.CompletedSteps = p.TotalSteps
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
 }
 
 func encodeCursor(m media.Media) string {
