@@ -171,7 +171,6 @@ export default function MediaDetailPage() {
 						</div>
 					)}
 					<MediaDescription
-						mediaId={media.id}
 						mediaTitle={media.title}
 						createdAt={media.createdAt}
 						description={media.description}
@@ -179,7 +178,7 @@ export default function MediaDetailPage() {
 						keywords={content?.keywords ?? []}
 						keypoints={content?.keypoints ?? []}
 						notes={content?.notes ?? []}
-						hasAudio={(content?.summaryAudios.length ?? 0) > 0}
+						summaryAudios={content?.summaryAudios ?? []}
 						audioGenerating={
 							status === "PROCESSING" && (content?.summaries.length ?? 0) > 0
 						}

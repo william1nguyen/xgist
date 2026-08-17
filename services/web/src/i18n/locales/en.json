@@ -170,8 +170,7 @@
 		"exitFullscreen": "Exit full screen",
 		"viewNotes": "View notes",
 		"listenToAudio": "Listen to audio summary",
-		"audioGenerating": "Generating audio summary…",
-		"backToMedia": "Back to media"
+		"audioGenerating": "Generating audio summary…"
 	},
 	"video": {
 		"noKeypoints": "No keypoints available yet.",

@@ -170,8 +170,7 @@
 		"exitFullscreen": "Thoát toàn màn hình",
 		"viewNotes": "Xem ghi chú",
 		"listenToAudio": "Nghe audio tóm tắt",
-		"audioGenerating": "Đang tạo audio tóm tắt…",
-		"backToMedia": "Quay lại media"
+		"audioGenerating": "Đang tạo audio tóm tắt…"
 	},
 	"video": {
 		"noKeypoints": "Chưa có ý chính nào.",

@@ -1,7 +1,6 @@
 import { FileText, Loader2, Volume2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -9,6 +8,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { AudioSummaryPanel } from "@/components/video/audio-summary-panel";
 import { KeypointsPanel } from "@/components/video/keypoints-panel";
 import { KeywordsPanel } from "@/components/video/keywords-panel";
 import { NotesPanel } from "@/components/video/notes-panel";
@@ -19,7 +19,6 @@ import { relativeTime } from "@/lib/format";
 type Content = ContentDetailQuery["contentDetail"];
 
 type MediaDescriptionProps = {
-	mediaId: string;
 	mediaTitle: string;
 	createdAt: string;
 	description: string | null | undefined;
@@ -27,7 +26,7 @@ type MediaDescriptionProps = {
 	keywords: Content["keywords"];
 	keypoints: Content["keypoints"];
 	notes: Content["notes"];
-	hasAudio: boolean;
+	summaryAudios: Content["summaryAudios"];
 	// True while an audio summary looks like it's being generated: the
 	// media item is processing and already has a summary (audio always
 	// depends on one) but no audio yet. There's no per-step signal from
@@ -40,7 +39,6 @@ type MediaDescriptionProps = {
 };
 
 export function MediaDescription({
-	mediaId,
 	mediaTitle,
 	createdAt,
 	description,
@@ -48,7 +46,7 @@ export function MediaDescription({
 	keywords,
 	keypoints,
 	notes,
-	hasAudio,
+	summaryAudios,
 	audioGenerating,
 	onHoverIndices,
 	onSeekToIndex,
@@ -56,7 +54,9 @@ export function MediaDescription({
 	const { t } = useTranslation();
 	const [expanded, setExpanded] = useState(false);
 	const [notesOpen, setNotesOpen] = useState(false);
+	const [audioOpen, setAudioOpen] = useState(false);
 	const text = description?.trim();
+	const hasAudio = summaryAudios.length > 0;
 
 	return (
 		<div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
@@ -128,11 +128,13 @@ export function MediaDescription({
 						</Button>
 					)}
 					{hasAudio ? (
-						<Button variant="outline" size="sm" asChild>
-							<Link to={`/media/${mediaId}/audio`}>
-								<Volume2 className="size-3.5" />
-								{t("mediaDetail.listenToAudio")}
-							</Link>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setAudioOpen(true)}
+						>
+							<Volume2 className="size-3.5" />
+							{t("mediaDetail.listenToAudio")}
 						</Button>
 					) : (
 						audioGenerating && (
@@ -151,6 +153,15 @@ export function MediaDescription({
 						<DialogTitle>{t("mediaDetail.tabNotes")}</DialogTitle>
 					</DialogHeader>
 					<NotesPanel notes={notes} mediaTitle={mediaTitle} />
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={audioOpen} onOpenChange={setAudioOpen}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>{t("mediaDetail.listenToAudio")}</DialogTitle>
+					</DialogHeader>
+					<AudioSummaryPanel audios={summaryAudios} />
 				</DialogContent>
 			</Dialog>
 		</div>
