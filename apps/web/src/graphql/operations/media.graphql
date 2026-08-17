@@ -1,0 +1,91 @@
+query MediaList($cursor: String, $pageSize: Int) {
+	mediaList(cursor: $cursor, pageSize: $pageSize) {
+		items {
+			id
+			title
+			mediaType
+			mimeType
+			sizeBytes
+			durationMs
+			status
+			thumbnailUrl
+			createdAt
+			updatedAt
+		}
+		nextCursor
+	}
+}
+
+query MediaDetail($id: ID!) {
+	mediaDetail(id: $id) {
+		id
+		title
+		mediaType
+		mimeType
+		sizeBytes
+		durationMs
+		status
+		thumbnailUrl
+		playbackUrl
+		playbackUrlExpiresAt
+		createdAt
+		updatedAt
+	}
+}
+
+query MediaProgress($ids: [ID!]!) {
+	mediaProgress(ids: $ids) {
+		mediaId
+		status
+		processingStatus
+		completedSteps
+		totalSteps
+		updatedAt
+		version
+	}
+}
+
+mutation CreateUploadSession(
+	$title: String!
+	$mimeType: String!
+	$declaredSizeBytes: Int!
+	$idempotencyKey: String
+) {
+	createUploadSession(
+		title: $title
+		mimeType: $mimeType
+		declaredSizeBytes: $declaredSizeBytes
+		idempotencyKey: $idempotencyKey
+	) {
+		id
+		mediaId
+		uploadUrl
+		status
+		expiresAt
+	}
+}
+
+mutation ConfirmUpload(
+	$uploadSessionId: ID!
+	$options: [String!]!
+	$idempotencyKey: String
+) {
+	confirmUpload(
+		uploadSessionId: $uploadSessionId
+		options: $options
+		idempotencyKey: $idempotencyKey
+	) {
+		id
+		title
+		mediaType
+		mimeType
+		sizeBytes
+		durationMs
+		status
+		thumbnailUrl
+		playbackUrl
+		playbackUrlExpiresAt
+		createdAt
+		updatedAt
+	}
+}

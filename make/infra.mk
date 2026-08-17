@@ -32,8 +32,11 @@ infra\:kafka-topics: ## Create v2 Kafka topics (idempotent)
 		mn.media.deletion.requested.v1 \
 		mn.media.deletion.completed.v1 \
 		mn.media.status.changed.v1 \
+		mn.processing.step.requested.v1 \
 		mn.processing.step.completed.v1 \
+		mn.processing.step.failed.v1 \
 		mn.content.deletion.completed.v1 \
+		mn.conductor.deletion.completed.v1 \
 	; do \
 		$(COMPOSE) exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
 			--create --if-not-exists --topic $$topic --partitions 6 --replication-factor 1; \

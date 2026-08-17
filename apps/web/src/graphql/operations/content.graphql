@@ -1,0 +1,53 @@
+query ContentDetail($mediaId: ID!) {
+	contentDetail(mediaId: $mediaId) {
+		mediaId
+		version
+		transcript {
+			language
+			text
+			segments {
+				segmentIndex
+				startMs
+				endMs
+				speaker
+				text
+			}
+		}
+		summaries {
+			summaryType
+			text
+			model
+			promptVersion
+			createdAt
+			sentences {
+				sentenceIndex
+				text
+				citedSegmentIndexes
+			}
+		}
+		keywords {
+			keyword
+			score
+			position
+		}
+		keypoints {
+			pointIndex
+			text
+			startSegment
+			endSegment
+		}
+		notes {
+			format
+			body
+			createdAt
+		}
+		summaryAudios {
+			summaryType
+			mimeType
+			durationMs
+			voice
+			status
+			url
+		}
+	}
+}

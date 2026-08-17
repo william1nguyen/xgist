@@ -97,23 +97,33 @@ services:
       - default
     restart: unless-stopped
 
+  # Every service below this point runs with network_mode: host instead of
+  # joining the `default` bridge network: they use the exact same
+  # `localhost:<port>` addresses as services/*/.env.example already assumes
+  # for `go run` on the host, so presigned MinIO URLs media hands back stay
+  # usable from a browser on the host too (the bridge-network alternative
+  # signs them with the container-only hostname `minio`, which nothing
+  # outside the compose network can resolve). This is the same fix v1's
+  # `worker` service used. `ports:`/`networks:` are omitted on these
+  # services — meaningless under host networking, since the container binds
+  # the host's ports directly.
+
   identity-migrate:
     image: flyway/flyway:11
     container_name: identity-migrate
     profiles: ["app"]
+    network_mode: host
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./services/identity/migrations:/flyway/migrations:ro
     command: >
-      -url=jdbc:postgresql://postgres:5432/identity
+      -url=jdbc:postgresql://localhost:5432/identity
       -user=identity -password=identity
       -locations=filesystem:/flyway/migrations
       -connectRetries=10
       migrate
-    networks:
-      - default
 
   identity:
     build:
@@ -121,41 +131,36 @@ services:
       dockerfile: services/identity/identity.dockerfile
     container_name: identity
     profiles: ["app"]
+    network_mode: host
     environment:
-      DATABASE_URL: postgres://identity:identity@postgres:5432/identity?sslmode=disable
-      KAFKA_BROKERS: kafka:29092
+      DATABASE_URL: postgres://identity:identity@localhost:5432/identity?sslmode=disable
+      KAFKA_BROKERS: localhost:9092
       IDENTITY_HTTP_ADDR: :8081
       IDENTITY_GRPC_ADDR: :9091
       LOG_LEVEL: info
-    ports:
-      - "8081:8081"
-      - "9091:9091"
     depends_on:
       identity-migrate:
         condition: service_completed_successfully
       kafka:
         condition: service_started
-    networks:
-      - default
     restart: unless-stopped
 
   billing-migrate:
     image: flyway/flyway:11
     container_name: billing-migrate
     profiles: ["app"]
+    network_mode: host
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./services/billing/migrations:/flyway/migrations:ro
     command: >
-      -url=jdbc:postgresql://postgres:5432/billing
+      -url=jdbc:postgresql://localhost:5432/billing
       -user=billing -password=billing
       -locations=filesystem:/flyway/migrations
       -connectRetries=10
       migrate
-    networks:
-      - default
 
   billing:
     build:
@@ -163,42 +168,39 @@ services:
       dockerfile: services/billing/billing.dockerfile
     container_name: billing
     profiles: ["app"]
+    network_mode: host
     environment:
-      DATABASE_URL: postgres://billing:billing@postgres:5432/billing?sslmode=disable
-      KAFKA_BROKERS: kafka:29092
+      DATABASE_URL: postgres://billing:billing@localhost:5432/billing?sslmode=disable
+      KAFKA_BROKERS: localhost:9092
       BILLING_HTTP_ADDR: :8082
       BILLING_GRPC_ADDR: :9093
+      # Polar isn't needed to run the service — this only verifies inbound
+      # webhook signatures, checked lazily per-request, not at startup.
       BILLING_POLAR_WEBHOOK_SECRET: ${BILLING_POLAR_WEBHOOK_SECRET:-}
       LOG_LEVEL: info
-    ports:
-      - "8082:8082"
-      - "9093:9093"
     depends_on:
       billing-migrate:
         condition: service_completed_successfully
       kafka:
         condition: service_started
-    networks:
-      - default
     restart: unless-stopped
 
   media-migrate:
     image: flyway/flyway:11
     container_name: media-migrate
     profiles: ["app"]
+    network_mode: host
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./services/media/migrations:/flyway/migrations:ro
     command: >
-      -url=jdbc:postgresql://postgres:5432/media
+      -url=jdbc:postgresql://localhost:5432/media
       -user=media -password=media
       -locations=filesystem:/flyway/migrations
       -connectRetries=10
       migrate
-    networks:
-      - default
 
   media:
     build:
@@ -206,20 +208,21 @@ services:
       dockerfile: services/media/media.dockerfile
     container_name: media
     profiles: ["app"]
+    network_mode: host
     environment:
-      DATABASE_URL: postgres://media:media@postgres:5432/media?sslmode=disable
-      KAFKA_BROKERS: kafka:29092
+      DATABASE_URL: postgres://media:media@localhost:5432/media?sslmode=disable
+      KAFKA_BROKERS: localhost:9092
       MEDIA_HTTP_ADDR: :8083
       MEDIA_GRPC_ADDR: :19095
-      MINIO_ENDPOINT: minio:9000
+      # localhost:9002 is minio's published S3-API port (see the minio
+      # service's `ports:` above) — the same address a browser on the host
+      # uses, so presigned URLs media signs are valid for both.
+      MINIO_ENDPOINT: localhost:9002
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       MINIO_USE_SSL: "false"
       MINIO_MEDIA_BUCKET: media
       LOG_LEVEL: info
-    ports:
-      - "8083:8083"
-      - "19095:19095"
     depends_on:
       media-migrate:
         condition: service_completed_successfully
@@ -227,27 +230,24 @@ services:
         condition: service_started
       minio:
         condition: service_started
-    networks:
-      - default
     restart: unless-stopped
 
   content-migrate:
     image: flyway/flyway:11
     container_name: content-migrate
     profiles: ["app"]
+    network_mode: host
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./services/content/migrations:/flyway/migrations:ro
     command: >
-      -url=jdbc:postgresql://postgres:5432/content
+      -url=jdbc:postgresql://localhost:5432/content
       -user=content -password=content
       -locations=filesystem:/flyway/migrations
       -connectRetries=10
       migrate
-    networks:
-      - default
 
   content:
     build:
@@ -255,22 +255,20 @@ services:
       dockerfile: services/content/content.dockerfile
     container_name: content
     profiles: ["app"]
+    network_mode: host
     environment:
-      DATABASE_URL: postgres://content:content@postgres:5432/content?sslmode=disable
-      KAFKA_BROKERS: kafka:29092
+      DATABASE_URL: postgres://content:content@localhost:5432/content?sslmode=disable
+      KAFKA_BROKERS: localhost:9092
       CONTENT_HTTP_ADDR: :8084
       CONTENT_GRPC_ADDR: :9095
       # Presigns summary-audio playback URLs (see internal/objectstore) —
       # same bucket media writes to, since worker uploads audio there.
-      MINIO_ENDPOINT: minio:9000
+      MINIO_ENDPOINT: localhost:9002
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       MINIO_USE_SSL: "false"
       MINIO_MEDIA_BUCKET: media
       LOG_LEVEL: info
-    ports:
-      - "8084:8084"
-      - "9095:9095"
     depends_on:
       content-migrate:
         condition: service_completed_successfully
@@ -278,27 +276,24 @@ services:
         condition: service_started
       minio:
         condition: service_started
-    networks:
-      - default
     restart: unless-stopped
 
   conductor-migrate:
     image: flyway/flyway:11
     container_name: conductor-migrate
     profiles: ["app"]
+    network_mode: host
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./services/conductor/migrations:/flyway/migrations:ro
     command: >
-      -url=jdbc:postgresql://postgres:5432/workflow
+      -url=jdbc:postgresql://localhost:5432/workflow
       -user=conductor -password=conductor
       -locations=filesystem:/flyway/migrations
       -connectRetries=10
       migrate
-    networks:
-      - default
 
   conductor:
     build:
@@ -306,43 +301,37 @@ services:
       dockerfile: services/conductor/conductor.dockerfile
     container_name: conductor
     profiles: ["app"]
+    network_mode: host
     environment:
-      DATABASE_URL: postgres://conductor:conductor@postgres:5432/workflow?sslmode=disable
-      KAFKA_BROKERS: kafka:29092
+      DATABASE_URL: postgres://conductor:conductor@localhost:5432/workflow?sslmode=disable
+      KAFKA_BROKERS: localhost:9092
       CONDUCTOR_HTTP_ADDR: :8085
       # conductor calls media and billing as a gRPC client (it has no
       # gRPC server of its own) — see docs/services/conductor.md.
-      CONDUCTOR_MEDIA_GRPC_ADDR: media:19095
-      CONDUCTOR_BILLING_GRPC_ADDR: billing:9093
+      CONDUCTOR_MEDIA_GRPC_ADDR: localhost:19095
+      CONDUCTOR_BILLING_GRPC_ADDR: localhost:9093
       LOG_LEVEL: info
-    ports:
-      - "8085:8085"
     depends_on:
       conductor-migrate:
         condition: service_completed_successfully
       kafka:
         condition: service_started
-    networks:
-      - default
     restart: unless-stopped
 
   # conductor-worker: the Python executor pool (Whisper/Gemini/TTS/FFmpeg)
   # described in docs/services/worker.md, built from services/worker/.
-  # Named distinctly from the legacy `worker` service below (apps/worker,
-  # the v1 Redis-based pipeline), which is left running as-is — it isn't
-  # part of the v2 Kafka architecture this stands up, and retiring it is a
-  # separate decision.
   conductor-worker:
     build:
       context: .
       dockerfile: services/worker/worker.dockerfile
     container_name: conductor-worker
     profiles: ["app"]
+    network_mode: host
     environment:
-      KAFKA_BROKERS: kafka:29092
-      WORKER_MEDIA_GRPC_ADDR: media:19095
-      WORKER_CONTENT_GRPC_ADDR: content:9095
-      MINIO_ENDPOINT: minio:9000
+      KAFKA_BROKERS: localhost:9092
+      WORKER_MEDIA_GRPC_ADDR: localhost:19095
+      WORKER_CONTENT_GRPC_ADDR: localhost:9095
+      MINIO_ENDPOINT: localhost:9002
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       MINIO_USE_SSL: "false"
@@ -357,8 +346,6 @@ services:
         condition: service_started
       minio:
         condition: service_started
-    networks:
-      - default
     restart: unless-stopped
 
   hermes:
@@ -367,17 +354,16 @@ services:
       dockerfile: services/hermes/hermes.dockerfile
     container_name: hermes
     profiles: ["app"]
+    network_mode: host
     environment:
       HERMES_HTTP_ADDR: :8086
-      HERMES_IDENTITY_GRPC_ADDR: identity:9091
-      HERMES_BILLING_GRPC_ADDR: billing:9093
-      HERMES_MEDIA_GRPC_ADDR: media:19095
-      HERMES_CONTENT_GRPC_ADDR: content:9095
-      REDIS_ADDR: redis:6379
+      HERMES_IDENTITY_GRPC_ADDR: localhost:9091
+      HERMES_BILLING_GRPC_ADDR: localhost:9093
+      HERMES_MEDIA_GRPC_ADDR: localhost:19095
+      HERMES_CONTENT_GRPC_ADDR: localhost:9095
+      REDIS_ADDR: localhost:6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redisadmin}
       LOG_LEVEL: info
-    ports:
-      - "8086:8086"
     depends_on:
       identity:
         condition: service_started
@@ -389,8 +375,18 @@ services:
         condition: service_started
       redis:
         condition: service_started
-    networks:
-      - default
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: web
+    profiles: ["app"]
+    network_mode: host
+    depends_on:
+      hermes:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
