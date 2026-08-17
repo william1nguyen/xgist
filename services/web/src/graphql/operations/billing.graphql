@@ -1,0 +1,39 @@
+query Quote($options: [String!]!) {
+	quote(options: $options) {
+		id
+		catalogVersion
+		totalCredits
+		expiresAt
+		items {
+			itemId
+			credits
+		}
+	}
+}
+
+query CreditLedgerHistory($cursor: String, $pageSize: Int) {
+	creditLedgerHistory(cursor: $cursor, pageSize: $pageSize) {
+		items {
+			id
+			delta
+			entryType
+			itemId
+			createdAt
+		}
+		nextCursor
+	}
+}
+
+query BillingSummary {
+	billingSummary {
+		availableCredits
+		reservedCredits
+		subscription {
+			id
+			plan
+			status
+			periodStart
+			periodEnd
+		}
+	}
+}
