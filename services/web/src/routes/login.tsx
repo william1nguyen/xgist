@@ -1,22 +1,33 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate, useNavigate } from "react-router";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 
+// Only ever redirect back into this app's own SPA routes. A bare "/foo"
+// is safe; "//evil.com" or "https://evil.com" parse as protocol-relative/
+// absolute URLs a browser would actually navigate to, so anything not
+// starting with exactly one "/" is rejected in favor of the default.
+function safeRedirectTarget(raw: string | null): string {
+	if (raw?.startsWith("/") && !raw.startsWith("//")) return raw;
+	return "/";
+}
+
 export default function LoginPage() {
 	const { t } = useTranslation();
 	const { user, loading, login } = useAuth();
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const redirectTo = safeRedirectTarget(searchParams.get("redirect"));
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 
-	if (!loading && user) return <Navigate to="/" replace />;
+	if (!loading && user) return <Navigate to={redirectTo} replace />;
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -24,7 +35,7 @@ export default function LoginPage() {
 		setSubmitting(true);
 		try {
 			await login(email, password);
-			navigate("/", { replace: true });
+			navigate(redirectTo, { replace: true });
 		} catch {
 			setError(t("auth.invalidCredentials"));
 		} finally {

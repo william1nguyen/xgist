@@ -7,7 +7,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { setUnauthenticatedHandler } from "@/graphql/client";
 import {
 	type MeQuery,
@@ -32,6 +32,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const apollo = useApolloClient();
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -42,8 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	const handleUnauthenticated = useCallback(() => {
 		setUser(null);
-		navigate("/login", { replace: true });
-	}, [navigate]);
+		const redirect = encodeURIComponent(location.pathname + location.search);
+		navigate(`/login?redirect=${redirect}`, { replace: true });
+	}, [navigate, location]);
 
 	useEffect(() => {
 		setUnauthenticatedHandler(handleUnauthenticated);
