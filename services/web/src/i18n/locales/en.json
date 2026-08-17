@@ -15,19 +15,19 @@
 		"create": "Create",
 		"billing": "Billing",
 		"usage": "Usage",
+		"trash": "Trash",
 		"settings": "Settings",
 		"signOut": "Sign out",
 		"openMenu": "Open menu",
 		"closeMenu": "Close menu",
-		"expandSidebar": "Expand sidebar",
-		"collapseSidebar": "Collapse sidebar",
 		"toggleTheme": "Toggle theme"
 	},
 	"dashboard": {
 		"searchPlaceholder": "Search your media…",
 		"create": "Create",
-		"gridView": "Grid view",
-		"listView": "List view",
+		"previous": "Previous",
+		"next": "Next",
+		"page": "Page {{number}}",
 		"emptyTitleSearch": "No matches",
 		"emptyTitleDefault": "No media yet",
 		"emptyDescSearch": "Nothing matches \"{{query}}\".",
@@ -36,7 +36,10 @@
 	"mediaActions": {
 		"moreOptions": "More options",
 		"editDetails": "Edit details",
-		"generateMore": "Generate more content"
+		"generateMore": "Generate more content",
+		"moveToTrash": "Move to trash",
+		"trashedToast": "Moved to trash",
+		"trashErrorToast": "Couldn't move to trash. Try again."
 	},
 	"status": {
 		"PENDING_UPLOAD": "Pending",
@@ -157,7 +160,16 @@
 		"tabAudio": "Audio",
 		"contentPending": "Generated content will appear here as it's ready.",
 		"contentNone": "No generated content available.",
-		"stepsCount": "{{completed}}/{{total}} steps"
+		"stepsCount": "{{completed}}/{{total}} steps",
+		"recommended": "Recommended for you",
+		"showMore": "Show more",
+		"showLess": "Show less",
+		"noDescription": "No description provided.",
+		"fullscreen": "Full screen",
+		"exitFullscreen": "Exit full screen",
+		"viewNotes": "View notes",
+		"listenToAudio": "Listen to audio summary",
+		"backToMedia": "Back to media"
 	},
 	"video": {
 		"noKeypoints": "No keypoints available yet.",
@@ -192,6 +204,23 @@
 		"creatingAccount": "Creating account…",
 		"registerFailed": "Couldn't create that account — the email may already be registered.",
 		"haveAccount": "Already have an account?"
+	},
+	"trash": {
+		"title": "Trash",
+		"description": "Items you've deleted stay here for 30 days before they're permanently removed.",
+		"emptyTitle": "Trash is empty",
+		"emptyDescription": "Media you move to the trash will show up here.",
+		"trashedAt": "Trashed {{time}}",
+		"purgesIn": "Permanently deleted in {{days}} days",
+		"restore": "Restore",
+		"restoredToast": "Media restored",
+		"restoreErrorToast": "Couldn't restore. Try again.",
+		"deletePermanently": "Delete permanently",
+		"deleting": "Deleting…",
+		"deletedToast": "Deleted permanently",
+		"deleteErrorToast": "Couldn't delete. Try again.",
+		"confirmTitle": "Delete this media permanently?",
+		"confirmDescription": "This removes the media, its transcript, and every generated content item. This cannot be undone."
 	},
 	"usage": {
 		"title": "Usage",

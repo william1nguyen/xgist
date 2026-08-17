@@ -1,4 +1,6 @@
-import { useEffect, useRef } from "react";
+import { Maximize, Minimize } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { MediaType } from "@/graphql/generated/graphql";
 
 type MediaPlayerProps = {
@@ -16,7 +18,10 @@ export function MediaPlayer({
 	seekToMs,
 	onTimeUpdateMs,
 }: MediaPlayerProps) {
+	const { t } = useTranslation();
 	const ref = useRef<HTMLVideoElement & HTMLAudioElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [isFullscreen, setIsFullscreen] = useState(false);
 
 	useEffect(() => {
 		if (seekToMs == null || !ref.current) return;
@@ -24,17 +29,54 @@ export function MediaPlayer({
 		ref.current.play().catch(() => {});
 	}, [seekToMs]);
 
+	useEffect(() => {
+		function handleChange() {
+			setIsFullscreen(document.fullscreenElement === containerRef.current);
+		}
+		document.addEventListener("fullscreenchange", handleChange);
+		return () => document.removeEventListener("fullscreenchange", handleChange);
+	}, []);
+
+	function toggleFullscreen() {
+		if (document.fullscreenElement) {
+			document.exitFullscreen();
+		} else {
+			containerRef.current?.requestFullscreen();
+		}
+	}
+
 	const onTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) =>
 		onTimeUpdateMs(e.currentTarget.currentTime * 1000);
+
+	const fullscreenButton = (
+		<button
+			type="button"
+			onClick={toggleFullscreen}
+			aria-label={
+				isFullscreen
+					? t("mediaDetail.exitFullscreen")
+					: t("mediaDetail.fullscreen")
+			}
+			className="absolute top-2 right-2 z-10 flex size-8 items-center justify-center rounded-md bg-black/50 text-white transition-colors hover:bg-black/70"
+		>
+			{isFullscreen ? (
+				<Minimize className="size-4" />
+			) : (
+				<Maximize className="size-4" />
+			)}
+		</button>
+	);
 
 	if (mediaType === "AUDIO") {
 		return (
 			<div
+				ref={containerRef}
 				className="relative flex aspect-video w-full items-end justify-center overflow-hidden rounded-xl bg-muted bg-center bg-cover"
 				style={
 					thumbnailUrl ? { backgroundImage: `url(${thumbnailUrl})` } : undefined
 				}
 			>
+				{fullscreenButton}
 				{/* biome-ignore lint/a11y/useMediaCaption: transcript panel serves this role; no separate track source exists. */}
 				<audio
 					ref={ref}
@@ -49,18 +91,17 @@ export function MediaPlayer({
 	}
 
 	return (
-		// A fixed aspect-ratio frame keeps the player's footprint stable
-		// regardless of the source's actual dimensions — without this the
-		// element has no height until metadata loads (preload="none" defers
-		// that), so the layout jumps once playback becomes possible.
-		<div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
+		<div
+			ref={containerRef}
+			className="relative aspect-video w-full overflow-hidden rounded-xl bg-black"
+		>
+			{fullscreenButton}
 			{/* biome-ignore lint/a11y/useMediaCaption: transcript panel serves this role; no separate track source exists. */}
 			<video
 				ref={ref}
 				src={src}
-				poster={thumbnailUrl ?? undefined}
 				controls
-				preload="none"
+				preload="metadata"
 				className="size-full object-contain"
 				onTimeUpdate={onTimeUpdate}
 			/>

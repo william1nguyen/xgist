@@ -146,7 +146,7 @@ export default function CreatePage() {
 	}
 
 	return (
-		<div className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-8 md:px-10">
+		<div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-6 md:px-6 lg:px-8">
 			<PageHeader
 				title={t("createPage.title")}
 				description={t("createPage.description")}

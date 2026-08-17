@@ -9,7 +9,7 @@ export default function SettingsPage() {
 	const { t } = useTranslation();
 
 	return (
-		<div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-10 md:px-10">
+		<div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-6 md:px-6 lg:px-8">
 			<div>
 				<h1 className="font-semibold text-2xl tracking-tight">
 					{t("settings.title")}

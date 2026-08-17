@@ -15,19 +15,19 @@
 		"create": "Tạo mới",
 		"billing": "Thanh toán",
 		"usage": "Sử dụng",
+		"trash": "Thùng rác",
 		"settings": "Cài đặt",
 		"signOut": "Đăng xuất",
 		"openMenu": "Mở menu",
 		"closeMenu": "Đóng menu",
-		"expandSidebar": "Mở rộng thanh bên",
-		"collapseSidebar": "Thu gọn thanh bên",
 		"toggleTheme": "Đổi giao diện sáng/tối"
 	},
 	"dashboard": {
 		"searchPlaceholder": "Tìm kiếm media của bạn…",
 		"create": "Tạo mới",
-		"gridView": "Xem dạng lưới",
-		"listView": "Xem dạng danh sách",
+		"previous": "Trước",
+		"next": "Sau",
+		"page": "Trang {{number}}",
 		"emptyTitleSearch": "Không có kết quả",
 		"emptyTitleDefault": "Chưa có media nào",
 		"emptyDescSearch": "Không có gì khớp với \"{{query}}\".",
@@ -36,7 +36,10 @@
 	"mediaActions": {
 		"moreOptions": "Tùy chọn khác",
 		"editDetails": "Chỉnh sửa thông tin",
-		"generateMore": "Tạo thêm nội dung"
+		"generateMore": "Tạo thêm nội dung",
+		"moveToTrash": "Chuyển vào thùng rác",
+		"trashedToast": "Đã chuyển vào thùng rác",
+		"trashErrorToast": "Không thể chuyển vào thùng rác. Vui lòng thử lại."
 	},
 	"status": {
 		"PENDING_UPLOAD": "Đang chờ",
@@ -157,7 +160,16 @@
 		"tabAudio": "Audio",
 		"contentPending": "Nội dung được tạo ra sẽ xuất hiện ở đây khi đã sẵn sàng.",
 		"contentNone": "Không có nội dung nào được tạo ra.",
-		"stepsCount": "{{completed}}/{{total}} bước"
+		"stepsCount": "{{completed}}/{{total}} bước",
+		"recommended": "Đề xuất cho bạn",
+		"showMore": "Xem thêm",
+		"showLess": "Thu gọn",
+		"noDescription": "Chưa có mô tả.",
+		"fullscreen": "Toàn màn hình",
+		"exitFullscreen": "Thoát toàn màn hình",
+		"viewNotes": "Xem ghi chú",
+		"listenToAudio": "Nghe audio tóm tắt",
+		"backToMedia": "Quay lại media"
 	},
 	"video": {
 		"noKeypoints": "Chưa có ý chính nào.",
@@ -192,6 +204,23 @@
 		"creatingAccount": "Đang tạo tài khoản…",
 		"registerFailed": "Không thể tạo tài khoản — email có thể đã được đăng ký.",
 		"haveAccount": "Đã có tài khoản?"
+	},
+	"trash": {
+		"title": "Thùng rác",
+		"description": "Media bạn đã xóa sẽ nằm ở đây 30 ngày trước khi bị xóa vĩnh viễn.",
+		"emptyTitle": "Thùng rác trống",
+		"emptyDescription": "Media bạn chuyển vào thùng rác sẽ hiển thị ở đây.",
+		"trashedAt": "Đã xóa {{time}}",
+		"purgesIn": "Xóa vĩnh viễn sau {{days}} ngày",
+		"restore": "Khôi phục",
+		"restoredToast": "Đã khôi phục media",
+		"restoreErrorToast": "Không thể khôi phục. Vui lòng thử lại.",
+		"deletePermanently": "Xóa vĩnh viễn",
+		"deleting": "Đang xóa…",
+		"deletedToast": "Đã xóa vĩnh viễn",
+		"deleteErrorToast": "Không thể xóa. Vui lòng thử lại.",
+		"confirmTitle": "Xóa vĩnh viễn media này?",
+		"confirmDescription": "Việc này sẽ xóa media, transcript, và toàn bộ nội dung đã tạo. Không thể hoàn tác."
 	},
 	"usage": {
 		"title": "Sử dụng",
