@@ -9,6 +9,7 @@ package grpcserver
 import (
 	"context"
 	"errors"
+	"sort"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -25,6 +26,7 @@ import (
 // depends on. *quote.Service implements it.
 type QuoteService interface {
 	GetQuote(ctx context.Context, userID uuid.UUID, options []string) (quote.Quote, error)
+	ActiveCatalog(ctx context.Context) (quote.Catalog, error)
 }
 
 // BalanceReader is the credit application-service boundary the server
@@ -67,6 +69,25 @@ func (s *Server) GetQuote(ctx context.Context, req *billingv1.GetQuoteRequest) (
 		return nil, mapError(err)
 	}
 	return &billingv1.GetQuoteResponse{Quote: toProtoQuote(q)}, nil
+}
+
+func (s *Server) GetPriceCatalog(ctx context.Context, req *billingv1.GetPriceCatalogRequest) (*billingv1.GetPriceCatalogResponse, error) {
+	catalog, err := s.quotes.ActiveCatalog(ctx)
+	if err != nil {
+		return nil, mapError(err)
+	}
+
+	itemIDs := make([]string, 0, len(catalog.Prices))
+	for itemID := range catalog.Prices {
+		itemIDs = append(itemIDs, itemID)
+	}
+	sort.Strings(itemIDs)
+
+	items := make([]*billingv1.QuoteItem, 0, len(itemIDs))
+	for _, itemID := range itemIDs {
+		items = append(items, &billingv1.QuoteItem{ItemId: itemID, Credits: catalog.Prices[itemID]})
+	}
+	return &billingv1.GetPriceCatalogResponse{CatalogVersion: catalog.Version, Items: items}, nil
 }
 
 func (s *Server) GetBillingSummary(ctx context.Context, req *billingv1.GetBillingSummaryRequest) (*billingv1.GetBillingSummaryResponse, error) {

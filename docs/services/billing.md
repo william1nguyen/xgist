@@ -62,6 +62,7 @@ event in the same transaction" flow described below.
 
 ```text
 GetQuote(ctx, userID, options) -> Quote
+GetPriceCatalog(ctx) -> Catalog
 GetBillingSummary(ctx, userID) -> Summary
 ReserveCredit(ctx, reservation command) -> Reservation
 SettleReservation(ctx, settlement command) -> Settlement
@@ -70,8 +71,13 @@ HandleProviderWebhook(ctx, verified payload) -> void
 
 `contracts/proto/media_notes/billing/v1/billing.proto`, package
 `media_notes.billing.v1` (per ADR 0002 and Buf's `PACKAGE_DIRECTORY_MATCH`
-lint rule, matching identity's contract layout), exposes only the two
-read/query methods — `GetQuote` and `GetBillingSummary` — to Hermes.
+lint rule, matching identity's contract layout), exposes the read/query
+methods — `GetQuote`, `GetPriceCatalog`, `GetBillingSummary`, and
+`ListCreditLedger` — to Hermes. `GetPriceCatalog` returns every item in the
+active catalog version with no options required: it's what a client renders
+a price list from before it has a selection to price with `GetQuote` — a
+caller (hermes, and every UI it serves) must never hardcode a price
+locally.
 `ReserveCredit` and `SettleReservation` are workflow mutations that enter only
 through Kafka commands; there is no gRPC path to trigger a balance mutation.
 `HandleProviderWebhook` is an HTTP endpoint (`POST /webhooks/polar`), not

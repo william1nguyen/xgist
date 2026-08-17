@@ -104,6 +104,13 @@ func (s *Service) GetQuote(ctx context.Context, userID uuid.UUID, options []stri
 	return s.repo.Create(ctx, q)
 }
 
+// ActiveCatalog returns the catalog version currently in effect for new
+// quotes, so a caller can render a price list before it has a selection
+// to price with GetQuote — never hardcoded client-side.
+func (s *Service) ActiveCatalog(ctx context.Context) (Catalog, error) {
+	return s.repo.ActiveCatalog(ctx)
+}
+
 // Get returns a previously issued quote, rejecting one that has expired
 // and was never accepted.
 func (s *Service) Get(ctx context.Context, id uuid.UUID) (Quote, error) {

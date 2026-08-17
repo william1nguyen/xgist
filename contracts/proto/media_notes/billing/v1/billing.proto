@@ -22,6 +22,11 @@ service BillingService {
   // ledger entries, newest first — the append-only reserve/settle/release/
   // purchase history backing the web app's usage charts.
   rpc ListCreditLedger(ListCreditLedgerRequest) returns (ListCreditLedgerResponse);
+  // GetPriceCatalog returns every priced item in the active catalog
+  // version. Callers must never hardcode a price locally — this is the
+  // single source of truth a client renders a price list from before the
+  // caller has made a selection to price with GetQuote.
+  rpc GetPriceCatalog(GetPriceCatalogRequest) returns (GetPriceCatalogResponse);
 }
 
 // QuoteItem is one priced option within a quote.
@@ -54,6 +59,16 @@ message GetQuoteRequest {
 // GetQuoteResponse returns the priced quote.
 message GetQuoteResponse {
   Quote quote = 1;
+}
+
+message GetPriceCatalogRequest {
+}
+
+// GetPriceCatalogResponse returns the full active catalog: every item id
+// the caller may pass to GetQuote, with its current price.
+message GetPriceCatalogResponse {
+  string catalog_version = 1;
+  repeated QuoteItem items = 2;
 }
 
 // SubscriptionStatus is the lifecycle state of a billing subscription.

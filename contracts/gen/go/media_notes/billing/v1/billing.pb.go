@@ -339,6 +339,96 @@ func (x *GetQuoteResponse) GetQuote() *Quote {
 	return nil
 }
 
+type GetPriceCatalogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPriceCatalogRequest) Reset() {
+	*x = GetPriceCatalogRequest{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPriceCatalogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPriceCatalogRequest) ProtoMessage() {}
+
+func (x *GetPriceCatalogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPriceCatalogRequest.ProtoReflect.Descriptor instead.
+func (*GetPriceCatalogRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{4}
+}
+
+// GetPriceCatalogResponse returns the full active catalog: every item id
+// the caller may pass to GetQuote, with its current price.
+type GetPriceCatalogResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	CatalogVersion string                 `protobuf:"bytes,1,opt,name=catalog_version,json=catalogVersion,proto3" json:"catalog_version,omitempty"`
+	Items          []*QuoteItem           `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetPriceCatalogResponse) Reset() {
+	*x = GetPriceCatalogResponse{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPriceCatalogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPriceCatalogResponse) ProtoMessage() {}
+
+func (x *GetPriceCatalogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPriceCatalogResponse.ProtoReflect.Descriptor instead.
+func (*GetPriceCatalogResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetPriceCatalogResponse) GetCatalogVersion() string {
+	if x != nil {
+		return x.CatalogVersion
+	}
+	return ""
+}
+
+func (x *GetPriceCatalogResponse) GetItems() []*QuoteItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
 // Subscription is the user's current subscription, if any.
 type Subscription struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -353,7 +443,7 @@ type Subscription struct {
 
 func (x *Subscription) Reset() {
 	*x = Subscription{}
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[4]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -365,7 +455,7 @@ func (x *Subscription) String() string {
 func (*Subscription) ProtoMessage() {}
 
 func (x *Subscription) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[4]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -378,7 +468,7 @@ func (x *Subscription) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Subscription.ProtoReflect.Descriptor instead.
 func (*Subscription) Descriptor() ([]byte, []int) {
-	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{4}
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Subscription) GetId() string {
@@ -431,7 +521,7 @@ type BillingSummary struct {
 
 func (x *BillingSummary) Reset() {
 	*x = BillingSummary{}
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[5]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -443,7 +533,7 @@ func (x *BillingSummary) String() string {
 func (*BillingSummary) ProtoMessage() {}
 
 func (x *BillingSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[5]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -456,7 +546,7 @@ func (x *BillingSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BillingSummary.ProtoReflect.Descriptor instead.
 func (*BillingSummary) Descriptor() ([]byte, []int) {
-	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{5}
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *BillingSummary) GetUserId() string {
@@ -497,7 +587,7 @@ type GetBillingSummaryRequest struct {
 
 func (x *GetBillingSummaryRequest) Reset() {
 	*x = GetBillingSummaryRequest{}
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[6]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -509,7 +599,7 @@ func (x *GetBillingSummaryRequest) String() string {
 func (*GetBillingSummaryRequest) ProtoMessage() {}
 
 func (x *GetBillingSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[6]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -522,7 +612,7 @@ func (x *GetBillingSummaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBillingSummaryRequest.ProtoReflect.Descriptor instead.
 func (*GetBillingSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{6}
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetBillingSummaryRequest) GetUserId() string {
@@ -542,7 +632,7 @@ type GetBillingSummaryResponse struct {
 
 func (x *GetBillingSummaryResponse) Reset() {
 	*x = GetBillingSummaryResponse{}
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[7]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -554,7 +644,7 @@ func (x *GetBillingSummaryResponse) String() string {
 func (*GetBillingSummaryResponse) ProtoMessage() {}
 
 func (x *GetBillingSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[7]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +657,7 @@ func (x *GetBillingSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBillingSummaryResponse.ProtoReflect.Descriptor instead.
 func (*GetBillingSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{7}
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetBillingSummaryResponse) GetSummary() *BillingSummary {
@@ -596,7 +686,7 @@ type LedgerEntry struct {
 
 func (x *LedgerEntry) Reset() {
 	*x = LedgerEntry{}
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[8]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -608,7 +698,7 @@ func (x *LedgerEntry) String() string {
 func (*LedgerEntry) ProtoMessage() {}
 
 func (x *LedgerEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[8]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -621,7 +711,7 @@ func (x *LedgerEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LedgerEntry.ProtoReflect.Descriptor instead.
 func (*LedgerEntry) Descriptor() ([]byte, []int) {
-	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{8}
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *LedgerEntry) GetId() string {
@@ -672,7 +762,7 @@ type ListCreditLedgerRequest struct {
 
 func (x *ListCreditLedgerRequest) Reset() {
 	*x = ListCreditLedgerRequest{}
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[9]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -684,7 +774,7 @@ func (x *ListCreditLedgerRequest) String() string {
 func (*ListCreditLedgerRequest) ProtoMessage() {}
 
 func (x *ListCreditLedgerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[9]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -697,7 +787,7 @@ func (x *ListCreditLedgerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCreditLedgerRequest.ProtoReflect.Descriptor instead.
 func (*ListCreditLedgerRequest) Descriptor() ([]byte, []int) {
-	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{9}
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListCreditLedgerRequest) GetUserId() string {
@@ -733,7 +823,7 @@ type ListCreditLedgerResponse struct {
 
 func (x *ListCreditLedgerResponse) Reset() {
 	*x = ListCreditLedgerResponse{}
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[10]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -745,7 +835,7 @@ func (x *ListCreditLedgerResponse) String() string {
 func (*ListCreditLedgerResponse) ProtoMessage() {}
 
 func (x *ListCreditLedgerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[10]
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -758,7 +848,7 @@ func (x *ListCreditLedgerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCreditLedgerResponse.ProtoReflect.Descriptor instead.
 func (*ListCreditLedgerResponse) Descriptor() ([]byte, []int) {
-	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{10}
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListCreditLedgerResponse) GetEntries() []*LedgerEntry {
@@ -798,7 +888,11 @@ const file_media_notes_billing_v1_billing_proto_rawDesc = "" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
 	"\aoptions\x18\x03 \x03(\tR\aoptions\"G\n" +
 	"\x10GetQuoteResponse\x123\n" +
-	"\x05quote\x18\x01 \x01(\v2\x1d.media_notes.billing.v1.QuoteR\x05quote\"\xf0\x01\n" +
+	"\x05quote\x18\x01 \x01(\v2\x1d.media_notes.billing.v1.QuoteR\x05quote\"\x18\n" +
+	"\x16GetPriceCatalogRequest\"{\n" +
+	"\x17GetPriceCatalogResponse\x12'\n" +
+	"\x0fcatalog_version\x18\x01 \x01(\tR\x0ecatalogVersion\x127\n" +
+	"\x05items\x18\x02 \x03(\v2!.media_notes.billing.v1.QuoteItemR\x05items\"\xf0\x01\n" +
 	"\fSubscription\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04plan\x18\x02 \x01(\tR\x04plan\x12B\n" +
@@ -836,11 +930,12 @@ const file_media_notes_billing_v1_billing_proto_rawDesc = "" +
 	"\x18SUBSCRIPTION_STATUS_NONE\x10\x01\x12\x1e\n" +
 	"\x1aSUBSCRIPTION_STATUS_ACTIVE\x10\x02\x12 \n" +
 	"\x1cSUBSCRIPTION_STATUS_CANCELED\x10\x03\x12 \n" +
-	"\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x042\xe0\x02\n" +
+	"\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x042\xd4\x03\n" +
 	"\x0eBillingService\x12]\n" +
 	"\bGetQuote\x12'.media_notes.billing.v1.GetQuoteRequest\x1a(.media_notes.billing.v1.GetQuoteResponse\x12x\n" +
 	"\x11GetBillingSummary\x120.media_notes.billing.v1.GetBillingSummaryRequest\x1a1.media_notes.billing.v1.GetBillingSummaryResponse\x12u\n" +
-	"\x10ListCreditLedger\x12/.media_notes.billing.v1.ListCreditLedgerRequest\x1a0.media_notes.billing.v1.ListCreditLedgerResponseB\xfa\x01\n" +
+	"\x10ListCreditLedger\x12/.media_notes.billing.v1.ListCreditLedgerRequest\x1a0.media_notes.billing.v1.ListCreditLedgerResponse\x12r\n" +
+	"\x0fGetPriceCatalog\x12..media_notes.billing.v1.GetPriceCatalogRequest\x1a/.media_notes.billing.v1.GetPriceCatalogResponseB\xfa\x01\n" +
 	"\x1acom.media_notes.billing.v1B\fBillingProtoP\x01ZXgithub.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/billing/v1;billingv1\xa2\x02\x03MBX\xaa\x02\x15MediaNotes.Billing.V1\xca\x02\x15MediaNotes\\Billing\\V1\xe2\x02!MediaNotes\\Billing\\V1\\GPBMetadata\xea\x02\x17MediaNotes::Billing::V1b\x06proto3"
 
 var (
@@ -856,45 +951,50 @@ func file_media_notes_billing_v1_billing_proto_rawDescGZIP() []byte {
 }
 
 var file_media_notes_billing_v1_billing_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_media_notes_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_media_notes_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_media_notes_billing_v1_billing_proto_goTypes = []any{
 	(SubscriptionStatus)(0),           // 0: media_notes.billing.v1.SubscriptionStatus
 	(*QuoteItem)(nil),                 // 1: media_notes.billing.v1.QuoteItem
 	(*Quote)(nil),                     // 2: media_notes.billing.v1.Quote
 	(*GetQuoteRequest)(nil),           // 3: media_notes.billing.v1.GetQuoteRequest
 	(*GetQuoteResponse)(nil),          // 4: media_notes.billing.v1.GetQuoteResponse
-	(*Subscription)(nil),              // 5: media_notes.billing.v1.Subscription
-	(*BillingSummary)(nil),            // 6: media_notes.billing.v1.BillingSummary
-	(*GetBillingSummaryRequest)(nil),  // 7: media_notes.billing.v1.GetBillingSummaryRequest
-	(*GetBillingSummaryResponse)(nil), // 8: media_notes.billing.v1.GetBillingSummaryResponse
-	(*LedgerEntry)(nil),               // 9: media_notes.billing.v1.LedgerEntry
-	(*ListCreditLedgerRequest)(nil),   // 10: media_notes.billing.v1.ListCreditLedgerRequest
-	(*ListCreditLedgerResponse)(nil),  // 11: media_notes.billing.v1.ListCreditLedgerResponse
-	(*timestamppb.Timestamp)(nil),     // 12: google.protobuf.Timestamp
+	(*GetPriceCatalogRequest)(nil),    // 5: media_notes.billing.v1.GetPriceCatalogRequest
+	(*GetPriceCatalogResponse)(nil),   // 6: media_notes.billing.v1.GetPriceCatalogResponse
+	(*Subscription)(nil),              // 7: media_notes.billing.v1.Subscription
+	(*BillingSummary)(nil),            // 8: media_notes.billing.v1.BillingSummary
+	(*GetBillingSummaryRequest)(nil),  // 9: media_notes.billing.v1.GetBillingSummaryRequest
+	(*GetBillingSummaryResponse)(nil), // 10: media_notes.billing.v1.GetBillingSummaryResponse
+	(*LedgerEntry)(nil),               // 11: media_notes.billing.v1.LedgerEntry
+	(*ListCreditLedgerRequest)(nil),   // 12: media_notes.billing.v1.ListCreditLedgerRequest
+	(*ListCreditLedgerResponse)(nil),  // 13: media_notes.billing.v1.ListCreditLedgerResponse
+	(*timestamppb.Timestamp)(nil),     // 14: google.protobuf.Timestamp
 }
 var file_media_notes_billing_v1_billing_proto_depIdxs = []int32{
 	1,  // 0: media_notes.billing.v1.Quote.items:type_name -> media_notes.billing.v1.QuoteItem
-	12, // 1: media_notes.billing.v1.Quote.expires_at:type_name -> google.protobuf.Timestamp
-	12, // 2: media_notes.billing.v1.Quote.created_at:type_name -> google.protobuf.Timestamp
+	14, // 1: media_notes.billing.v1.Quote.expires_at:type_name -> google.protobuf.Timestamp
+	14, // 2: media_notes.billing.v1.Quote.created_at:type_name -> google.protobuf.Timestamp
 	2,  // 3: media_notes.billing.v1.GetQuoteResponse.quote:type_name -> media_notes.billing.v1.Quote
-	0,  // 4: media_notes.billing.v1.Subscription.status:type_name -> media_notes.billing.v1.SubscriptionStatus
-	12, // 5: media_notes.billing.v1.Subscription.period_start:type_name -> google.protobuf.Timestamp
-	12, // 6: media_notes.billing.v1.Subscription.period_end:type_name -> google.protobuf.Timestamp
-	5,  // 7: media_notes.billing.v1.BillingSummary.subscription:type_name -> media_notes.billing.v1.Subscription
-	6,  // 8: media_notes.billing.v1.GetBillingSummaryResponse.summary:type_name -> media_notes.billing.v1.BillingSummary
-	12, // 9: media_notes.billing.v1.LedgerEntry.created_at:type_name -> google.protobuf.Timestamp
-	9,  // 10: media_notes.billing.v1.ListCreditLedgerResponse.entries:type_name -> media_notes.billing.v1.LedgerEntry
-	3,  // 11: media_notes.billing.v1.BillingService.GetQuote:input_type -> media_notes.billing.v1.GetQuoteRequest
-	7,  // 12: media_notes.billing.v1.BillingService.GetBillingSummary:input_type -> media_notes.billing.v1.GetBillingSummaryRequest
-	10, // 13: media_notes.billing.v1.BillingService.ListCreditLedger:input_type -> media_notes.billing.v1.ListCreditLedgerRequest
-	4,  // 14: media_notes.billing.v1.BillingService.GetQuote:output_type -> media_notes.billing.v1.GetQuoteResponse
-	8,  // 15: media_notes.billing.v1.BillingService.GetBillingSummary:output_type -> media_notes.billing.v1.GetBillingSummaryResponse
-	11, // 16: media_notes.billing.v1.BillingService.ListCreditLedger:output_type -> media_notes.billing.v1.ListCreditLedgerResponse
-	14, // [14:17] is the sub-list for method output_type
-	11, // [11:14] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	1,  // 4: media_notes.billing.v1.GetPriceCatalogResponse.items:type_name -> media_notes.billing.v1.QuoteItem
+	0,  // 5: media_notes.billing.v1.Subscription.status:type_name -> media_notes.billing.v1.SubscriptionStatus
+	14, // 6: media_notes.billing.v1.Subscription.period_start:type_name -> google.protobuf.Timestamp
+	14, // 7: media_notes.billing.v1.Subscription.period_end:type_name -> google.protobuf.Timestamp
+	7,  // 8: media_notes.billing.v1.BillingSummary.subscription:type_name -> media_notes.billing.v1.Subscription
+	8,  // 9: media_notes.billing.v1.GetBillingSummaryResponse.summary:type_name -> media_notes.billing.v1.BillingSummary
+	14, // 10: media_notes.billing.v1.LedgerEntry.created_at:type_name -> google.protobuf.Timestamp
+	11, // 11: media_notes.billing.v1.ListCreditLedgerResponse.entries:type_name -> media_notes.billing.v1.LedgerEntry
+	3,  // 12: media_notes.billing.v1.BillingService.GetQuote:input_type -> media_notes.billing.v1.GetQuoteRequest
+	9,  // 13: media_notes.billing.v1.BillingService.GetBillingSummary:input_type -> media_notes.billing.v1.GetBillingSummaryRequest
+	12, // 14: media_notes.billing.v1.BillingService.ListCreditLedger:input_type -> media_notes.billing.v1.ListCreditLedgerRequest
+	5,  // 15: media_notes.billing.v1.BillingService.GetPriceCatalog:input_type -> media_notes.billing.v1.GetPriceCatalogRequest
+	4,  // 16: media_notes.billing.v1.BillingService.GetQuote:output_type -> media_notes.billing.v1.GetQuoteResponse
+	10, // 17: media_notes.billing.v1.BillingService.GetBillingSummary:output_type -> media_notes.billing.v1.GetBillingSummaryResponse
+	13, // 18: media_notes.billing.v1.BillingService.ListCreditLedger:output_type -> media_notes.billing.v1.ListCreditLedgerResponse
+	6,  // 19: media_notes.billing.v1.BillingService.GetPriceCatalog:output_type -> media_notes.billing.v1.GetPriceCatalogResponse
+	16, // [16:20] is the sub-list for method output_type
+	12, // [12:16] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_media_notes_billing_v1_billing_proto_init() }
@@ -908,7 +1008,7 @@ func file_media_notes_billing_v1_billing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_notes_billing_v1_billing_proto_rawDesc), len(file_media_notes_billing_v1_billing_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -28,6 +28,7 @@ const (
 	BillingService_GetQuote_FullMethodName          = "/media_notes.billing.v1.BillingService/GetQuote"
 	BillingService_GetBillingSummary_FullMethodName = "/media_notes.billing.v1.BillingService/GetBillingSummary"
 	BillingService_ListCreditLedger_FullMethodName  = "/media_notes.billing.v1.BillingService/ListCreditLedger"
+	BillingService_GetPriceCatalog_FullMethodName   = "/media_notes.billing.v1.BillingService/GetPriceCatalog"
 )
 
 // BillingServiceClient is the client API for BillingService service.
@@ -47,6 +48,11 @@ type BillingServiceClient interface {
 	// ledger entries, newest first — the append-only reserve/settle/release/
 	// purchase history backing the web app's usage charts.
 	ListCreditLedger(ctx context.Context, in *ListCreditLedgerRequest, opts ...grpc.CallOption) (*ListCreditLedgerResponse, error)
+	// GetPriceCatalog returns every priced item in the active catalog
+	// version. Callers must never hardcode a price locally — this is the
+	// single source of truth a client renders a price list from before the
+	// caller has made a selection to price with GetQuote.
+	GetPriceCatalog(ctx context.Context, in *GetPriceCatalogRequest, opts ...grpc.CallOption) (*GetPriceCatalogResponse, error)
 }
 
 type billingServiceClient struct {
@@ -87,6 +93,16 @@ func (c *billingServiceClient) ListCreditLedger(ctx context.Context, in *ListCre
 	return out, nil
 }
 
+func (c *billingServiceClient) GetPriceCatalog(ctx context.Context, in *GetPriceCatalogRequest, opts ...grpc.CallOption) (*GetPriceCatalogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPriceCatalogResponse)
+	err := c.cc.Invoke(ctx, BillingService_GetPriceCatalog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BillingServiceServer is the server API for BillingService service.
 // All implementations must embed UnimplementedBillingServiceServer
 // for forward compatibility.
@@ -104,6 +120,11 @@ type BillingServiceServer interface {
 	// ledger entries, newest first — the append-only reserve/settle/release/
 	// purchase history backing the web app's usage charts.
 	ListCreditLedger(context.Context, *ListCreditLedgerRequest) (*ListCreditLedgerResponse, error)
+	// GetPriceCatalog returns every priced item in the active catalog
+	// version. Callers must never hardcode a price locally — this is the
+	// single source of truth a client renders a price list from before the
+	// caller has made a selection to price with GetQuote.
+	GetPriceCatalog(context.Context, *GetPriceCatalogRequest) (*GetPriceCatalogResponse, error)
 	mustEmbedUnimplementedBillingServiceServer()
 }
 
@@ -122,6 +143,9 @@ func (UnimplementedBillingServiceServer) GetBillingSummary(context.Context, *Get
 }
 func (UnimplementedBillingServiceServer) ListCreditLedger(context.Context, *ListCreditLedgerRequest) (*ListCreditLedgerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCreditLedger not implemented")
+}
+func (UnimplementedBillingServiceServer) GetPriceCatalog(context.Context, *GetPriceCatalogRequest) (*GetPriceCatalogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPriceCatalog not implemented")
 }
 func (UnimplementedBillingServiceServer) mustEmbedUnimplementedBillingServiceServer() {}
 func (UnimplementedBillingServiceServer) testEmbeddedByValue()                        {}
@@ -198,6 +222,24 @@ func _BillingService_ListCreditLedger_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BillingService_GetPriceCatalog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPriceCatalogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).GetPriceCatalog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_GetPriceCatalog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).GetPriceCatalog(ctx, req.(*GetPriceCatalogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BillingService_ServiceDesc is the grpc.ServiceDesc for BillingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -216,6 +258,10 @@ var BillingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCreditLedger",
 			Handler:    _BillingService_ListCreditLedger_Handler,
+		},
+		{
+			MethodName: "GetPriceCatalog",
+			Handler:    _BillingService_GetPriceCatalog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
