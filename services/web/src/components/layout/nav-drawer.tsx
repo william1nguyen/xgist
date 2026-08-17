@@ -3,6 +3,7 @@ import {
 	BarChart3,
 	CreditCard,
 	LayoutGrid,
+	Music,
 	Sparkles,
 	Trash2,
 	X,
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
 	{ to: "/", labelKey: "nav.dashboard", icon: LayoutGrid, end: true },
 	{ to: "/create", labelKey: "nav.create", icon: Sparkles, end: false },
+	{ to: "/audio", labelKey: "nav.audio", icon: Music, end: false },
 	{ to: "/billing", labelKey: "nav.billing", icon: CreditCard, end: false },
 	{ to: "/usage", labelKey: "nav.usage", icon: BarChart3, end: false },
 	{ to: "/trash", labelKey: "nav.trash", icon: Trash2, end: false },

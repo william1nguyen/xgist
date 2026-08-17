@@ -13,6 +13,7 @@
 	"nav": {
 		"dashboard": "Bảng điều khiển",
 		"create": "Tạo mới",
+		"audio": "Audio",
 		"billing": "Thanh toán",
 		"usage": "Sử dụng",
 		"trash": "Thùng rác",
@@ -221,6 +222,33 @@
 		"deleteErrorToast": "Không thể xóa. Vui lòng thử lại.",
 		"confirmTitle": "Xóa vĩnh viễn media này?",
 		"confirmDescription": "Việc này sẽ xóa media, transcript, và toàn bộ nội dung đã tạo. Không thể hoàn tác."
+	},
+	"audio": {
+		"title": "Audio",
+		"description": "Audio text-to-speech bạn đã tạo độc lập, không gắn với media nào.",
+		"create": "Tạo audio",
+		"emptyTitle": "Chưa có audio nào",
+		"emptyDescription": "Dán văn bản hoặc mô tả nội dung bạn muốn rồi tạo audio đầu tiên.",
+		"generationFailed": "Tạo thất bại",
+		"status": {
+			"generating": "Đang tạo",
+			"completed": "Hoàn thành",
+			"failed": "Thất bại"
+		},
+		"createTitle": "Tạo audio",
+		"createDescription": "Dán văn bản trực tiếp, hoặc mô tả nội dung để AI soạn kịch bản trước.",
+		"modePaste": "Dán văn bản",
+		"modeChat": "Chat với AI",
+		"pastePlaceholder": "Dán hoặc nhập văn bản muốn chuyển thành audio…",
+		"chatPlaceholder": "Mô tả nội dung bạn muốn audio nói…",
+		"generate": "Tạo",
+		"draftScript": "Soạn kịch bản",
+		"drafting": "Đang soạn kịch bản…",
+		"draftFailed": "Không thể soạn kịch bản. Vui lòng thử lại.",
+		"startOver": "Làm lại",
+		"draftErrorToast": "Không thể soạn kịch bản. Vui lòng thử lại.",
+		"generateSuccessToast": "Audio đang được tạo — quay lại kiểm tra sau nhé.",
+		"generateErrorToast": "Không thể bắt đầu tạo. Vui lòng thử lại."
 	},
 	"usage": {
 		"title": "Sử dụng",

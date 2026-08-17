@@ -13,6 +13,7 @@
 	"nav": {
 		"dashboard": "Dashboard",
 		"create": "Create",
+		"audio": "Audio",
 		"billing": "Billing",
 		"usage": "Usage",
 		"trash": "Trash",
@@ -221,6 +222,33 @@
 		"deleteErrorToast": "Couldn't delete. Try again.",
 		"confirmTitle": "Delete this media permanently?",
 		"confirmDescription": "This removes the media, its transcript, and every generated content item. This cannot be undone."
+	},
+	"audio": {
+		"title": "Audio",
+		"description": "Text-to-speech audio you've generated independently of any media item.",
+		"create": "Generate audio",
+		"emptyTitle": "No audio yet",
+		"emptyDescription": "Paste text or describe what you want and generate your first audio clip.",
+		"generationFailed": "Generation failed",
+		"status": {
+			"generating": "Generating",
+			"completed": "Completed",
+			"failed": "Failed"
+		},
+		"createTitle": "Generate audio",
+		"createDescription": "Paste text directly, or describe what you want and let AI draft the script first.",
+		"modePaste": "Paste text",
+		"modeChat": "Chat with AI",
+		"pastePlaceholder": "Paste or type the text to turn into audio…",
+		"chatPlaceholder": "Describe what you want the audio to say…",
+		"generate": "Generate",
+		"draftScript": "Draft script",
+		"drafting": "Drafting script…",
+		"draftFailed": "Couldn't draft a script. Try again.",
+		"startOver": "Start over",
+		"draftErrorToast": "Couldn't draft a script. Try again.",
+		"generateSuccessToast": "Audio is generating — check back shortly.",
+		"generateErrorToast": "Couldn't start generation. Try again."
 	},
 	"usage": {
 		"title": "Usage",
