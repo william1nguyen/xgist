@@ -58,7 +58,7 @@ export default function MediaDetailPage() {
 
 	if (mediaLoading && !media) {
 		return (
-			<div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 md:px-6">
+			<div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-6 py-8 md:px-10">
 				<Skeleton className="h-8 w-64" />
 				<Skeleton className="aspect-video w-full" />
 			</div>
@@ -108,16 +108,17 @@ export default function MediaDetailPage() {
 			: null;
 
 	return (
-		<div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 md:px-6">
+		<div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-6 py-8 md:px-10">
 			<div className="flex items-center gap-3">
 				<Link
 					to="/"
-					className="flex items-center gap-1 text-muted-foreground text-sm hover:text-foreground"
+					className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 				>
 					<ArrowLeft className="size-4" />
-					Back
 				</Link>
-				<h1 className="truncate font-semibold text-base">{media.title}</h1>
+				<h1 className="truncate font-semibold text-xl tracking-tight">
+					{media.title}
+				</h1>
 				{status && <StatusBadge status={status} />}
 			</div>
 

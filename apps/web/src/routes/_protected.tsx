@@ -1,6 +1,5 @@
 import { Navigate, Outlet } from "react-router";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Topbar } from "@/components/layout/topbar";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ProtectedLayout() {
@@ -17,14 +16,11 @@ export default function ProtectedLayout() {
 	if (!user) return <Navigate to="/login" replace />;
 
 	return (
-		<div className="flex min-h-screen">
+		<div className="flex h-screen flex-col md:flex-row">
 			<Sidebar />
-			<div className="flex min-w-0 flex-1 flex-col">
-				<Topbar />
-				<main className="min-w-0 flex-1 overflow-y-auto">
-					<Outlet />
-				</main>
-			</div>
+			<main className="min-w-0 flex-1 overflow-y-auto">
+				<Outlet />
+			</main>
 		</div>
 	);
 }

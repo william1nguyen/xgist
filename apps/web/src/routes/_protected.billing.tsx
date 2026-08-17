@@ -1,4 +1,5 @@
 import { Coins, Info } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,8 +20,11 @@ export default function BillingPage() {
 	const summary = data?.billingSummary;
 
 	return (
-		<div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8 md:px-6">
-			<h1 className="font-semibold text-xl">Billing</h1>
+		<div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-8 md:px-10">
+			<PageHeader
+				title="Billing"
+				description="Credits, subscription, and pricing."
+			/>
 
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<Card>
@@ -32,10 +36,10 @@ export default function BillingPage() {
 					</CardHeader>
 					<CardContent>
 						{loading && !summary ? (
-							<Skeleton className="h-8 w-24" />
+							<Skeleton className="h-9 w-24" />
 						) : (
 							<div className="flex flex-col gap-1">
-								<p className="font-semibold text-2xl">
+								<p className="font-semibold text-3xl tracking-tight">
 									{summary?.availableCredits ?? 0}
 								</p>
 								<p className="text-muted-foreground text-xs">
@@ -52,7 +56,7 @@ export default function BillingPage() {
 					</CardHeader>
 					<CardContent>
 						{loading && !summary ? (
-							<Skeleton className="h-8 w-32" />
+							<Skeleton className="h-9 w-32" />
 						) : summary?.subscription ? (
 							<div className="flex flex-col gap-1.5">
 								<div className="flex items-center gap-2">
@@ -94,10 +98,15 @@ export default function BillingPage() {
 					{PROCESSING_OPTIONS.map((option) => (
 						<div
 							key={option.id}
-							className="flex items-center justify-between border-border border-b py-2 text-sm last:border-0"
+							className="flex items-center justify-between border-border border-b py-2.5 text-sm last:border-0"
 						>
-							<span>{option.label}</span>
-							<span className="text-muted-foreground">
+							<div>
+								<p>{option.label}</p>
+								<p className="text-muted-foreground text-xs">
+									{option.description}
+								</p>
+							</div>
+							<span className="shrink-0 text-muted-foreground">
 								{option.credits} credits
 							</span>
 						</div>
@@ -110,7 +119,7 @@ export default function BillingPage() {
 				</CardContent>
 			</Card>
 
-			<Card>
+			<Card className="border-dashed">
 				<CardContent className="flex items-center gap-2 py-4 text-muted-foreground text-sm">
 					<Info className="size-4 shrink-0" />
 					Subscription checkout isn't available yet — purchasing credits and
