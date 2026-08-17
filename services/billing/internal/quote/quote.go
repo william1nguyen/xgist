@@ -86,7 +86,7 @@ func (s *Service) GetQuote(ctx context.Context, userID uuid.UUID, options []stri
 		return Quote{}, err
 	}
 
-	items, total, err := price(catalog, options)
+	items, total, err := Price(catalog, options)
 	if err != nil {
 		return Quote{}, err
 	}
@@ -124,7 +124,7 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (Quote, error) {
 	return q, nil
 }
 
-// price validates options against catalog and returns their priced items
+// Price validates options against catalog and returns their priced items
 // and total. Unknown identifiers, duplicate identifiers, and an empty
 // option set are rejected, per ADR 0008. generate_audio_summary implicitly
 // requires summarize (the audio step reads committed summary text as its
@@ -132,8 +132,10 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (Quote, error) {
 // summarize, summarize's price is added automatically rather than
 // rejecting the quote, so a preview for "regenerate audio only" (summary
 // already exists, only audio is newly selected) matches what conductor
-// actually bills once it plans and prices the workflow's steps.
-func price(catalog Catalog, options []string) ([]Item, int64, error) {
+// actually bills once it plans and prices the workflow's steps. Exported
+// so GetPriceCatalog can price generate_audio_summary the same way, rather
+// than showing its bare catalog entry and disagreeing with GetQuote.
+func Price(catalog Catalog, options []string) ([]Item, int64, error) {
 	if len(options) == 0 {
 		return nil, 0, ErrEmptyOptions
 	}

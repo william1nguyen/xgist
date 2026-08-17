@@ -85,7 +85,16 @@ func (s *Server) GetPriceCatalog(ctx context.Context, req *billingv1.GetPriceCat
 
 	items := make([]*billingv1.QuoteItem, 0, len(itemIDs))
 	for _, itemID := range itemIDs {
-		items = append(items, &billingv1.QuoteItem{ItemId: itemID, Credits: catalog.Prices[itemID]})
+		// Priced the same way GetQuote prices a lone selection of itemID
+		// (via quote.Price), not read straight off catalog.Prices: some
+		// items have a forced dependency (generate_audio_summary implies
+		// summarize) that must be reflected here too, or the catalog would
+		// advertise a price GetQuote never actually charges.
+		_, total, err := quote.Price(catalog, []string{itemID})
+		if err != nil {
+			return nil, mapError(err)
+		}
+		items = append(items, &billingv1.QuoteItem{ItemId: itemID, Credits: total})
 	}
 	return &billingv1.GetPriceCatalogResponse{CatalogVersion: catalog.Version, Items: items}, nil
 }
