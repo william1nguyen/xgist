@@ -125,8 +125,7 @@ func mapError(err error) error {
 	switch {
 	case errors.Is(err, quote.ErrEmptyOptions),
 		errors.Is(err, quote.ErrUnknownItem),
-		errors.Is(err, quote.ErrDuplicateItem),
-		errors.Is(err, quote.ErrMissingDependency):
+		errors.Is(err, quote.ErrDuplicateItem):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, quote.ErrNotFound):
 		return status.Error(codes.NotFound, err.Error())

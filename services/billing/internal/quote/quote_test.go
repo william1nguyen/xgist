@@ -79,9 +79,10 @@ func TestServiceGetQuote(t *testing.T) {
 			options: []string{quote.ItemTranscribe, quote.ItemTranscribe},
 			wantErr: quote.ErrDuplicateItem,
 		},
-		"rejects audio summary without summarize": {
-			options: []string{quote.ItemGenerateAudioSummary},
-			wantErr: quote.ErrMissingDependency,
+		"prices audio summary without summarize by auto-including summarize": {
+			options:      []string{quote.ItemGenerateAudioSummary},
+			wantTotal:    50,
+			wantItemsLen: 2,
 		},
 		"accepts audio summary with summarize": {
 			options:      []string{quote.ItemSummarize, quote.ItemGenerateAudioSummary},

@@ -22,12 +22,11 @@ const (
 )
 
 var (
-	ErrEmptyOptions      = errors.New("quote: at least one option is required")
-	ErrUnknownItem       = errors.New("quote: unknown price item")
-	ErrDuplicateItem     = errors.New("quote: duplicate price item")
-	ErrMissingDependency = errors.New("quote: generate_audio_summary requires summarize")
-	ErrNotFound          = errors.New("quote: not found")
-	ErrExpired           = errors.New("quote: expired")
+	ErrEmptyOptions  = errors.New("quote: at least one option is required")
+	ErrUnknownItem   = errors.New("quote: unknown price item")
+	ErrDuplicateItem = errors.New("quote: duplicate price item")
+	ErrNotFound      = errors.New("quote: not found")
+	ErrExpired       = errors.New("quote: expired")
 )
 
 // Catalog is one immutable, versioned price list. billing owns the active
@@ -119,9 +118,14 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (Quote, error) {
 }
 
 // price validates options against catalog and returns their priced items
-// and total. Unknown identifiers, duplicate identifiers, an empty option
-// set, and generate_audio_summary without summarize are all rejected, per
-// ADR 0008.
+// and total. Unknown identifiers, duplicate identifiers, and an empty
+// option set are rejected, per ADR 0008. generate_audio_summary implicitly
+// requires summarize (the audio step reads committed summary text as its
+// input, per workflow.PlanSteps) — if the caller selected audio without
+// summarize, summarize's price is added automatically rather than
+// rejecting the quote, so a preview for "regenerate audio only" (summary
+// already exists, only audio is newly selected) matches what conductor
+// actually bills once it plans and prices the workflow's steps.
 func price(catalog Catalog, options []string) ([]Item, int64, error) {
 	if len(options) == 0 {
 		return nil, 0, ErrEmptyOptions
@@ -154,7 +158,12 @@ func price(catalog Catalog, options []string) ([]Item, int64, error) {
 	}
 
 	if hasAudioSummary && !hasSummarize {
-		return nil, 0, ErrMissingDependency
+		credits, ok := catalog.Prices[ItemSummarize]
+		if !ok {
+			return nil, 0, fmt.Errorf("%w: %s", ErrUnknownItem, ItemSummarize)
+		}
+		items = append(items, Item{ItemID: ItemSummarize, Credits: credits})
+		total += credits
 	}
 	return items, total, nil
 }
