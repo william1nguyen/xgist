@@ -1,0 +1,253 @@
+{
+	"common": {
+		"cancel": "Cancel",
+		"save": "Save",
+		"saving": "Saving…",
+		"back": "Back",
+		"next": "Next",
+		"copy": "Copy",
+		"copied": "Copied",
+		"download": "Download",
+		"optional": "Optional"
+	},
+	"nav": {
+		"dashboard": "Dashboard",
+		"create": "Create",
+		"billing": "Billing",
+		"usage": "Usage",
+		"settings": "Settings",
+		"signOut": "Sign out",
+		"openMenu": "Open menu",
+		"closeMenu": "Close menu",
+		"expandSidebar": "Expand sidebar",
+		"collapseSidebar": "Collapse sidebar",
+		"toggleTheme": "Toggle theme"
+	},
+	"dashboard": {
+		"searchPlaceholder": "Search your media…",
+		"create": "Create",
+		"gridView": "Grid view",
+		"listView": "List view",
+		"emptyTitleSearch": "No matches",
+		"emptyTitleDefault": "No media yet",
+		"emptyDescSearch": "Nothing matches \"{{query}}\".",
+		"emptyDescDefault": "Create your first item to get a transcript, summary, and more."
+	},
+	"mediaActions": {
+		"moreOptions": "More options",
+		"editDetails": "Edit details",
+		"generateMore": "Generate more content"
+	},
+	"status": {
+		"PENDING_UPLOAD": "Pending",
+		"PROCESSING": "Processing",
+		"COMPLETED": "Completed",
+		"FAILED": "Failed",
+		"DELETION_PENDING": "Deleting"
+	},
+	"editMediaDialog": {
+		"title": "Edit details",
+		"titleLabel": "Title",
+		"descriptionLabel": "Description",
+		"descriptionPlaceholder": "Optional",
+		"successToast": "Media details updated",
+		"errorToast": "Couldn't update media details. Try again."
+	},
+	"regenerateDialog": {
+		"title": "Generate more content",
+		"description": "Add content types you didn't select before, or check an existing one to regenerate it.",
+		"start": "Start processing",
+		"starting": "Starting…",
+		"successToast": "Processing started",
+		"errorToast": "Couldn't start processing. Try again."
+	},
+	"options": {
+		"transcribe": {
+			"label": "Transcript",
+			"description": "Timestamped transcript segments (required for everything else)"
+		},
+		"summarize": {
+			"label": "Summary",
+			"description": "Cited summary with evidence links back to the transcript"
+		},
+		"extract_keywords": {
+			"label": "Keywords",
+			"description": "Ranked keywords"
+		},
+		"extract_keypoints": {
+			"label": "Keypoints",
+			"description": "Key points tied to transcript ranges"
+		},
+		"generate_notes": {
+			"label": "Notes",
+			"description": "Structured notes"
+		},
+		"generate_audio_summary": {
+			"label": "Audio summary",
+			"description": "Text-to-speech summary audio"
+		},
+		"required": "(required)",
+		"requiresDependency": "— requires {{label}}"
+	},
+	"voiceStep": {
+		"title": "Audio summary voice",
+		"description": "Choose the voice for the generated summary audio. Click a card to hear a preview.",
+		"playingPreview": "Playing preview…"
+	},
+	"creditPreview": {
+		"cost": "Cost",
+		"credits": "{{count}} credits",
+		"available": "({{count}} available)",
+		"insufficient": "Insufficient credits"
+	},
+	"dropzone": {
+		"dragDrop": "Drag and drop a file, or click to browse",
+		"acceptedUpTo": "{{extensions}} · up to {{size}}",
+		"unsupportedType": "Unsupported file type. Accepted: {{extensions}}.",
+		"tooLarge": "File is too large — the limit is {{size}}.",
+		"empty": "File is empty."
+	},
+	"thumbnailStep": {
+		"title": "Thumbnail",
+		"description": "Nothing to configure here — we take care of it automatically.",
+		"videoDescription": "A thumbnail will be generated automatically from a representative frame after upload.",
+		"audioDescription": "Embedded cover art will be used if present, otherwise a default image.",
+		"note": "Custom thumbnail upload isn't available yet — this step will show a live preview here once it is."
+	},
+	"createPage": {
+		"title": "Create",
+		"description": "Turn a video or audio file into a transcript, summary, and more.",
+		"titleLabel": "Title",
+		"stagePreparing": "Preparing upload…",
+		"stageUploading": "Uploading…",
+		"stageStarting": "Starting processing…",
+		"stepUpload": "Upload",
+		"stepThumbnail": "Thumbnail",
+		"stepExtract": "Extract",
+		"stepVoice": "Voice",
+		"extractTitle": "What should we extract?",
+		"extractDescription": "Transcript is always included. Pick anything else you want generated.",
+		"startProcessing": "Start processing",
+		"uploadStarted": "Upload started",
+		"uploadFailed": "Upload failed. Try again.",
+		"couldNotCreateSession": "Could not create an upload session",
+		"couldNotStartProcessing": "Could not start processing"
+	},
+	"billingPage": {
+		"title": "Billing",
+		"description": "Credits, subscription, and pricing.",
+		"credits": "Credits",
+		"reservedFor": "{{count}} reserved for in-progress jobs",
+		"subscription": "Subscription",
+		"noSubscription": "No active subscription.",
+		"pricing": "Pricing",
+		"creditsSuffix": "credits",
+		"quoteNote": "The exact cost of a selection is always confirmed by a live quote before you start processing.",
+		"checkoutNote": "Subscription checkout isn't available yet — purchasing credits and managing plans is still being built on the billing service."
+	},
+	"mediaDetail": {
+		"mediaNotFound": "Media not found.",
+		"backToDashboard": "Back to dashboard",
+		"playbackUnavailable": "Playback isn't available yet.",
+		"transcript": "Transcript",
+		"tabSummary": "Summary",
+		"tabKeywords": "Keywords",
+		"tabKeypoints": "Keypoints",
+		"tabNotes": "Notes",
+		"tabAudio": "Audio",
+		"contentPending": "Generated content will appear here as it's ready.",
+		"contentNone": "No generated content available.",
+		"stepsCount": "{{completed}}/{{total}} steps"
+	},
+	"video": {
+		"noKeypoints": "No keypoints available yet.",
+		"noKeywords": "No keywords available yet.",
+		"noNotes": "No notes available yet.",
+		"noSummary": "No summary available yet.",
+		"noTranscript": "No transcript available yet.",
+		"downloadMarkdown": "Markdown (.md)",
+		"downloadText": "Plain text (.txt)",
+		"downloadPdf": "PDF (.pdf)"
+	},
+	"audioPanel": {
+		"noAudio": "No audio summary available yet.",
+		"voiceLabel": "{{voice}} voice",
+		"ready": "Ready",
+		"failed": "Failed",
+		"playbackUnavailable": "Playback URL isn't available right now.",
+		"generationFailed": "Generation failed for this audio summary."
+	},
+	"auth": {
+		"loginTitle": "Sign in to Media Notes",
+		"emailLabel": "Email",
+		"passwordLabel": "Password",
+		"signIn": "Sign in",
+		"signingIn": "Signing in…",
+		"invalidCredentials": "Invalid email or password.",
+		"noAccount": "No account?",
+		"register": "Register",
+		"registerTitle": "Create your account",
+		"nameLabel": "Name",
+		"createAccount": "Create account",
+		"creatingAccount": "Creating account…",
+		"registerFailed": "Couldn't create that account — the email may already be registered.",
+		"haveAccount": "Already have an account?"
+	},
+	"usage": {
+		"title": "Usage",
+		"description": "Your credit spend over time, broken down by content type.",
+		"availableCredits": "Available credits",
+		"reservedCredits": "Reserved credits",
+		"dailySpendTitle": "Credits spent per day (last 30 days)",
+		"breakdownTitle": "Generations by content type",
+		"noData": "No usage yet — generate some content to see charts here.",
+		"creditsAxisLabel": "Credits",
+		"countAxisLabel": "Generations"
+	},
+	"settings": {
+		"title": "Settings",
+		"description": "Manage your account and preferences.",
+		"tabs": {
+			"general": "General",
+			"appearance": "Appearance",
+			"language": "Language",
+			"prompts": "Prompts"
+		},
+		"general": {
+			"profileTitle": "Profile",
+			"profileDescription": "Your account information from identity.",
+			"emailStatus": "Email status",
+			"verified": "Verified",
+			"notVerified": "Not verified",
+			"accountStatus": "Account status",
+			"memberSince": "Member since",
+			"dangerTitle": "Danger zone",
+			"dangerDescription": "Permanently delete your account and every media item, transcript, generated content, and billing record tied to it. This starts an asynchronous workflow across every service and cannot be undone.",
+			"deleteAccount": "Delete account",
+			"confirmTitle": "Delete your account?",
+			"confirmDescription": "Type \"delete\" to confirm. This immediately removes your product access and starts permanent deletion across every service.",
+			"requesting": "Requesting…",
+			"successToast": "Account deletion requested.",
+			"errorToast": "Couldn't request account deletion. Try again."
+		},
+		"appearance": {
+			"description": "Choose how Media Notes looks on this device.",
+			"light": "Light",
+			"dark": "Dark",
+			"system": "System"
+		},
+		"language": {
+			"description": "Choose the language used across Media Notes.",
+			"en": "English",
+			"vi": "Tiếng Việt"
+		},
+		"prompts": {
+			"description": "Add standing instructions the model follows every time it generates each content type for you. Up to 500 characters, applied automatically on your next generation.",
+			"placeholder": "e.g. Keep it concise and use a formal tone.",
+			"charCount": "{{count}}/500",
+			"save": "Save",
+			"saved": "Saved",
+			"errorToast": "Couldn't save prompt. Try again."
+		}
+	}
+}

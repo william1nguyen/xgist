@@ -1,0 +1,253 @@
+{
+	"common": {
+		"cancel": "Hủy",
+		"save": "Lưu",
+		"saving": "Đang lưu…",
+		"back": "Quay lại",
+		"next": "Tiếp theo",
+		"copy": "Sao chép",
+		"copied": "Đã sao chép",
+		"download": "Tải xuống",
+		"optional": "Không bắt buộc"
+	},
+	"nav": {
+		"dashboard": "Bảng điều khiển",
+		"create": "Tạo mới",
+		"billing": "Thanh toán",
+		"usage": "Sử dụng",
+		"settings": "Cài đặt",
+		"signOut": "Đăng xuất",
+		"openMenu": "Mở menu",
+		"closeMenu": "Đóng menu",
+		"expandSidebar": "Mở rộng thanh bên",
+		"collapseSidebar": "Thu gọn thanh bên",
+		"toggleTheme": "Đổi giao diện sáng/tối"
+	},
+	"dashboard": {
+		"searchPlaceholder": "Tìm kiếm media của bạn…",
+		"create": "Tạo mới",
+		"gridView": "Xem dạng lưới",
+		"listView": "Xem dạng danh sách",
+		"emptyTitleSearch": "Không có kết quả",
+		"emptyTitleDefault": "Chưa có media nào",
+		"emptyDescSearch": "Không có gì khớp với \"{{query}}\".",
+		"emptyDescDefault": "Tạo mục đầu tiên để có transcript, tóm tắt, và nhiều hơn nữa."
+	},
+	"mediaActions": {
+		"moreOptions": "Tùy chọn khác",
+		"editDetails": "Chỉnh sửa thông tin",
+		"generateMore": "Tạo thêm nội dung"
+	},
+	"status": {
+		"PENDING_UPLOAD": "Đang chờ",
+		"PROCESSING": "Đang xử lý",
+		"COMPLETED": "Hoàn tất",
+		"FAILED": "Thất bại",
+		"DELETION_PENDING": "Đang xóa"
+	},
+	"editMediaDialog": {
+		"title": "Chỉnh sửa thông tin",
+		"titleLabel": "Tiêu đề",
+		"descriptionLabel": "Mô tả",
+		"descriptionPlaceholder": "Không bắt buộc",
+		"successToast": "Đã cập nhật thông tin media",
+		"errorToast": "Không thể cập nhật thông tin media. Vui lòng thử lại."
+	},
+	"regenerateDialog": {
+		"title": "Tạo thêm nội dung",
+		"description": "Thêm loại nội dung bạn chưa chọn trước đó, hoặc chọn lại một loại đã có để tạo lại.",
+		"start": "Bắt đầu xử lý",
+		"starting": "Đang bắt đầu…",
+		"successToast": "Đã bắt đầu xử lý",
+		"errorToast": "Không thể bắt đầu xử lý. Vui lòng thử lại."
+	},
+	"options": {
+		"transcribe": {
+			"label": "Transcript",
+			"description": "Đoạn transcript có dấu thời gian (bắt buộc cho mọi thứ khác)"
+		},
+		"summarize": {
+			"label": "Tóm tắt",
+			"description": "Tóm tắt có trích dẫn liên kết ngược về transcript"
+		},
+		"extract_keywords": {
+			"label": "Từ khóa",
+			"description": "Từ khóa được xếp hạng"
+		},
+		"extract_keypoints": {
+			"label": "Ý chính",
+			"description": "Các ý chính gắn với đoạn transcript tương ứng"
+		},
+		"generate_notes": {
+			"label": "Ghi chú",
+			"description": "Ghi chú có cấu trúc"
+		},
+		"generate_audio_summary": {
+			"label": "Audio tóm tắt",
+			"description": "Audio tóm tắt chuyển văn bản thành giọng nói"
+		},
+		"required": "(bắt buộc)",
+		"requiresDependency": "— yêu cầu {{label}}"
+	},
+	"voiceStep": {
+		"title": "Giọng đọc audio tóm tắt",
+		"description": "Chọn giọng đọc cho audio tóm tắt được tạo ra. Nhấp vào thẻ để nghe thử.",
+		"playingPreview": "Đang phát thử…"
+	},
+	"creditPreview": {
+		"cost": "Chi phí",
+		"credits": "{{count}} credit",
+		"available": "(còn {{count}})",
+		"insufficient": "Không đủ credit"
+	},
+	"dropzone": {
+		"dragDrop": "Kéo thả tệp vào đây, hoặc nhấp để chọn tệp",
+		"acceptedUpTo": "{{extensions}} · tối đa {{size}}",
+		"unsupportedType": "Định dạng tệp không được hỗ trợ. Hỗ trợ: {{extensions}}.",
+		"tooLarge": "Tệp quá lớn — giới hạn là {{size}}.",
+		"empty": "Tệp rỗng."
+	},
+	"thumbnailStep": {
+		"title": "Ảnh thu nhỏ",
+		"description": "Không cần cấu hình gì ở đây — hệ thống sẽ tự động xử lý.",
+		"videoDescription": "Ảnh thu nhỏ sẽ được tạo tự động từ một khung hình tiêu biểu sau khi tải lên.",
+		"audioDescription": "Ảnh bìa nhúng sẵn sẽ được dùng nếu có, nếu không sẽ dùng ảnh mặc định.",
+		"note": "Tải ảnh thu nhỏ tùy chỉnh chưa khả dụng — bước này sẽ hiển thị bản xem trước trực tiếp khi tính năng sẵn sàng."
+	},
+	"createPage": {
+		"title": "Tạo mới",
+		"description": "Biến một tệp video hoặc audio thành transcript, tóm tắt, và nhiều hơn nữa.",
+		"titleLabel": "Tiêu đề",
+		"stagePreparing": "Đang chuẩn bị tải lên…",
+		"stageUploading": "Đang tải lên…",
+		"stageStarting": "Đang bắt đầu xử lý…",
+		"stepUpload": "Tải lên",
+		"stepThumbnail": "Ảnh thu nhỏ",
+		"stepExtract": "Trích xuất",
+		"stepVoice": "Giọng đọc",
+		"extractTitle": "Bạn muốn trích xuất những gì?",
+		"extractDescription": "Transcript luôn được bao gồm. Chọn thêm bất kỳ nội dung nào khác bạn muốn tạo.",
+		"startProcessing": "Bắt đầu xử lý",
+		"uploadStarted": "Đã bắt đầu tải lên",
+		"uploadFailed": "Tải lên thất bại. Vui lòng thử lại.",
+		"couldNotCreateSession": "Không thể tạo phiên tải lên",
+		"couldNotStartProcessing": "Không thể bắt đầu xử lý"
+	},
+	"billingPage": {
+		"title": "Thanh toán",
+		"description": "Credit, gói đăng ký, và bảng giá.",
+		"credits": "Credit",
+		"reservedFor": "{{count}} đang được giữ cho công việc đang xử lý",
+		"subscription": "Gói đăng ký",
+		"noSubscription": "Không có gói đăng ký nào đang hoạt động.",
+		"pricing": "Bảng giá",
+		"creditsSuffix": "credit",
+		"quoteNote": "Chi phí chính xác của một lựa chọn luôn được xác nhận bằng báo giá trực tiếp trước khi bạn bắt đầu xử lý.",
+		"checkoutNote": "Thanh toán gói đăng ký chưa khả dụng — tính năng mua credit và quản lý gói vẫn đang được xây dựng ở dịch vụ billing."
+	},
+	"mediaDetail": {
+		"mediaNotFound": "Không tìm thấy media.",
+		"backToDashboard": "Quay lại bảng điều khiển",
+		"playbackUnavailable": "Chưa thể phát lại.",
+		"transcript": "Transcript",
+		"tabSummary": "Tóm tắt",
+		"tabKeywords": "Từ khóa",
+		"tabKeypoints": "Ý chính",
+		"tabNotes": "Ghi chú",
+		"tabAudio": "Audio",
+		"contentPending": "Nội dung được tạo ra sẽ xuất hiện ở đây khi đã sẵn sàng.",
+		"contentNone": "Không có nội dung nào được tạo ra.",
+		"stepsCount": "{{completed}}/{{total}} bước"
+	},
+	"video": {
+		"noKeypoints": "Chưa có ý chính nào.",
+		"noKeywords": "Chưa có từ khóa nào.",
+		"noNotes": "Chưa có ghi chú nào.",
+		"noSummary": "Chưa có tóm tắt nào.",
+		"noTranscript": "Chưa có transcript nào.",
+		"downloadMarkdown": "Markdown (.md)",
+		"downloadText": "Văn bản thuần (.txt)",
+		"downloadPdf": "PDF (.pdf)"
+	},
+	"audioPanel": {
+		"noAudio": "Chưa có audio tóm tắt nào.",
+		"voiceLabel": "Giọng {{voice}}",
+		"ready": "Sẵn sàng",
+		"failed": "Thất bại",
+		"playbackUnavailable": "Đường phát audio hiện chưa khả dụng.",
+		"generationFailed": "Tạo audio tóm tắt này thất bại."
+	},
+	"auth": {
+		"loginTitle": "Đăng nhập vào Media Notes",
+		"emailLabel": "Email",
+		"passwordLabel": "Mật khẩu",
+		"signIn": "Đăng nhập",
+		"signingIn": "Đang đăng nhập…",
+		"invalidCredentials": "Email hoặc mật khẩu không đúng.",
+		"noAccount": "Chưa có tài khoản?",
+		"register": "Đăng ký",
+		"registerTitle": "Tạo tài khoản của bạn",
+		"nameLabel": "Tên",
+		"createAccount": "Tạo tài khoản",
+		"creatingAccount": "Đang tạo tài khoản…",
+		"registerFailed": "Không thể tạo tài khoản — email có thể đã được đăng ký.",
+		"haveAccount": "Đã có tài khoản?"
+	},
+	"usage": {
+		"title": "Sử dụng",
+		"description": "Chi tiêu credit của bạn theo thời gian, phân theo loại nội dung.",
+		"availableCredits": "Credit khả dụng",
+		"reservedCredits": "Credit đang giữ",
+		"dailySpendTitle": "Credit chi tiêu mỗi ngày (30 ngày gần nhất)",
+		"breakdownTitle": "Số lần tạo theo loại nội dung",
+		"noData": "Chưa có dữ liệu sử dụng — hãy tạo một số nội dung để xem biểu đồ ở đây.",
+		"creditsAxisLabel": "Credit",
+		"countAxisLabel": "Số lần tạo"
+	},
+	"settings": {
+		"title": "Cài đặt",
+		"description": "Quản lý tài khoản và tùy chọn của bạn.",
+		"tabs": {
+			"general": "Chung",
+			"appearance": "Giao diện",
+			"language": "Ngôn ngữ",
+			"prompts": "Prompt"
+		},
+		"general": {
+			"profileTitle": "Hồ sơ",
+			"profileDescription": "Thông tin tài khoản của bạn từ identity.",
+			"emailStatus": "Trạng thái email",
+			"verified": "Đã xác minh",
+			"notVerified": "Chưa xác minh",
+			"accountStatus": "Trạng thái tài khoản",
+			"memberSince": "Thành viên từ",
+			"dangerTitle": "Vùng nguy hiểm",
+			"dangerDescription": "Xóa vĩnh viễn tài khoản của bạn cùng toàn bộ media, transcript, nội dung đã tạo, và hồ sơ thanh toán liên quan. Việc này khởi động một quy trình bất đồng bộ trên mọi dịch vụ và không thể hoàn tác.",
+			"deleteAccount": "Xóa tài khoản",
+			"confirmTitle": "Xóa tài khoản của bạn?",
+			"confirmDescription": "Nhập \"delete\" để xác nhận. Việc này sẽ ngay lập tức thu hồi quyền truy cập sản phẩm của bạn và bắt đầu xóa vĩnh viễn trên mọi dịch vụ.",
+			"requesting": "Đang gửi yêu cầu…",
+			"successToast": "Đã gửi yêu cầu xóa tài khoản.",
+			"errorToast": "Không thể gửi yêu cầu xóa tài khoản. Vui lòng thử lại."
+		},
+		"appearance": {
+			"description": "Chọn giao diện hiển thị của Media Notes trên thiết bị này.",
+			"light": "Sáng",
+			"dark": "Tối",
+			"system": "Theo hệ thống"
+		},
+		"language": {
+			"description": "Chọn ngôn ngữ sử dụng trong Media Notes.",
+			"en": "English",
+			"vi": "Tiếng Việt"
+		},
+		"prompts": {
+			"description": "Thêm hướng dẫn cố định để mô hình tuân theo mỗi khi tạo từng loại nội dung cho bạn. Tối đa 500 ký tự, áp dụng tự động từ lần tạo tiếp theo.",
+			"placeholder": "vd. Viết ngắn gọn và dùng văn phong trang trọng.",
+			"charCount": "{{count}}/500",
+			"save": "Lưu",
+			"saved": "Đã lưu",
+			"errorToast": "Không thể lưu prompt. Vui lòng thử lại."
+		}
+	}
+}
