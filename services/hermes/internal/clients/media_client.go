@@ -208,6 +208,7 @@ func (c *MediaClient) ListTrashedMedia(ctx context.Context, ownerID uuid.UUID, c
 // ListTrashedMedia, so there is nothing for the caller to poll.
 func (c *MediaClient) DeleteMediaPermanently(ctx context.Context, mediaID uuid.UUID) error {
 	_, err := c.client.RequestDeletion(ctx, &mediav1.RequestDeletionRequest{
+		MediaId:        mediaID.String(),
 		IdempotencyKey: mediaID.String(),
 	})
 	if err != nil {
