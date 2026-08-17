@@ -179,6 +179,7 @@
 		"noNotes": "Chưa có ghi chú nào.",
 		"noSummary": "Chưa có tóm tắt nào.",
 		"noTranscript": "Chưa có transcript nào.",
+		"jumpToCurrent": "Về vị trí hiện tại",
 		"downloadMarkdown": "Markdown (.md)",
 		"downloadText": "Văn bản thuần (.txt)",
 		"downloadPdf": "PDF (.pdf)"

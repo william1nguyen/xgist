@@ -179,6 +179,7 @@
 		"noNotes": "No notes available yet.",
 		"noSummary": "No summary available yet.",
 		"noTranscript": "No transcript available yet.",
+		"jumpToCurrent": "Jump to current",
 		"downloadMarkdown": "Markdown (.md)",
 		"downloadText": "Plain text (.txt)",
 		"downloadPdf": "PDF (.pdf)"
