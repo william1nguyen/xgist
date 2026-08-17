@@ -217,6 +217,43 @@ func (c *MediaClient) DeleteMediaPermanently(ctx context.Context, mediaID uuid.U
 	return nil
 }
 
+// RequestThumbnailUpload returns a short-lived presigned PUT URL for a
+// caller-supplied thumbnail image. The caller PUTs the file directly to
+// object storage, then calls SetThumbnail with the returned object key.
+func (c *MediaClient) RequestThumbnailUpload(ctx context.Context, mediaID uuid.UUID, mimeType string) (objectKey, uploadURL string, expiresAt time.Time, err error) {
+	resp, err := c.client.RequestDerivativeUpload(ctx, &mediav1.RequestDerivativeUploadRequest{
+		MediaId:        mediaID.String(),
+		DerivativeType: mediav1.DerivativeType_DERIVATIVE_TYPE_THUMBNAIL,
+		MimeType:       mimeType,
+	})
+	if err != nil {
+		return "", "", time.Time{}, fmt.Errorf("media.RequestDerivativeUpload: %w", err)
+	}
+	return resp.GetObjectKey(), resp.GetUploadUrl(), resp.GetExpiresAt().AsTime(), nil
+}
+
+// SetThumbnail registers a caller-uploaded thumbnail already durable at
+// objectKey, at a fixed version high enough to outrank any
+// worker-generated thumbnail (worker always registers at version 1). This
+// is scoped to the create wizard's one-shot thumbnail step, not a general
+// "change thumbnail later" flow — a second call for the same media would
+// collide with the same version and be dropped as a duplicate, per
+// RegisterDerivative's (media_id, derivative_type, version) idempotency.
+func (c *MediaClient) SetThumbnail(ctx context.Context, mediaID uuid.UUID, objectKey, mimeType string) error {
+	_, err := c.client.RegisterDerivative(ctx, &mediav1.RegisterDerivativeRequest{
+		IdempotencyKey: objectKey,
+		MediaId:        mediaID.String(),
+		DerivativeType: mediav1.DerivativeType_DERIVATIVE_TYPE_THUMBNAIL,
+		Version:        2,
+		ObjectKey:      objectKey,
+		MimeType:       mimeType,
+	})
+	if err != nil {
+		return fmt.Errorf("media.RegisterDerivative: %w", err)
+	}
+	return nil
+}
+
 func toUploadSession(s *mediav1.UploadSession) (UploadSession, error) {
 	id, err := uuid.Parse(s.GetId())
 	if err != nil {

@@ -108,6 +108,16 @@ type MediaPage {
   nextCursor: String
 }
 
+# ThumbnailUpload is a short-lived presigned upload target for a custom
+# thumbnail image, returned by requestThumbnailUpload. Never persisted —
+# the caller PUTs the file to uploadUrl, then calls setThumbnail with
+# objectKey to finalize it.
+type ThumbnailUpload {
+  objectKey: String!
+  uploadUrl: String!
+  expiresAt: String!
+}
+
 # MediaDetail additionally carries a short-lived signed playback URL,
 # fetched only for the detail page per docs/architecture.md.
 type MediaDetail {
@@ -371,6 +381,16 @@ type Mutation {
   # updateMedia changes a media item's title and/or description. Omitted
   # (null) fields are left unchanged.
   updateMedia(id: ID!, title: String, description: String): MediaDetail!
+  # requestThumbnailUpload returns a presigned target for a custom
+  # thumbnail image (image/jpeg, image/png, or image/webp) for a media
+  # item the caller owns — usable any time after createUploadSession,
+  # even before confirmUpload. Follow with setThumbnail once the file is
+  # uploaded.
+  requestThumbnailUpload(mediaId: ID!, mimeType: String!): ThumbnailUpload!
+  # setThumbnail registers a thumbnail image already uploaded to
+  # objectKey (via requestThumbnailUpload) as mediaId's thumbnail,
+  # replacing any auto-generated one.
+  setThumbnail(mediaId: ID!, objectKey: String!, mimeType: String!): Media!
   # requestProcessing starts a new processing request for a media item that
   # has already been confirmed at least once — to generate a content type
   # that wasn't originally selected, or to regenerate one that was. Only

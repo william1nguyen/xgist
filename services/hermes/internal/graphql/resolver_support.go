@@ -64,6 +64,8 @@ type MediaClient interface {
 	RestoreMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error)
 	ListTrashedMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32) (clients.MediaPage, error)
 	DeleteMediaPermanently(ctx context.Context, mediaID uuid.UUID) error
+	RequestThumbnailUpload(ctx context.Context, mediaID uuid.UUID, mimeType string) (objectKey, uploadURL string, expiresAt time.Time, err error)
+	SetThumbnail(ctx context.Context, mediaID uuid.UUID, objectKey, mimeType string) error
 }
 
 // ContentClient is the content boundary resolvers depend on.

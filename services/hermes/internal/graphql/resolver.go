@@ -185,6 +185,74 @@ func (r *mutationResolver) UpdateMedia(ctx context.Context, id string, title *st
 	return toModelMediaDetail(m, "", time.Time{}), nil
 }
 
+// RequestThumbnailUpload is the resolver for the requestThumbnailUpload field.
+func (r *mutationResolver) RequestThumbnailUpload(ctx context.Context, mediaID string, mimeType string) (*model.ThumbnailUpload, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	id, err := uuid.Parse(mediaID)
+	if err != nil {
+		return nil, fmt.Errorf("mediaId must be a UUID: %w", err)
+	}
+
+	existing, err := r.media.GetMedia(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existing.OwnerID != principal.User.ID {
+		return nil, ErrNotFound
+	}
+
+	objectKey, uploadURL, expiresAt, err := r.media.RequestThumbnailUpload(ctx, id, mimeType)
+	if err != nil {
+		return nil, err
+	}
+	return &model.ThumbnailUpload{
+		ObjectKey: objectKey,
+		UploadURL: uploadURL,
+		ExpiresAt: formatTime(expiresAt),
+	}, nil
+}
+
+// SetThumbnail is the resolver for the setThumbnail field.
+func (r *mutationResolver) SetThumbnail(ctx context.Context, mediaID string, objectKey string, mimeType string) (*model.Media, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	id, err := uuid.Parse(mediaID)
+	if err != nil {
+		return nil, fmt.Errorf("mediaId must be a UUID: %w", err)
+	}
+
+	existing, err := r.media.GetMedia(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existing.OwnerID != principal.User.ID {
+		return nil, ErrNotFound
+	}
+
+	if err := r.media.SetThumbnail(ctx, id, objectKey, mimeType); err != nil {
+		return nil, err
+	}
+
+	m, err := r.media.GetMedia(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return toModelMedia(m), nil
+}
+
 // RequestProcessing is the resolver for the requestProcessing field.
 func (r *mutationResolver) RequestProcessing(ctx context.Context, mediaID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error) {
 	principal, err := requirePrincipal(ctx)
@@ -724,4 +792,3 @@ type (
 	mutationResolver struct{ *Resolver }
 	queryResolver    struct{ *Resolver }
 )
-

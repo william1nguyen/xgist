@@ -198,6 +198,12 @@ type SummarySentence struct {
 	CitedSegmentIndexes []int  `json:"citedSegmentIndexes"`
 }
 
+type ThumbnailUpload struct {
+	ObjectKey string `json:"objectKey"`
+	UploadURL string `json:"uploadUrl"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
 type Transcript struct {
 	Language string              `json:"language"`
 	Text     string              `json:"text"`

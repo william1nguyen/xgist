@@ -177,7 +177,9 @@ type ComplexityRoot struct {
 		Register                func(childComplexity int, email string, password string, name string, idempotencyKey *string) int
 		RequestAccountDeletion  func(childComplexity int, idempotencyKey *string) int
 		RequestProcessing       func(childComplexity int, mediaID string, options []string, audioVoice *string, idempotencyKey *string) int
+		RequestThumbnailUpload  func(childComplexity int, mediaID string, mimeType string) int
 		RestoreMedia            func(childComplexity int, id string) int
+		SetThumbnail            func(childComplexity int, mediaID string, objectKey string, mimeType string) int
 		TrashMedia              func(childComplexity int, id string) int
 		UpdateMedia             func(childComplexity int, id string, title *string, description *string) int
 		UpdatePromptSetting     func(childComplexity int, section string, promptText string) int
@@ -253,6 +255,12 @@ type ComplexityRoot struct {
 		Text                func(childComplexity int) int
 	}
 
+	ThumbnailUpload struct {
+		ExpiresAt func(childComplexity int) int
+		ObjectKey func(childComplexity int) int
+		UploadURL func(childComplexity int) int
+	}
+
 	Transcript struct {
 		Language func(childComplexity int) int
 		Segments func(childComplexity int) int
@@ -298,6 +306,8 @@ type MutationResolver interface {
 	CreateUploadSession(ctx context.Context, title string, mimeType string, declaredSizeBytes int, idempotencyKey *string) (*model.UploadSession, error)
 	ConfirmUpload(ctx context.Context, uploadSessionID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error)
 	UpdateMedia(ctx context.Context, id string, title *string, description *string) (*model.MediaDetail, error)
+	RequestThumbnailUpload(ctx context.Context, mediaID string, mimeType string) (*model.ThumbnailUpload, error)
+	SetThumbnail(ctx context.Context, mediaID string, objectKey string, mimeType string) (*model.Media, error)
 	RequestProcessing(ctx context.Context, mediaID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error)
 	UpdatePromptSetting(ctx context.Context, section string, promptText string) (*model.PromptSetting, error)
 	TrashMedia(ctx context.Context, id string) (*model.Media, error)
@@ -964,6 +974,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RequestProcessing(childComplexity, args["mediaId"].(string), args["options"].([]string), args["audioVoice"].(*string), args["idempotencyKey"].(*string)), true
+	case "Mutation.requestThumbnailUpload":
+		if e.ComplexityRoot.Mutation.RequestThumbnailUpload == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_requestThumbnailUpload_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.RequestThumbnailUpload(childComplexity, args["mediaId"].(string), args["mimeType"].(string)), true
 	case "Mutation.restoreMedia":
 		if e.ComplexityRoot.Mutation.RestoreMedia == nil {
 			break
@@ -975,6 +996,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RestoreMedia(childComplexity, args["id"].(string)), true
+	case "Mutation.setThumbnail":
+		if e.ComplexityRoot.Mutation.SetThumbnail == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setThumbnail_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SetThumbnail(childComplexity, args["mediaId"].(string), args["objectKey"].(string), args["mimeType"].(string)), true
 	case "Mutation.trashMedia":
 		if e.ComplexityRoot.Mutation.TrashMedia == nil {
 			break
@@ -1321,6 +1353,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.SummarySentence.Text(childComplexity), true
+
+	case "ThumbnailUpload.expiresAt":
+		if e.ComplexityRoot.ThumbnailUpload.ExpiresAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ThumbnailUpload.ExpiresAt(childComplexity), true
+	case "ThumbnailUpload.objectKey":
+		if e.ComplexityRoot.ThumbnailUpload.ObjectKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ThumbnailUpload.ObjectKey(childComplexity), true
+	case "ThumbnailUpload.uploadUrl":
+		if e.ComplexityRoot.ThumbnailUpload.UploadURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ThumbnailUpload.UploadURL(childComplexity), true
 
 	case "Transcript.language":
 		if e.ComplexityRoot.Transcript.Language == nil {
@@ -1913,6 +1964,18 @@ func (ec *executionContext) childFields_SummarySentence(ctx context.Context, fie
 	return nil, fmt.Errorf("no field named %q was found under type SummarySentence", field.Name)
 }
 
+func (ec *executionContext) childFields_ThumbnailUpload(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "objectKey":
+		return ec.fieldContext_ThumbnailUpload_objectKey(ctx, field)
+	case "uploadUrl":
+		return ec.fieldContext_ThumbnailUpload_uploadUrl(ctx, field)
+	case "expiresAt":
+		return ec.fieldContext_ThumbnailUpload_expiresAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type ThumbnailUpload", field.Name)
+}
+
 func (ec *executionContext) childFields_Transcript(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "language":
@@ -2355,6 +2418,28 @@ func (ec *executionContext) field_Mutation_requestProcessing_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_requestThumbnailUpload_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "mediaId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["mediaId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "mimeType",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["mimeType"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_restoreMedia_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2366,6 +2451,36 @@ func (ec *executionContext) field_Mutation_restoreMedia_args(ctx context.Context
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setThumbnail_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "mediaId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["mediaId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "objectKey",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["objectKey"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "mimeType",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["mimeType"] = arg2
 	return args, nil
 }
 
@@ -5001,6 +5116,94 @@ func (ec *executionContext) fieldContext_Mutation_updateMedia(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_requestThumbnailUpload(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_requestThumbnailUpload(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().RequestThumbnailUpload(ctx, fc.Args["mediaId"].(string), fc.Args["mimeType"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.ThumbnailUpload) graphql.Marshaler {
+			return ec.marshalNThumbnailUpload2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐThumbnailUpload(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_requestThumbnailUpload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ThumbnailUpload(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_requestThumbnailUpload_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setThumbnail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_setThumbnail(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SetThumbnail(ctx, fc.Args["mediaId"].(string), fc.Args["objectKey"].(string), fc.Args["mimeType"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Media) graphql.Marshaler {
+			return ec.marshalNMedia2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐMedia(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_setThumbnail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Media(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setThumbnail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_requestProcessing(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -6624,6 +6827,75 @@ func (ec *executionContext) _SummarySentence_citedSegmentIndexes(ctx context.Con
 }
 func (ec *executionContext) fieldContext_SummarySentence_citedSegmentIndexes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("SummarySentence", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _ThumbnailUpload_objectKey(ctx context.Context, field graphql.CollectedField, obj *model.ThumbnailUpload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ThumbnailUpload_objectKey(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ObjectKey, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ThumbnailUpload_objectKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ThumbnailUpload", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ThumbnailUpload_uploadUrl(ctx context.Context, field graphql.CollectedField, obj *model.ThumbnailUpload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ThumbnailUpload_uploadUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UploadURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ThumbnailUpload_uploadUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ThumbnailUpload", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ThumbnailUpload_expiresAt(ctx context.Context, field graphql.CollectedField, obj *model.ThumbnailUpload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ThumbnailUpload_expiresAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ExpiresAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ThumbnailUpload_expiresAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ThumbnailUpload", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _Transcript_language(ctx context.Context, field graphql.CollectedField, obj *model.Transcript) (ret graphql.Marshaler) {
@@ -9146,6 +9418,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "requestThumbnailUpload":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_requestThumbnailUpload(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "setThumbnail":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setThumbnail(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "requestProcessing":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_requestProcessing(ctx, field)
@@ -9947,6 +10233,54 @@ func (ec *executionContext) _SummarySentence(ctx context.Context, sel ast.Select
 			}
 		case "citedSegmentIndexes":
 			out.Values[i] = ec._SummarySentence_citedSegmentIndexes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
+var thumbnailUploadImplementors = []string{"ThumbnailUpload"}
+
+func (ec *executionContext) _ThumbnailUpload(ctx context.Context, sel ast.SelectionSet, obj *model.ThumbnailUpload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, thumbnailUploadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ThumbnailUpload")
+		case "objectKey":
+			out.Values[i] = ec._ThumbnailUpload_objectKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uploadUrl":
+			out.Values[i] = ec._ThumbnailUpload_uploadUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "expiresAt":
+			out.Values[i] = ec._ThumbnailUpload_expiresAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -11240,6 +11574,20 @@ func (ec *executionContext) marshalNSummarySentence2ᚕgithubᚗcomᚋnolannguye
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNThumbnailUpload2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐThumbnailUpload(ctx context.Context, sel ast.SelectionSet, v model.ThumbnailUpload) graphql.Marshaler {
+	return ec._ThumbnailUpload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNThumbnailUpload2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐThumbnailUpload(ctx context.Context, sel ast.SelectionSet, v *model.ThumbnailUpload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ThumbnailUpload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTranscriptSegment2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐTranscriptSegment(ctx context.Context, sel ast.SelectionSet, v model.TranscriptSegment) graphql.Marshaler {

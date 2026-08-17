@@ -140,6 +140,14 @@ func (f *fakeMedia) DeleteMediaPermanently(ctx context.Context, mediaID uuid.UUI
 	return nil
 }
 
+func (f *fakeMedia) RequestThumbnailUpload(ctx context.Context, mediaID uuid.UUID, mimeType string) (string, string, time.Time, error) {
+	return "media/" + mediaID.String() + "/thumbnail/x.png", "https://example.test/put", time.Now().Add(15 * time.Minute), nil
+}
+
+func (f *fakeMedia) SetThumbnail(ctx context.Context, mediaID uuid.UUID, objectKey, mimeType string) error {
+	return nil
+}
+
 type fakeContent struct{}
 
 func (f *fakeContent) GetContent(ctx context.Context, mediaID uuid.UUID) (clients.Content, error) {
