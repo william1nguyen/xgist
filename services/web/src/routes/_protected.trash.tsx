@@ -41,33 +41,33 @@ export default function TrashPage() {
 	}
 
 	return (
-		<div className="flex flex-col gap-5 px-4 py-6 md:px-6 lg:px-8">
+		<div className="flex min-h-full flex-col gap-5 px-4 py-6 md:px-6 lg:px-8">
 			<PageHeader
 				title={t("trash.title")}
 				description={t("trash.description")}
 			/>
 
-			{loading && items.length === 0 ? (
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{Array.from({ length: 6 }).map((_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders, never reordered
-						<Skeleton key={i} className="h-64" />
-					))}
-				</div>
-			) : items.length === 0 ? (
-				<div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border border-dashed py-28 text-center">
-					<div className="flex size-12 items-center justify-center rounded-full bg-muted">
-						<Trash2 className="size-5 text-muted-foreground" />
+			<div className="flex flex-1 flex-col gap-5">
+				{loading && items.length === 0 ? (
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{Array.from({ length: 6 }).map((_, i) => (
+							// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders, never reordered
+							<Skeleton key={i} className="h-64" />
+						))}
 					</div>
-					<div>
-						<p className="font-medium">{t("trash.emptyTitle")}</p>
-						<p className="mt-1 text-muted-foreground text-sm">
-							{t("trash.emptyDescription")}
-						</p>
+				) : items.length === 0 ? (
+					<div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-border border-dashed py-28 text-center">
+						<div className="flex size-12 items-center justify-center rounded-full bg-muted">
+							<Trash2 className="size-5 text-muted-foreground" />
+						</div>
+						<div>
+							<p className="font-medium">{t("trash.emptyTitle")}</p>
+							<p className="mt-1 text-muted-foreground text-sm">
+								{t("trash.emptyDescription")}
+							</p>
+						</div>
 					</div>
-				</div>
-			) : (
-				<>
+				) : (
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{items.map((item) => (
 							<TrashedMediaCard
@@ -78,31 +78,33 @@ export default function TrashPage() {
 							/>
 						))}
 					</div>
+				)}
+			</div>
 
-					<div className="flex items-center justify-center gap-4">
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={goToPreviousPage}
-							disabled={pageIndex === 0 || loading}
-						>
-							<ChevronLeft className="size-4" />
-							{t("dashboard.previous")}
-						</Button>
-						<span className="text-muted-foreground text-sm">
-							{t("dashboard.page", { number: pageIndex + 1 })}
-						</span>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={goToNextPage}
-							disabled={!nextCursor || loading}
-						>
-							{t("dashboard.next")}
-							<ChevronRight className="size-4" />
-						</Button>
-					</div>
-				</>
+			{items.length > 0 && (
+				<div className="mt-auto flex items-center justify-center gap-4 pt-4">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={goToPreviousPage}
+						disabled={pageIndex === 0 || loading}
+					>
+						<ChevronLeft className="size-4" />
+						{t("dashboard.previous")}
+					</Button>
+					<span className="text-muted-foreground text-sm">
+						{t("dashboard.page", { number: pageIndex + 1 })}
+					</span>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={goToNextPage}
+						disabled={!nextCursor || loading}
+					>
+						{t("dashboard.next")}
+						<ChevronRight className="size-4" />
+					</Button>
+				</div>
 			)}
 		</div>
 	);
