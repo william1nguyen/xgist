@@ -27,6 +27,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	BillingService_GetQuote_FullMethodName          = "/media_notes.billing.v1.BillingService/GetQuote"
 	BillingService_GetBillingSummary_FullMethodName = "/media_notes.billing.v1.BillingService/GetBillingSummary"
+	BillingService_ListCreditLedger_FullMethodName  = "/media_notes.billing.v1.BillingService/ListCreditLedger"
 )
 
 // BillingServiceClient is the client API for BillingService service.
@@ -42,6 +43,10 @@ type BillingServiceClient interface {
 	// GetBillingSummary returns current credit balance and subscription
 	// state for one user.
 	GetBillingSummary(ctx context.Context, in *GetBillingSummaryRequest, opts ...grpc.CallOption) (*GetBillingSummaryResponse, error)
+	// ListCreditLedger returns a cursor-paginated page of one user's credit
+	// ledger entries, newest first — the append-only reserve/settle/release/
+	// purchase history backing the web app's usage charts.
+	ListCreditLedger(ctx context.Context, in *ListCreditLedgerRequest, opts ...grpc.CallOption) (*ListCreditLedgerResponse, error)
 }
 
 type billingServiceClient struct {
@@ -72,6 +77,16 @@ func (c *billingServiceClient) GetBillingSummary(ctx context.Context, in *GetBil
 	return out, nil
 }
 
+func (c *billingServiceClient) ListCreditLedger(ctx context.Context, in *ListCreditLedgerRequest, opts ...grpc.CallOption) (*ListCreditLedgerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCreditLedgerResponse)
+	err := c.cc.Invoke(ctx, BillingService_ListCreditLedger_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BillingServiceServer is the server API for BillingService service.
 // All implementations must embed UnimplementedBillingServiceServer
 // for forward compatibility.
@@ -85,6 +100,10 @@ type BillingServiceServer interface {
 	// GetBillingSummary returns current credit balance and subscription
 	// state for one user.
 	GetBillingSummary(context.Context, *GetBillingSummaryRequest) (*GetBillingSummaryResponse, error)
+	// ListCreditLedger returns a cursor-paginated page of one user's credit
+	// ledger entries, newest first — the append-only reserve/settle/release/
+	// purchase history backing the web app's usage charts.
+	ListCreditLedger(context.Context, *ListCreditLedgerRequest) (*ListCreditLedgerResponse, error)
 	mustEmbedUnimplementedBillingServiceServer()
 }
 
@@ -100,6 +119,9 @@ func (UnimplementedBillingServiceServer) GetQuote(context.Context, *GetQuoteRequ
 }
 func (UnimplementedBillingServiceServer) GetBillingSummary(context.Context, *GetBillingSummaryRequest) (*GetBillingSummaryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBillingSummary not implemented")
+}
+func (UnimplementedBillingServiceServer) ListCreditLedger(context.Context, *ListCreditLedgerRequest) (*ListCreditLedgerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCreditLedger not implemented")
 }
 func (UnimplementedBillingServiceServer) mustEmbedUnimplementedBillingServiceServer() {}
 func (UnimplementedBillingServiceServer) testEmbeddedByValue()                        {}
@@ -158,6 +180,24 @@ func _BillingService_GetBillingSummary_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BillingService_ListCreditLedger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCreditLedgerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).ListCreditLedger(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_ListCreditLedger_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).ListCreditLedger(ctx, req.(*ListCreditLedgerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BillingService_ServiceDesc is the grpc.ServiceDesc for BillingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -172,6 +212,10 @@ var BillingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBillingSummary",
 			Handler:    _BillingService_GetBillingSummary_Handler,
+		},
+		{
+			MethodName: "ListCreditLedger",
+			Handler:    _BillingService_ListCreditLedger_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

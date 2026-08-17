@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -315,6 +316,98 @@ func (r *CreditRepository) ApplyPurchase(ctx context.Context, userID uuid.UUID, 
 		return credit.Balance{}, txErr
 	}
 	return result, nil
+}
+
+type ledgerCursorPayload struct {
+	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+}
+
+func (r *CreditRepository) ListLedgerEntries(ctx context.Context, userID uuid.UUID, cursor string, pageSize int) (credit.LedgerPage, error) {
+	var (
+		rows pgx.Rows
+		err  error
+	)
+	if cursor == "" {
+		rows, err = r.pool.Query(ctx, `
+			SELECT id, delta, entry_type, metadata, created_at
+			FROM billing.credit_ledger
+			WHERE user_id = $1
+			ORDER BY created_at DESC, id DESC
+			LIMIT $2
+		`, userID, pageSize+1)
+	} else {
+		c, decodeErr := decodeLedgerCursor(cursor)
+		if decodeErr != nil {
+			return credit.LedgerPage{}, decodeErr
+		}
+		rows, err = r.pool.Query(ctx, `
+			SELECT id, delta, entry_type, metadata, created_at
+			FROM billing.credit_ledger
+			WHERE user_id = $1 AND (created_at, id) < ($2, $3)
+			ORDER BY created_at DESC, id DESC
+			LIMIT $4
+		`, userID, c.CreatedAt, c.ID, pageSize+1)
+	}
+	if err != nil {
+		return credit.LedgerPage{}, err
+	}
+	defer rows.Close()
+
+	var entries []credit.LedgerEntry
+	for rows.Next() {
+		e, err := scanLedgerEntry(rows)
+		if err != nil {
+			return credit.LedgerPage{}, err
+		}
+		entries = append(entries, e)
+	}
+	if err := rows.Err(); err != nil {
+		return credit.LedgerPage{}, err
+	}
+
+	var nextCursor string
+	if len(entries) > pageSize {
+		last := entries[pageSize-1]
+		nextCursor = encodeLedgerCursor(last)
+		entries = entries[:pageSize]
+	}
+	return credit.LedgerPage{Entries: entries, NextCursor: nextCursor}, nil
+}
+
+func scanLedgerEntry(row rowScanner) (credit.LedgerEntry, error) {
+	var e credit.LedgerEntry
+	var metadataJSON []byte
+	if err := row.Scan(&e.ID, &e.Delta, &e.EntryType, &metadataJSON, &e.CreatedAt); err != nil {
+		return credit.LedgerEntry{}, err
+	}
+	if len(metadataJSON) > 0 {
+		var metadata map[string]any
+		if err := json.Unmarshal(metadataJSON, &metadata); err != nil {
+			return credit.LedgerEntry{}, err
+		}
+		if itemID, ok := metadata["item_id"].(string); ok {
+			e.ItemID = itemID
+		}
+	}
+	return e, nil
+}
+
+func encodeLedgerCursor(e credit.LedgerEntry) string {
+	b, _ := json.Marshal(ledgerCursorPayload{CreatedAt: e.CreatedAt, ID: e.ID})
+	return base64.URLEncoding.EncodeToString(b)
+}
+
+func decodeLedgerCursor(cursor string) (ledgerCursorPayload, error) {
+	var p ledgerCursorPayload
+	b, err := base64.URLEncoding.DecodeString(cursor)
+	if err != nil {
+		return ledgerCursorPayload{}, err
+	}
+	if err := json.Unmarshal(b, &p); err != nil {
+		return ledgerCursorPayload{}, err
+	}
+	return p, nil
 }
 
 func ensureAccountExists(ctx context.Context, q querier, userID uuid.UUID) error {

@@ -102,3 +102,35 @@ class GetBillingSummaryResponse(_message.Message):
     SUMMARY_FIELD_NUMBER: _ClassVar[int]
     summary: BillingSummary
     def __init__(self, summary: _Optional[_Union[BillingSummary, _Mapping]] = ...) -> None: ...
+
+class LedgerEntry(_message.Message):
+    __slots__ = ("id", "delta", "entry_type", "item_id", "created_at")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    DELTA_FIELD_NUMBER: _ClassVar[int]
+    ENTRY_TYPE_FIELD_NUMBER: _ClassVar[int]
+    ITEM_ID_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    delta: int
+    entry_type: str
+    item_id: str
+    created_at: _timestamp_pb2.Timestamp
+    def __init__(self, id: _Optional[str] = ..., delta: _Optional[int] = ..., entry_type: _Optional[str] = ..., item_id: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
+class ListCreditLedgerRequest(_message.Message):
+    __slots__ = ("user_id", "cursor", "page_size")
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    CURSOR_FIELD_NUMBER: _ClassVar[int]
+    PAGE_SIZE_FIELD_NUMBER: _ClassVar[int]
+    user_id: str
+    cursor: str
+    page_size: int
+    def __init__(self, user_id: _Optional[str] = ..., cursor: _Optional[str] = ..., page_size: _Optional[int] = ...) -> None: ...
+
+class ListCreditLedgerResponse(_message.Message):
+    __slots__ = ("entries", "next_cursor")
+    ENTRIES_FIELD_NUMBER: _ClassVar[int]
+    NEXT_CURSOR_FIELD_NUMBER: _ClassVar[int]
+    entries: _containers.RepeatedCompositeFieldContainer[LedgerEntry]
+    next_cursor: str
+    def __init__(self, entries: _Optional[_Iterable[_Union[LedgerEntry, _Mapping]]] = ..., next_cursor: _Optional[str] = ...) -> None: ...

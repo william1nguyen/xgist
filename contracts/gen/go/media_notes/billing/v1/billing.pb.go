@@ -577,6 +577,204 @@ func (x *GetBillingSummaryResponse) GetSummary() *BillingSummary {
 	return nil
 }
 
+// LedgerEntry is one row of billing.credit_ledger: an immutable credit
+// movement. delta is negative for a reserve, zero for a settle (the
+// reserve already moved the credits; settle only records which item_id
+// they paid for), positive for a release or purchase.
+type LedgerEntry struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Delta     int64                  `protobuf:"varint,2,opt,name=delta,proto3" json:"delta,omitempty"`
+	EntryType string                 `protobuf:"bytes,3,opt,name=entry_type,json=entryType,proto3" json:"entry_type,omitempty"`
+	// item_id is only set on "settle" entries — the processing option id
+	// (e.g. "summarize") the reservation was settled against.
+	ItemId        string                 `protobuf:"bytes,4,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LedgerEntry) Reset() {
+	*x = LedgerEntry{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LedgerEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LedgerEntry) ProtoMessage() {}
+
+func (x *LedgerEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LedgerEntry.ProtoReflect.Descriptor instead.
+func (*LedgerEntry) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *LedgerEntry) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *LedgerEntry) GetDelta() int64 {
+	if x != nil {
+		return x.Delta
+	}
+	return 0
+}
+
+func (x *LedgerEntry) GetEntryType() string {
+	if x != nil {
+		return x.EntryType
+	}
+	return ""
+}
+
+func (x *LedgerEntry) GetItemId() string {
+	if x != nil {
+		return x.ItemId
+	}
+	return ""
+}
+
+func (x *LedgerEntry) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+// ListCreditLedgerRequest carries the user to list and cursor pagination.
+// cursor is opaque, returned by a previous response's next_cursor.
+type ListCreditLedgerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Cursor        string                 `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCreditLedgerRequest) Reset() {
+	*x = ListCreditLedgerRequest{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCreditLedgerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCreditLedgerRequest) ProtoMessage() {}
+
+func (x *ListCreditLedgerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCreditLedgerRequest.ProtoReflect.Descriptor instead.
+func (*ListCreditLedgerRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ListCreditLedgerRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ListCreditLedgerRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
+}
+
+func (x *ListCreditLedgerRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+// ListCreditLedgerResponse returns one page of ledger entries, newest
+// first. next_cursor is empty on the last page.
+type ListCreditLedgerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*LedgerEntry         `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	NextCursor    string                 `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCreditLedgerResponse) Reset() {
+	*x = ListCreditLedgerResponse{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCreditLedgerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCreditLedgerResponse) ProtoMessage() {}
+
+func (x *ListCreditLedgerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCreditLedgerResponse.ProtoReflect.Descriptor instead.
+func (*ListCreditLedgerResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListCreditLedgerResponse) GetEntries() []*LedgerEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *ListCreditLedgerResponse) GetNextCursor() string {
+	if x != nil {
+		return x.NextCursor
+	}
+	return ""
+}
+
 var File_media_notes_billing_v1_billing_proto protoreflect.FileDescriptor
 
 const file_media_notes_billing_v1_billing_proto_rawDesc = "" +
@@ -616,16 +814,33 @@ const file_media_notes_billing_v1_billing_proto_rawDesc = "" +
 	"\x18GetBillingSummaryRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"]\n" +
 	"\x19GetBillingSummaryResponse\x12@\n" +
-	"\asummary\x18\x01 \x01(\v2&.media_notes.billing.v1.BillingSummaryR\asummary*\xbb\x01\n" +
+	"\asummary\x18\x01 \x01(\v2&.media_notes.billing.v1.BillingSummaryR\asummary\"\xa6\x01\n" +
+	"\vLedgerEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05delta\x18\x02 \x01(\x03R\x05delta\x12\x1d\n" +
+	"\n" +
+	"entry_type\x18\x03 \x01(\tR\tentryType\x12\x17\n" +
+	"\aitem_id\x18\x04 \x01(\tR\x06itemId\x129\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"g\n" +
+	"\x17ListCreditLedgerRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
+	"\x06cursor\x18\x02 \x01(\tR\x06cursor\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"z\n" +
+	"\x18ListCreditLedgerResponse\x12=\n" +
+	"\aentries\x18\x01 \x03(\v2#.media_notes.billing.v1.LedgerEntryR\aentries\x12\x1f\n" +
+	"\vnext_cursor\x18\x02 \x01(\tR\n" +
+	"nextCursor*\xbb\x01\n" +
 	"\x12SubscriptionStatus\x12#\n" +
 	"\x1fSUBSCRIPTION_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18SUBSCRIPTION_STATUS_NONE\x10\x01\x12\x1e\n" +
 	"\x1aSUBSCRIPTION_STATUS_ACTIVE\x10\x02\x12 \n" +
 	"\x1cSUBSCRIPTION_STATUS_CANCELED\x10\x03\x12 \n" +
-	"\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x042\xe9\x01\n" +
+	"\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x042\xe0\x02\n" +
 	"\x0eBillingService\x12]\n" +
 	"\bGetQuote\x12'.media_notes.billing.v1.GetQuoteRequest\x1a(.media_notes.billing.v1.GetQuoteResponse\x12x\n" +
-	"\x11GetBillingSummary\x120.media_notes.billing.v1.GetBillingSummaryRequest\x1a1.media_notes.billing.v1.GetBillingSummaryResponseB\xfa\x01\n" +
+	"\x11GetBillingSummary\x120.media_notes.billing.v1.GetBillingSummaryRequest\x1a1.media_notes.billing.v1.GetBillingSummaryResponse\x12u\n" +
+	"\x10ListCreditLedger\x12/.media_notes.billing.v1.ListCreditLedgerRequest\x1a0.media_notes.billing.v1.ListCreditLedgerResponseB\xfa\x01\n" +
 	"\x1acom.media_notes.billing.v1B\fBillingProtoP\x01ZXgithub.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/billing/v1;billingv1\xa2\x02\x03MBX\xaa\x02\x15MediaNotes.Billing.V1\xca\x02\x15MediaNotes\\Billing\\V1\xe2\x02!MediaNotes\\Billing\\V1\\GPBMetadata\xea\x02\x17MediaNotes::Billing::V1b\x06proto3"
 
 var (
@@ -641,7 +856,7 @@ func file_media_notes_billing_v1_billing_proto_rawDescGZIP() []byte {
 }
 
 var file_media_notes_billing_v1_billing_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_media_notes_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_media_notes_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_media_notes_billing_v1_billing_proto_goTypes = []any{
 	(SubscriptionStatus)(0),           // 0: media_notes.billing.v1.SubscriptionStatus
 	(*QuoteItem)(nil),                 // 1: media_notes.billing.v1.QuoteItem
@@ -652,27 +867,34 @@ var file_media_notes_billing_v1_billing_proto_goTypes = []any{
 	(*BillingSummary)(nil),            // 6: media_notes.billing.v1.BillingSummary
 	(*GetBillingSummaryRequest)(nil),  // 7: media_notes.billing.v1.GetBillingSummaryRequest
 	(*GetBillingSummaryResponse)(nil), // 8: media_notes.billing.v1.GetBillingSummaryResponse
-	(*timestamppb.Timestamp)(nil),     // 9: google.protobuf.Timestamp
+	(*LedgerEntry)(nil),               // 9: media_notes.billing.v1.LedgerEntry
+	(*ListCreditLedgerRequest)(nil),   // 10: media_notes.billing.v1.ListCreditLedgerRequest
+	(*ListCreditLedgerResponse)(nil),  // 11: media_notes.billing.v1.ListCreditLedgerResponse
+	(*timestamppb.Timestamp)(nil),     // 12: google.protobuf.Timestamp
 }
 var file_media_notes_billing_v1_billing_proto_depIdxs = []int32{
 	1,  // 0: media_notes.billing.v1.Quote.items:type_name -> media_notes.billing.v1.QuoteItem
-	9,  // 1: media_notes.billing.v1.Quote.expires_at:type_name -> google.protobuf.Timestamp
-	9,  // 2: media_notes.billing.v1.Quote.created_at:type_name -> google.protobuf.Timestamp
+	12, // 1: media_notes.billing.v1.Quote.expires_at:type_name -> google.protobuf.Timestamp
+	12, // 2: media_notes.billing.v1.Quote.created_at:type_name -> google.protobuf.Timestamp
 	2,  // 3: media_notes.billing.v1.GetQuoteResponse.quote:type_name -> media_notes.billing.v1.Quote
 	0,  // 4: media_notes.billing.v1.Subscription.status:type_name -> media_notes.billing.v1.SubscriptionStatus
-	9,  // 5: media_notes.billing.v1.Subscription.period_start:type_name -> google.protobuf.Timestamp
-	9,  // 6: media_notes.billing.v1.Subscription.period_end:type_name -> google.protobuf.Timestamp
+	12, // 5: media_notes.billing.v1.Subscription.period_start:type_name -> google.protobuf.Timestamp
+	12, // 6: media_notes.billing.v1.Subscription.period_end:type_name -> google.protobuf.Timestamp
 	5,  // 7: media_notes.billing.v1.BillingSummary.subscription:type_name -> media_notes.billing.v1.Subscription
 	6,  // 8: media_notes.billing.v1.GetBillingSummaryResponse.summary:type_name -> media_notes.billing.v1.BillingSummary
-	3,  // 9: media_notes.billing.v1.BillingService.GetQuote:input_type -> media_notes.billing.v1.GetQuoteRequest
-	7,  // 10: media_notes.billing.v1.BillingService.GetBillingSummary:input_type -> media_notes.billing.v1.GetBillingSummaryRequest
-	4,  // 11: media_notes.billing.v1.BillingService.GetQuote:output_type -> media_notes.billing.v1.GetQuoteResponse
-	8,  // 12: media_notes.billing.v1.BillingService.GetBillingSummary:output_type -> media_notes.billing.v1.GetBillingSummaryResponse
-	11, // [11:13] is the sub-list for method output_type
-	9,  // [9:11] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	12, // 9: media_notes.billing.v1.LedgerEntry.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 10: media_notes.billing.v1.ListCreditLedgerResponse.entries:type_name -> media_notes.billing.v1.LedgerEntry
+	3,  // 11: media_notes.billing.v1.BillingService.GetQuote:input_type -> media_notes.billing.v1.GetQuoteRequest
+	7,  // 12: media_notes.billing.v1.BillingService.GetBillingSummary:input_type -> media_notes.billing.v1.GetBillingSummaryRequest
+	10, // 13: media_notes.billing.v1.BillingService.ListCreditLedger:input_type -> media_notes.billing.v1.ListCreditLedgerRequest
+	4,  // 14: media_notes.billing.v1.BillingService.GetQuote:output_type -> media_notes.billing.v1.GetQuoteResponse
+	8,  // 15: media_notes.billing.v1.BillingService.GetBillingSummary:output_type -> media_notes.billing.v1.GetBillingSummaryResponse
+	11, // 16: media_notes.billing.v1.BillingService.ListCreditLedger:output_type -> media_notes.billing.v1.ListCreditLedgerResponse
+	14, // [14:17] is the sub-list for method output_type
+	11, // [11:14] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_media_notes_billing_v1_billing_proto_init() }
@@ -686,7 +908,7 @@ func file_media_notes_billing_v1_billing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_notes_billing_v1_billing_proto_rawDesc), len(file_media_notes_billing_v1_billing_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

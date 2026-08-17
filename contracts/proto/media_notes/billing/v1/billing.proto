@@ -18,6 +18,10 @@ service BillingService {
   // GetBillingSummary returns current credit balance and subscription
   // state for one user.
   rpc GetBillingSummary(GetBillingSummaryRequest) returns (GetBillingSummaryResponse);
+  // ListCreditLedger returns a cursor-paginated page of one user's credit
+  // ledger entries, newest first — the append-only reserve/settle/release/
+  // purchase history backing the web app's usage charts.
+  rpc ListCreditLedger(ListCreditLedgerRequest) returns (ListCreditLedgerResponse);
 }
 
 // QuoteItem is one priced option within a quote.
@@ -88,4 +92,33 @@ message GetBillingSummaryRequest {
 // GetBillingSummaryResponse returns the requested summary.
 message GetBillingSummaryResponse {
   BillingSummary summary = 1;
+}
+
+// LedgerEntry is one row of billing.credit_ledger: an immutable credit
+// movement. delta is negative for a reserve, zero for a settle (the
+// reserve already moved the credits; settle only records which item_id
+// they paid for), positive for a release or purchase.
+message LedgerEntry {
+  string id = 1;
+  int64 delta = 2;
+  string entry_type = 3;
+  // item_id is only set on "settle" entries — the processing option id
+  // (e.g. "summarize") the reservation was settled against.
+  string item_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// ListCreditLedgerRequest carries the user to list and cursor pagination.
+// cursor is opaque, returned by a previous response's next_cursor.
+message ListCreditLedgerRequest {
+  string user_id = 1;
+  string cursor = 2;
+  int32 page_size = 3;
+}
+
+// ListCreditLedgerResponse returns one page of ledger entries, newest
+// first. next_cursor is empty on the last page.
+message ListCreditLedgerResponse {
+  repeated LedgerEntry entries = 1;
+  string next_cursor = 2;
 }

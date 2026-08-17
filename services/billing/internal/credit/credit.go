@@ -55,6 +55,23 @@ type Balance struct {
 	UpdatedAt time.Time
 }
 
+// LedgerEntry is one immutable row of a user's credit ledger.
+type LedgerEntry struct {
+	ID        uuid.UUID
+	Delta     int64
+	EntryType string
+	// ItemID is only set on a "settle" entry (from its metadata.item_id).
+	ItemID    string
+	CreatedAt time.Time
+}
+
+// LedgerPage is one cursor-paginated page of ledger entries, newest
+// first. NextCursor is empty on the last page.
+type LedgerPage struct {
+	Entries    []LedgerEntry
+	NextCursor string
+}
+
 // Reservation is one workflow's credit hold against a quote.
 type Reservation struct {
 	ID         uuid.UUID
@@ -108,6 +125,10 @@ type Repository interface {
 	// ApplyPurchase credits available balance from a verified, deduplicated
 	// provider event. idempotencyKey is the provider's event id.
 	ApplyPurchase(ctx context.Context, userID uuid.UUID, amount int64, idempotencyKey string, metadata map[string]any) (Balance, error)
+
+	// ListLedgerEntries returns a cursor-paginated page of userID's
+	// ledger, newest first.
+	ListLedgerEntries(ctx context.Context, userID uuid.UUID, cursor string, pageSize int) (LedgerPage, error)
 }
 
 // Service orchestrates credit operations. It holds no state of its own;
@@ -144,4 +165,16 @@ func (s *Service) GetBalance(ctx context.Context, userID uuid.UUID) (Balance, er
 // ApplyPurchase credits a user's available balance from a purchase event.
 func (s *Service) ApplyPurchase(ctx context.Context, userID uuid.UUID, amount int64, idempotencyKey string, metadata map[string]any) (Balance, error) {
 	return s.repo.ApplyPurchase(ctx, userID, amount, idempotencyKey, metadata)
+}
+
+// ListLedgerEntries returns a cursor-paginated page of userID's ledger,
+// newest first. pageSize defaults to 20 and is capped at 100, per ADR 0004.
+func (s *Service) ListLedgerEntries(ctx context.Context, userID uuid.UUID, cursor string, pageSize int) (LedgerPage, error) {
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	return s.repo.ListLedgerEntries(ctx, userID, cursor, pageSize)
 }

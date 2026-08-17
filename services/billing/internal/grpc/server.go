@@ -31,6 +31,7 @@ type QuoteService interface {
 // depends on. *credit.Service implements it.
 type BalanceReader interface {
 	GetBalance(ctx context.Context, userID uuid.UUID) (credit.Balance, error)
+	ListLedgerEntries(ctx context.Context, userID uuid.UUID, cursor string, pageSize int) (credit.LedgerPage, error)
 }
 
 // SubscriptionReader is the subscription application-service boundary the
@@ -94,6 +95,30 @@ func (s *Server) GetBillingSummary(ctx context.Context, req *billingv1.GetBillin
 	}
 
 	return &billingv1.GetBillingSummaryResponse{Summary: summary}, nil
+}
+
+func (s *Server) ListCreditLedger(ctx context.Context, req *billingv1.ListCreditLedgerRequest) (*billingv1.ListCreditLedgerResponse, error) {
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+
+	page, err := s.balances.ListLedgerEntries(ctx, userID, req.GetCursor(), int(req.GetPageSize()))
+	if err != nil {
+		return nil, mapError(err)
+	}
+
+	entries := make([]*billingv1.LedgerEntry, 0, len(page.Entries))
+	for _, e := range page.Entries {
+		entries = append(entries, &billingv1.LedgerEntry{
+			Id:        e.ID.String(),
+			Delta:     e.Delta,
+			EntryType: e.EntryType,
+			ItemId:    e.ItemID,
+			CreatedAt: timestamppb.New(e.CreatedAt),
+		})
+	}
+	return &billingv1.ListCreditLedgerResponse{Entries: entries, NextCursor: page.NextCursor}, nil
 }
 
 func mapError(err error) error {

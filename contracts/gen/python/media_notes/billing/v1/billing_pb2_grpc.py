@@ -46,6 +46,11 @@ class BillingServiceStub:
                 request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetBillingSummaryRequest.SerializeToString,
                 response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetBillingSummaryResponse.FromString,
                 _registered_method=True)
+        self.ListCreditLedger = channel.unary_unary(
+                '/media_notes.billing.v1.BillingService/ListCreditLedger',
+                request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.SerializeToString,
+                response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.FromString,
+                _registered_method=True)
 
 
 class BillingServiceServicer:
@@ -69,6 +74,15 @@ class BillingServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ListCreditLedger(self, request, context):
+        """ListCreditLedger returns a cursor-paginated page of one user's credit
+        ledger entries, newest first — the append-only reserve/settle/release/
+        purchase history backing the web app's usage charts.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BillingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -81,6 +95,11 @@ def add_BillingServiceServicer_to_server(servicer, server):
                     servicer.GetBillingSummary,
                     request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetBillingSummaryRequest.FromString,
                     response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetBillingSummaryResponse.SerializeToString,
+            ),
+            'ListCreditLedger': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListCreditLedger,
+                    request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.FromString,
+                    response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -139,6 +158,33 @@ class BillingService:
             '/media_notes.billing.v1.BillingService/GetBillingSummary',
             media__notes_dot_billing_dot_v1_dot_billing__pb2.GetBillingSummaryRequest.SerializeToString,
             media__notes_dot_billing_dot_v1_dot_billing__pb2.GetBillingSummaryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListCreditLedger(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.billing.v1.BillingService/ListCreditLedger',
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.SerializeToString,
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.FromString,
             options,
             channel_credentials,
             insecure,
