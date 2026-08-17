@@ -44,30 +44,30 @@ export function ListenAudioDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
+			<DialogContent className="sm:max-w-xl">
 				<DialogHeader>
 					<DialogTitle>{t("audio.listenTitle")}</DialogTitle>
 					{job?.inputText && (
-						<DialogDescription className="line-clamp-3">
+						<DialogDescription className="line-clamp-4 text-sm">
 							{job.inputText}
 						</DialogDescription>
 					)}
 				</DialogHeader>
 
 				{loading && !job ? (
-					<div className="flex items-center justify-center py-8">
-						<Loader2 className="size-5 animate-spin text-muted-foreground" />
+					<div className="flex items-center justify-center py-12">
+						<Loader2 className="size-6 animate-spin text-muted-foreground" />
 					</div>
 				) : job?.status === "completed" && job.url ? (
 					// biome-ignore lint/a11y/useMediaCaption: synthesized speech has no separate caption track to attach
-					<audio controls autoPlay src={job.url} className="w-full" />
+					<audio controls autoPlay src={job.url} className="h-12 w-full" />
 				) : job?.status === "failed" ? (
-					<p className="flex items-center gap-1.5 text-destructive text-sm">
+					<p className="flex items-center gap-1.5 py-4 text-destructive text-sm">
 						<AlertCircle className="size-4 shrink-0" />
 						{t("audio.generationFailed")}
 					</p>
 				) : (
-					<div className="flex items-center gap-2 py-6 text-muted-foreground text-sm">
+					<div className="flex items-center justify-center gap-2 py-12 text-muted-foreground text-sm">
 						<Loader2 className="size-4 animate-spin" />
 						{t("audio.status.generating")}
 					</div>
