@@ -52,6 +52,9 @@ type fakeBilling struct{}
 func (f *fakeBilling) GetQuote(ctx context.Context, idempotencyKey string, userID uuid.UUID, options []string) (clients.Quote, error) {
 	return clients.Quote{ID: uuid.New()}, nil
 }
+func (f *fakeBilling) GetPriceCatalog(ctx context.Context) (clients.Catalog, error) {
+	return clients.Catalog{}, nil
+}
 func (f *fakeBilling) GetBillingSummary(ctx context.Context, userID uuid.UUID) (clients.BillingSummary, error) {
 	return clients.BillingSummary{}, nil
 }
@@ -141,6 +144,22 @@ type fakeContent struct{}
 
 func (f *fakeContent) GetContent(ctx context.Context, mediaID uuid.UUID) (clients.Content, error) {
 	return clients.Content{MediaID: mediaID}, nil
+}
+
+func (f *fakeContent) RequestScriptDraft(ctx context.Context, idempotencyKey string, userID uuid.UUID, description string) (clients.AudioJob, error) {
+	return clients.AudioJob{ID: uuid.New(), UserID: userID, Kind: "script", Status: "generating"}, nil
+}
+
+func (f *fakeContent) RequestStandaloneAudio(ctx context.Context, idempotencyKey string, userID uuid.UUID, text, voice string) (clients.AudioJob, error) {
+	return clients.AudioJob{ID: uuid.New(), UserID: userID, Kind: "audio", Status: "generating"}, nil
+}
+
+func (f *fakeContent) GetAudioJob(ctx context.Context, id uuid.UUID) (clients.AudioJob, error) {
+	return clients.AudioJob{ID: id}, nil
+}
+
+func (f *fakeContent) ListAudioJobs(ctx context.Context, userID uuid.UUID, kind, cursor string, pageSize int32) (clients.AudioJobPage, error) {
+	return clients.AudioJobPage{}, nil
 }
 
 func newTestResolver(t *testing.T, identity *fakeIdentity, media *fakeMedia) *graphqlpkg.Resolver {

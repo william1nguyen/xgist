@@ -10,14 +10,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/nolannguyen1212/media-notes/services/hermes/internal/graphql/model"
 	"github.com/nolannguyen1212/media-notes/services/hermes/internal/limits"
 )
 
-// Resolver holds every dependency hermes's resolvers need: one client per
-// downstream gRPC service, the rate limiter, and a logger. hermes owns no
-// database of its own, so this is the whole of its state.
 type Resolver struct {
 	identity IdentityClient
 	billing  BillingClient
@@ -25,6 +21,27 @@ type Resolver struct {
 	content  ContentClient
 	limiter  *limits.Limiter
 	logger   *slog.Logger
+}
+
+func (r *Resolver) buildPromptOverrides(ctx context.Context, userID uuid.UUID, options []string) (map[string]string, error) {
+	settings, err := r.identity.GetPromptSettings(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if len(settings) == 0 {
+		return nil, nil
+	}
+	selected := make(map[string]bool, len(options))
+	for _, o := range options {
+		selected[o] = true
+	}
+	overrides := make(map[string]string)
+	for _, s := range settings {
+		if s.PromptText != "" && selected[s.Section] {
+			overrides[s.Section] = s.PromptText
+		}
+	}
+	return overrides, nil
 }
 
 // Register is the resolver for the register field.
@@ -314,6 +331,44 @@ func (r *mutationResolver) DeleteMediaPermanently(ctx context.Context, id string
 	return true, nil
 }
 
+// DraftAudioScript is the resolver for the draftAudioScript field.
+func (r *mutationResolver) DraftAudioScript(ctx context.Context, description string, idempotencyKey *string) (*model.AudioJob, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	job, err := r.content.RequestScriptDraft(ctx, idempotencyKeyOrNew(idempotencyKey), principal.User.ID, description)
+	if err != nil {
+		return nil, err
+	}
+	return toModelAudioJob(job), nil
+}
+
+// GenerateStandaloneAudio is the resolver for the generateStandaloneAudio field.
+func (r *mutationResolver) GenerateStandaloneAudio(ctx context.Context, text string, voice *string, idempotencyKey *string) (*model.AudioJob, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	var v string
+	if voice != nil {
+		v = *voice
+	}
+	job, err := r.content.RequestStandaloneAudio(ctx, idempotencyKeyOrNew(idempotencyKey), principal.User.ID, text, v)
+	if err != nil {
+		return nil, err
+	}
+	return toModelAudioJob(job), nil
+}
+
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	principal, err := requirePrincipal(ctx)
@@ -488,6 +543,23 @@ func (r *queryResolver) Quote(ctx context.Context, options []string) (*model.Quo
 	return toModelQuote(quote), nil
 }
 
+// PriceCatalog is the resolver for the priceCatalog field.
+func (r *queryResolver) PriceCatalog(ctx context.Context) (*model.PriceCatalog, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	catalog, err := r.billing.GetPriceCatalog(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return toModelPriceCatalog(catalog), nil
+}
+
 // BillingSummary is the resolver for the billingSummary field.
 func (r *queryResolver) BillingSummary(ctx context.Context) (*model.BillingSummary, error) {
 	principal, err := requirePrincipal(ctx)
@@ -583,37 +655,73 @@ func (r *queryResolver) TrashedMedia(ctx context.Context, cursor *string, pageSi
 	return &model.MediaPage{Items: items, NextCursor: optionalString(page.NextCursor)}, nil
 }
 
+// AudioJob is the resolver for the audioJob field.
+func (r *queryResolver) AudioJob(ctx context.Context, id string) (*model.AudioJob, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	jobID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("id must be a UUID: %w", err)
+	}
+
+	job, err := r.content.GetAudioJob(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+	if job.UserID != principal.User.ID {
+		return nil, ErrNotFound
+	}
+	return toModelAudioJob(job), nil
+}
+
+// AudioJobs is the resolver for the audioJobs field.
+func (r *queryResolver) AudioJobs(ctx context.Context, kind *string, cursor *string, pageSize *int) (*model.AudioJobPage, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	kindValue := "audio"
+	if kind != nil && *kind != "" {
+		kindValue = *kind
+	}
+	var cursorValue string
+	if cursor != nil {
+		cursorValue = *cursor
+	}
+	var pageSizeValue int32
+	if pageSize != nil {
+		pageSizeValue = int32(*pageSize)
+	}
+
+	page, err := r.content.ListAudioJobs(ctx, principal.User.ID, kindValue, cursorValue, pageSizeValue)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]model.AudioJob, 0, len(page.Items))
+	for _, j := range page.Items {
+		items = append(items, *toModelAudioJob(j))
+	}
+	return &model.AudioJobPage{Items: items, NextCursor: optionalString(page.NextCursor)}, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-// buildPromptOverrides fetches the caller's saved prompt settings and
-// returns only the ones relevant to this request: non-empty prompts for
-// sections present in options.
-func (r *Resolver) buildPromptOverrides(ctx context.Context, userID uuid.UUID, options []string) (map[string]string, error) {
-	settings, err := r.identity.GetPromptSettings(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if len(settings) == 0 {
-		return nil, nil
-	}
-	selected := make(map[string]bool, len(options))
-	for _, o := range options {
-		selected[o] = true
-	}
-	overrides := make(map[string]string)
-	for _, s := range settings {
-		if s.PromptText != "" && selected[s.Section] {
-			overrides[s.Section] = s.PromptText
-		}
-	}
-	return overrides, nil
-}
-
 type (
 	mutationResolver struct{ *Resolver }
 	queryResolver    struct{ *Resolver }
 )
+

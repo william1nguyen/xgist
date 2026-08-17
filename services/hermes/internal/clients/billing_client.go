@@ -48,6 +48,21 @@ func (c *BillingClient) GetQuote(ctx context.Context, idempotencyKey string, use
 	return toQuote(resp.GetQuote())
 }
 
+// GetPriceCatalog returns every priced item in the active catalog
+// version — the single source of truth a client renders a price list
+// from; hermes and its callers must never hardcode a price locally.
+func (c *BillingClient) GetPriceCatalog(ctx context.Context) (Catalog, error) {
+	resp, err := c.client.GetPriceCatalog(ctx, &billingv1.GetPriceCatalogRequest{})
+	if err != nil {
+		return Catalog{}, fmt.Errorf("billing.GetPriceCatalog: %w", err)
+	}
+	items := make([]QuoteItem, 0, len(resp.GetItems()))
+	for _, item := range resp.GetItems() {
+		items = append(items, QuoteItem{ItemID: item.GetItemId(), Credits: item.GetCredits()})
+	}
+	return Catalog{Version: resp.GetCatalogVersion(), Items: items}, nil
+}
+
 // GetBillingSummary returns current credit balance and subscription state
 // for one user.
 func (c *BillingClient) GetBillingSummary(ctx context.Context, userID uuid.UUID) (BillingSummary, error) {

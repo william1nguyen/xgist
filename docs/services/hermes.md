@@ -27,7 +27,8 @@ register, login, logout, me, requestAccountDeletion
 createUploadSession, confirmUpload, updateMedia, requestProcessing
 mediaList, mediaDetail
 contentDetail, processingStatus
-quote, billingSummary, subscriptionCheckout
+quote, priceCatalog, billingSummary, subscriptionCheckout
+draftAudioScript, generateStandaloneAudio, audioJob, audioJobs
 ```
 
 Authenticate once per request through Identity. Pass principal, request ID and
@@ -58,13 +59,19 @@ shuffles it client-side. A real `recommendedMedia` query — likely backed by
 watch/generation history and, eventually, cross-user signals — is future
 work; it is not scheduled yet and has no owning service decided.
 
-**Standalone audio generation (planned).** There is also no
-submit/poll/list surface today for a media-independent "type or describe
-text, get back generated audio" feature — every current audio artifact
-(`summaryAudios`) is derived from a specific media item's summary. See
-`docs/services/worker.md`'s "Planned: standalone audio generation" section
-for the shape being considered (async `generating`/`completed`/`failed`
-states, its own top-level list, no owning service decided yet either).
+**Standalone audio generation.** `draftAudioScript(description, idempotencyKey)`
+and `generateStandaloneAudio(text, voice, idempotencyKey)` create a
+generating `AudioJob` (owned by content, not media — no `media_id`
+involved) and return immediately; poll `audioJob(id)` or list
+`audioJobs(kind, cursor, pageSize)` for the `generating`/`completed`/
+`failed` result. `audioJobs` defaults `kind` to `"audio"` (finished
+artifacts), since `"script"` jobs are an intermediate step the "chat with
+AI" flow polls internally, not something the Audio list shows. Ownership
+is verified by comparing the job's `userId` to the caller, the same
+pattern every other resolver here uses since content carries no auth
+context of its own. See `docs/services/worker.md`'s "Standalone audio
+generation" section for the worker/content side. Not yet wired to
+billing — no quote, no credit reservation.
 
 ## Control flow
 

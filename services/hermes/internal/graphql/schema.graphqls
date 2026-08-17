@@ -223,6 +223,15 @@ type Quote {
   expiresAt: String!
 }
 
+# PriceCatalog is the full active price list: every item id a client may
+# pass to quote(options:), with its current cost. Clients must render
+# prices from this query, never from a hardcoded local list — it is the
+# only source of truth and can change between catalog versions.
+type PriceCatalog {
+  catalogVersion: String!
+  items: [QuoteItem!]!
+}
+
 # BillingSubscription, not Subscription: GraphQL reserves the type name
 # "Subscription" for the root subscription operation type, which hermes
 # does not implement (ADR 0005 rejected GraphQL subscriptions for launch).
@@ -265,6 +274,31 @@ type PromptSetting {
   updatedAt: String!
 }
 
+# AudioJob is one standalone script-draft or audio-generation job — the
+# "Audio" feature's own artifact, independent of any media item. kind is
+# "script" or "audio"; status is "generating", "completed", or "failed".
+type AudioJob {
+  id: ID!
+  kind: String!
+  status: String!
+  inputText: String!
+  # outputText is the LLM-drafted script; set only for a completed
+  # kind="script" job.
+  outputText: String
+  voice: String
+  durationMs: Int
+  # url is a short-lived presigned playback URL, set only for a completed
+  # kind="audio" job.
+  url: String
+  errorCode: String
+  createdAt: String!
+}
+
+type AudioJobPage {
+  items: [AudioJob!]!
+  nextCursor: String
+}
+
 type Query {
   # me returns the authenticated caller's profile.
   me: User!
@@ -291,6 +325,9 @@ type Query {
   mediaProgress(ids: [ID!]!): [MediaProgress!]!
   # quote prices a set of processing options for the caller.
   quote(options: [String!]!): Quote!
+  # priceCatalog returns every priced item in the active catalog, for
+  # rendering a price list before the caller has made a selection.
+  priceCatalog: PriceCatalog!
   # billingSummary returns the caller's credit balance and subscription
   # state.
   billingSummary: BillingSummary!
@@ -304,6 +341,13 @@ type Query {
   # media, newest-trashed first — backs the Trash screen. mediaList never
   # includes these.
   trashedMedia(cursor: String, pageSize: Int): MediaPage!
+  # audioJob returns one of the caller's standalone audio jobs.
+  audioJob(id: ID!): AudioJob!
+  # audioJobs returns a cursor-paginated page of the caller's standalone
+  # audio jobs of kind ("script" or "audio"), newest first — backs the
+  # Audio screen. kind defaults to "audio": the list view shows finished
+  # artifacts, not intermediate script drafts.
+  audioJobs(kind: String, cursor: String, pageSize: Int): AudioJobPage!
 }
 
 type Mutation {
@@ -350,4 +394,14 @@ type Mutation {
   # data for it (content, conductor) remove their rows and objects.
   # Cannot be undone.
   deleteMediaPermanently(id: ID!): Boolean!
+  # draftAudioScript asks an LLM to draft narration text from a loose
+  # description ("chat with AI" mode of the Audio feature) — the returned
+  # job starts generating and its outputText is filled in once complete;
+  # poll audioJob(id) or audioJobs for the result.
+  draftAudioScript(description: String!, idempotencyKey: String): AudioJob!
+  # generateStandaloneAudio synthesizes text directly to speech,
+  # independent of any media item ("paste text" mode of the Audio
+  # feature, or the confirmation step after draftAudioScript). Poll
+  # audioJob(id) or audioJobs for the result.
+  generateStandaloneAudio(text: String!, voice: String, idempotencyKey: String): AudioJob!
 }

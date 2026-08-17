@@ -294,6 +294,14 @@ func toModelQuote(q clients.Quote) *model.Quote {
 	}
 }
 
+func toModelPriceCatalog(c clients.Catalog) *model.PriceCatalog {
+	items := make([]model.QuoteItem, 0, len(c.Items))
+	for _, item := range c.Items {
+		items = append(items, model.QuoteItem{ItemID: item.ItemID, Credits: int(item.Credits)})
+	}
+	return &model.PriceCatalog{CatalogVersion: c.Version, Items: items}
+}
+
 func toModelBillingSummary(s clients.BillingSummary) *model.BillingSummary {
 	out := &model.BillingSummary{
 		AvailableCredits: int(s.AvailableCredits),
@@ -317,6 +325,25 @@ func toModelPromptSetting(s clients.PromptSetting) *model.PromptSetting {
 		PromptText: s.PromptText,
 		UpdatedAt:  formatTime(s.UpdatedAt),
 	}
+}
+
+func toModelAudioJob(j clients.AudioJob) *model.AudioJob {
+	out := &model.AudioJob{
+		ID:        j.ID.String(),
+		Kind:      j.Kind,
+		Status:    j.Status,
+		InputText: j.InputText,
+		CreatedAt: formatTime(j.CreatedAt),
+	}
+	out.OutputText = optionalString(j.OutputText)
+	out.Voice = optionalString(j.Voice)
+	out.URL = optionalString(j.URL)
+	out.ErrorCode = optionalString(j.ErrorCode)
+	if j.DurationMs > 0 {
+		duration := int(j.DurationMs)
+		out.DurationMs = &duration
+	}
+	return out
 }
 
 func toModelCreditLedgerPage(p clients.LedgerPage) *model.CreditLedgerPage {

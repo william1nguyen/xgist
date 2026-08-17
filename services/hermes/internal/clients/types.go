@@ -187,6 +187,13 @@ type QuoteItem struct {
 	Credits int64
 }
 
+// Catalog is the full active price list: every item id a caller may
+// price with GetQuote, with its current cost.
+type Catalog struct {
+	Version string
+	Items   []QuoteItem
+}
+
 // Quote is an immutable, time-limited price snapshot.
 type Quote struct {
 	ID             uuid.UUID
@@ -226,5 +233,29 @@ type LedgerEntry struct {
 // LedgerPage is one cursor-paginated page of ledger entries.
 type LedgerPage struct {
 	Entries    []LedgerEntry
+	NextCursor string
+}
+
+// AudioJob is one standalone script-draft or audio-generation job,
+// belonging directly to a user rather than to any media item.
+type AudioJob struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	Kind       string
+	Status     string
+	InputText  string
+	OutputText string
+	Voice      string
+	DurationMs int64
+	// URL is a short-lived presigned playback URL, set only for a
+	// completed "audio" kind job.
+	URL       string
+	ErrorCode string
+	CreatedAt time.Time
+}
+
+// AudioJobPage is one cursor-paginated page of a user's audio jobs.
+type AudioJobPage struct {
+	Items      []AudioJob
 	NextCursor string
 }

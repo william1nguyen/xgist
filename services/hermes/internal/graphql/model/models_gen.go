@@ -9,6 +9,24 @@ import (
 	"strconv"
 )
 
+type AudioJob struct {
+	ID         string  `json:"id"`
+	Kind       string  `json:"kind"`
+	Status     string  `json:"status"`
+	InputText  string  `json:"inputText"`
+	OutputText *string `json:"outputText,omitempty"`
+	Voice      *string `json:"voice,omitempty"`
+	DurationMs *int    `json:"durationMs,omitempty"`
+	URL        *string `json:"url,omitempty"`
+	ErrorCode  *string `json:"errorCode,omitempty"`
+	CreatedAt  string  `json:"createdAt"`
+}
+
+type AudioJobPage struct {
+	Items      []AudioJob `json:"items"`
+	NextCursor *string    `json:"nextCursor,omitempty"`
+}
+
 type AuthPayload struct {
 	User         *User  `json:"user"`
 	SessionToken string `json:"sessionToken"`
@@ -127,6 +145,11 @@ type Note struct {
 	Format    string `json:"format"`
 	Body      string `json:"body"`
 	CreatedAt string `json:"createdAt"`
+}
+
+type PriceCatalog struct {
+	CatalogVersion string      `json:"catalogVersion"`
+	Items          []QuoteItem `json:"items"`
 }
 
 type PromptSetting struct {

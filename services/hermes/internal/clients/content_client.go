@@ -43,6 +43,118 @@ func (c *ContentClient) GetContent(ctx context.Context, mediaID uuid.UUID) (Cont
 	return toContent(resp.GetContent())
 }
 
+// RequestScriptDraft asks content to draft narration text from a loose
+// description, for the standalone audio feature's "chat with AI" mode.
+func (c *ContentClient) RequestScriptDraft(ctx context.Context, idempotencyKey string, userID uuid.UUID, description string) (AudioJob, error) {
+	resp, err := c.client.RequestScriptDraft(ctx, &contentv1.RequestScriptDraftRequest{
+		IdempotencyKey: idempotencyKey, UserId: userID.String(), Description: description,
+	})
+	if err != nil {
+		return AudioJob{}, fmt.Errorf("content.RequestScriptDraft: %w", err)
+	}
+	return toAudioJob(resp.GetJob())
+}
+
+// RequestStandaloneAudio asks content to synthesize text to speech,
+// independent of any media item.
+func (c *ContentClient) RequestStandaloneAudio(ctx context.Context, idempotencyKey string, userID uuid.UUID, text, voice string) (AudioJob, error) {
+	resp, err := c.client.RequestStandaloneAudio(ctx, &contentv1.RequestStandaloneAudioRequest{
+		IdempotencyKey: idempotencyKey, UserId: userID.String(), Text: text, Voice: voice,
+	})
+	if err != nil {
+		return AudioJob{}, fmt.Errorf("content.RequestStandaloneAudio: %w", err)
+	}
+	return toAudioJob(resp.GetJob())
+}
+
+// GetAudioJob returns one standalone audio job.
+func (c *ContentClient) GetAudioJob(ctx context.Context, id uuid.UUID) (AudioJob, error) {
+	resp, err := c.client.GetStandaloneAudioJob(ctx, &contentv1.GetStandaloneAudioJobRequest{Id: id.String()})
+	if err != nil {
+		return AudioJob{}, fmt.Errorf("content.GetStandaloneAudioJob: %w", err)
+	}
+	return toAudioJob(resp.GetJob())
+}
+
+// ListAudioJobs returns userID's standalone audio jobs of kind
+// ("script" or "audio"), newest first.
+func (c *ContentClient) ListAudioJobs(ctx context.Context, userID uuid.UUID, kind, cursor string, pageSize int32) (AudioJobPage, error) {
+	resp, err := c.client.ListStandaloneAudioJobs(ctx, &contentv1.ListStandaloneAudioJobsRequest{
+		UserId: userID.String(), Kind: audioJobKindToProto(kind), Cursor: cursor, PageSize: pageSize,
+	})
+	if err != nil {
+		return AudioJobPage{}, fmt.Errorf("content.ListStandaloneAudioJobs: %w", err)
+	}
+	items := make([]AudioJob, 0, len(resp.GetJobs()))
+	for _, j := range resp.GetJobs() {
+		job, err := toAudioJob(j)
+		if err != nil {
+			return AudioJobPage{}, err
+		}
+		items = append(items, job)
+	}
+	return AudioJobPage{Items: items, NextCursor: resp.GetNextCursor()}, nil
+}
+
+func audioJobKindToProto(kind string) contentv1.StandaloneAudioJobKind {
+	switch kind {
+	case "script":
+		return contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_SCRIPT
+	case "audio":
+		return contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_AUDIO
+	default:
+		return contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED
+	}
+}
+
+func audioJobKindToString(kind contentv1.StandaloneAudioJobKind) string {
+	switch kind {
+	case contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_SCRIPT:
+		return "script"
+	case contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_AUDIO:
+		return "audio"
+	default:
+		return "unspecified"
+	}
+}
+
+func audioJobStatusToString(s contentv1.StandaloneAudioJobStatus) string {
+	switch s {
+	case contentv1.StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_GENERATING:
+		return "generating"
+	case contentv1.StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_COMPLETED:
+		return "completed"
+	case contentv1.StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_FAILED:
+		return "failed"
+	default:
+		return "unspecified"
+	}
+}
+
+func toAudioJob(j *contentv1.StandaloneAudioJob) (AudioJob, error) {
+	id, err := uuid.Parse(j.GetId())
+	if err != nil {
+		return AudioJob{}, fmt.Errorf("content returned an invalid job id: %w", err)
+	}
+	userID, err := uuid.Parse(j.GetUserId())
+	if err != nil {
+		return AudioJob{}, fmt.Errorf("content returned an invalid user id: %w", err)
+	}
+	return AudioJob{
+		ID:         id,
+		UserID:     userID,
+		Kind:       audioJobKindToString(j.GetKind()),
+		Status:     audioJobStatusToString(j.GetStatus()),
+		InputText:  j.GetInputText(),
+		OutputText: j.GetOutputText(),
+		Voice:      j.GetVoice(),
+		DurationMs: j.GetDurationMs(),
+		URL:        j.GetUrl(),
+		ErrorCode:  j.GetErrorCode(),
+		CreatedAt:  j.GetCreatedAt().AsTime(),
+	}, nil
+}
+
 func toContent(ct *contentv1.Content) (Content, error) {
 	mediaID, err := uuid.Parse(ct.GetMediaId())
 	if err != nil {

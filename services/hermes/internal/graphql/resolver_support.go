@@ -44,6 +44,7 @@ type IdentityClient interface {
 // *clients.BillingClient implements it.
 type BillingClient interface {
 	GetQuote(ctx context.Context, idempotencyKey string, userID uuid.UUID, options []string) (clients.Quote, error)
+	GetPriceCatalog(ctx context.Context) (clients.Catalog, error)
 	GetBillingSummary(ctx context.Context, userID uuid.UUID) (clients.BillingSummary, error)
 	ListCreditLedger(ctx context.Context, userID uuid.UUID, cursor string, pageSize int32) (clients.LedgerPage, error)
 }
@@ -69,6 +70,10 @@ type MediaClient interface {
 // *clients.ContentClient implements it.
 type ContentClient interface {
 	GetContent(ctx context.Context, mediaID uuid.UUID) (clients.Content, error)
+	RequestScriptDraft(ctx context.Context, idempotencyKey string, userID uuid.UUID, description string) (clients.AudioJob, error)
+	RequestStandaloneAudio(ctx context.Context, idempotencyKey string, userID uuid.UUID, text, voice string) (clients.AudioJob, error)
+	GetAudioJob(ctx context.Context, id uuid.UUID) (clients.AudioJob, error)
+	ListAudioJobs(ctx context.Context, userID uuid.UUID, kind, cursor string, pageSize int32) (clients.AudioJobPage, error)
 }
 
 // requirePrincipal returns the authenticated caller, or ErrUnauthenticated
