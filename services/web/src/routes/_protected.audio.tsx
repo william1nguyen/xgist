@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AudioJobCard } from "@/components/audio/audio-job-card";
 import { CreateAudioDialog } from "@/components/audio/create-audio-dialog";
+import { ListenAudioDialog } from "@/components/audio/listen-audio-dialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,7 @@ const POLL_INTERVAL_MS = 4000;
 export default function AudioPage() {
 	const { t } = useTranslation();
 	const [createOpen, setCreateOpen] = useState(false);
+	const [listenJobId, setListenJobId] = useState<string | null>(null);
 	// Same forward-only cursor-stack pattern as the dashboard and trash
 	// screens: audioJobs' cursor has no backward form, so "Previous" pops
 	// the stack instead of re-deriving one.
@@ -95,7 +97,7 @@ export default function AudioPage() {
 				) : (
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{items.map((job) => (
-							<AudioJobCard key={job.id} job={job} />
+							<AudioJobCard key={job.id} job={job} onOpen={setListenJobId} />
 						))}
 					</div>
 				)}
@@ -128,6 +130,13 @@ export default function AudioPage() {
 			)}
 
 			<CreateAudioDialog open={createOpen} onOpenChange={setCreateOpen} />
+			<ListenAudioDialog
+				jobId={listenJobId}
+				open={listenJobId != null}
+				onOpenChange={(open) => {
+					if (!open) setListenJobId(null);
+				}}
+			/>
 		</div>
 	);
 }

@@ -1,4 +1,4 @@
-import { AlertCircle, Loader2, Music } from "lucide-react";
+import { AlertCircle, Loader2, Music, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import type { AudioJobsQuery } from "@/graphql/generated/graphql";
@@ -12,15 +12,29 @@ const STATUS_VARIANT = {
 	failed: "destructive",
 } as const;
 
-export function AudioJobCard({ job }: { job: AudioJobItem }) {
+export function AudioJobCard({
+	job,
+	onOpen,
+}: {
+	job: AudioJobItem;
+	onOpen: (jobId: string) => void;
+}) {
 	const { t } = useTranslation();
 
 	return (
-		<div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
+		<button
+			type="button"
+			onClick={() => onOpen(job.id)}
+			className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-accent/50"
+		>
 			<div className="flex items-start justify-between gap-2">
 				<div className="flex min-w-0 items-center gap-2">
 					<div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-						<Music className="size-4" />
+						{job.status === "completed" ? (
+							<Play className="size-4" />
+						) : (
+							<Music className="size-4" />
+						)}
 					</div>
 					<p className="truncate text-sm" title={job.inputText}>
 						{job.inputText}
@@ -40,11 +54,6 @@ export function AudioJobCard({ job }: { job: AudioJobItem }) {
 				</Badge>
 			</div>
 
-			{job.status === "completed" && job.url && (
-				// biome-ignore lint/a11y/useMediaCaption: synthesized speech has no separate caption track to attach
-				<audio controls src={job.url} className="h-9 w-full" />
-			)}
-
 			{job.status === "failed" && (
 				<p className="flex items-center gap-1.5 text-destructive text-xs">
 					<AlertCircle className="size-3.5 shrink-0" />
@@ -55,6 +64,6 @@ export function AudioJobCard({ job }: { job: AudioJobItem }) {
 			<p className="text-muted-foreground text-xs">
 				{relativeTime(job.createdAt)}
 			</p>
-		</div>
+		</button>
 	);
 }

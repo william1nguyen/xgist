@@ -232,6 +232,7 @@
 		"emptyTitle": "No audio yet",
 		"emptyDescription": "Paste text or describe what you want and generate your first audio clip.",
 		"generationFailed": "Generation failed",
+		"listenTitle": "Listen",
 		"status": {
 			"generating": "Generating",
 			"completed": "Completed",

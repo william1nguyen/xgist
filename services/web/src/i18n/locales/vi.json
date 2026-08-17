@@ -232,6 +232,7 @@
 		"emptyTitle": "Chưa có audio nào",
 		"emptyDescription": "Dán văn bản hoặc mô tả nội dung bạn muốn rồi tạo audio đầu tiên.",
 		"generationFailed": "Tạo thất bại",
+		"listenTitle": "Nghe",
 		"status": {
 			"generating": "Đang tạo",
 			"completed": "Hoàn thành",
