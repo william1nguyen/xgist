@@ -1,0 +1,26 @@
+[project]
+name = "conductor-worker"
+version = "0.1.0"
+description = "Stateless Kafka executor pool: Whisper, Gemini, TTS, FFmpeg. See docs/services/worker.md."
+requires-python = ">=3.11"
+dependencies = [
+    "faster-whisper>=1.0.0",
+    "google-genai>=1.0.0",
+    "edge-tts>=6.1.9",
+    "minio==7.2.15",
+    "grpcio>=1.83.0",
+    "protobuf>=6.32.0",
+    "pydantic>=2.10.6",
+    "python-dotenv==1.0.1",
+    "kafka-python-ng>=2.2.2",
+    "Pillow>=10.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "grpcio-tools>=1.83.0",
+]
+
+[tool.uv]
+package = false

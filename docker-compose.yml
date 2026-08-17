@@ -273,6 +273,85 @@ services:
       - default
     restart: unless-stopped
 
+  conductor-migrate:
+    image: flyway/flyway:11
+    container_name: conductor-migrate
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/conductor/migrations:/flyway/migrations:ro
+    command: >
+      -url=jdbc:postgresql://postgres:5432/workflow
+      -user=conductor -password=conductor
+      -locations=filesystem:/flyway/migrations
+      -connectRetries=10
+      migrate
+    networks:
+      - default
+
+  conductor:
+    build:
+      context: .
+      dockerfile: services/conductor/conductor.dockerfile
+    container_name: conductor
+    profiles: ["app"]
+    environment:
+      DATABASE_URL: postgres://conductor:conductor@postgres:5432/workflow?sslmode=disable
+      KAFKA_BROKERS: kafka:29092
+      CONDUCTOR_HTTP_ADDR: :8085
+      # conductor calls media and billing as a gRPC client (it has no
+      # gRPC server of its own) — see docs/services/conductor.md.
+      CONDUCTOR_MEDIA_GRPC_ADDR: media:19095
+      CONDUCTOR_BILLING_GRPC_ADDR: billing:9093
+      LOG_LEVEL: info
+    ports:
+      - "8085:8085"
+    depends_on:
+      conductor-migrate:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_started
+    networks:
+      - default
+    restart: unless-stopped
+
+  # conductor-worker: the Python executor pool (Whisper/Gemini/TTS/FFmpeg)
+  # described in docs/services/worker.md, built from services/worker/.
+  # Named distinctly from the legacy `worker` service below (apps/worker,
+  # the v1 Redis-based pipeline), which is left running as-is — it isn't
+  # part of the v2 Kafka architecture this stands up, and retiring it is a
+  # separate decision.
+  conductor-worker:
+    build:
+      context: .
+      dockerfile: services/worker/worker.dockerfile
+    container_name: conductor-worker
+    profiles: ["app"]
+    environment:
+      KAFKA_BROKERS: kafka:29092
+      WORKER_MEDIA_GRPC_ADDR: media:19095
+      WORKER_CONTENT_GRPC_ADDR: content:9095
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_USE_SSL: "false"
+      MINIO_MEDIA_BUCKET: media
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+      WORKER_TTS_VOICE: en-US-AriaNeural
+      LOG_LEVEL: info
+    depends_on:
+      kafka:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks:
+      - default
+    restart: unless-stopped
+
   worker:
     build:
       context: apps/worker
