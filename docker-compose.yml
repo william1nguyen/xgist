@@ -380,7 +380,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: services/web/Dockerfile
     container_name: web
     profiles: ["app"]
     network_mode: host
