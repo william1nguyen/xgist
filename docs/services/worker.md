@@ -31,6 +31,12 @@ its provider, then calls the owner service to persist the durable result. Commit
 the Kafka offset only after that call succeeds. On failure emit only classified
 small metadata to `mn.processing.step.failed.v1`.
 
+`handle_summary_audio` selects a voice by falling back through the command's
+own `voice` field (conductor's workflow-level `audio_voice`, itself sourced
+from the caller's `ConfirmUpload` request) to the pool-wide default in
+`WORKER_TTS_VOICE`. There is no per-provider voice validation beyond what the
+TTS provider itself rejects.
+
 Workers never choose another worker, track workflow state, publish a successful
 completion before persistence, or transfer media/text via Kafka. Before commit,
 check authoritative deletion/media state. Test provider timeout, admission
