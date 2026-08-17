@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,8 @@ function initials(name: string): string {
 	return (first + last).toUpperCase() || "?";
 }
 
-export default function SettingsPage() {
+export function GeneralTab() {
+	const { t } = useTranslation();
 	const { user, logout } = useAuth();
 	const [confirmOpen, setConfirmOpen] = useState(false);
 	const [confirmText, setConfirmText] = useState("");
@@ -41,28 +43,21 @@ export default function SettingsPage() {
 	async function handleDelete() {
 		try {
 			await requestDeletion();
-			toast.success("Account deletion requested.");
+			toast.success(t("settings.general.successToast"));
 			setConfirmOpen(false);
 			await logout();
 		} catch {
-			toast.error("Couldn't request account deletion. Try again.");
+			toast.error(t("settings.general.errorToast"));
 		}
 	}
 
 	return (
-		<div className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-10 md:px-10">
-			<div>
-				<h1 className="font-semibold text-2xl tracking-tight">Settings</h1>
-				<p className="mt-1 text-muted-foreground text-sm">
-					Manage your account and profile.
-				</p>
-			</div>
-
+		<div className="flex flex-col gap-8">
 			<Card>
 				<CardHeader>
-					<CardTitle>Profile</CardTitle>
+					<CardTitle>{t("settings.general.profileTitle")}</CardTitle>
 					<CardDescription>
-						Your account information from identity.
+						{t("settings.general.profileDescription")}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-6">
@@ -88,23 +83,27 @@ export default function SettingsPage() {
 
 					<div className="grid grid-cols-1 gap-4 border-border border-t pt-5 sm:grid-cols-2">
 						<div>
-							<p className="text-muted-foreground text-xs">Email status</p>
+							<p className="text-muted-foreground text-xs">
+								{t("settings.general.emailStatus")}
+							</p>
 							<div className="mt-1 flex items-center gap-1.5 text-sm">
 								{user.emailVerified ? (
 									<>
 										<CheckCircle2 className="size-3.5 text-emerald-500" />
-										Verified
+										{t("settings.general.verified")}
 									</>
 								) : (
 									<>
 										<AlertTriangle className="size-3.5 text-amber-500" />
-										Not verified
+										{t("settings.general.notVerified")}
 									</>
 								)}
 							</div>
 						</div>
 						<div>
-							<p className="text-muted-foreground text-xs">Account status</p>
+							<p className="text-muted-foreground text-xs">
+								{t("settings.general.accountStatus")}
+							</p>
 							<div className="mt-1">
 								<Badge
 									variant={user.state === "ACTIVE" ? "success" : "warning"}
@@ -114,7 +113,9 @@ export default function SettingsPage() {
 							</div>
 						</div>
 						<div>
-							<p className="text-muted-foreground text-xs">Member since</p>
+							<p className="text-muted-foreground text-xs">
+								{t("settings.general.memberSince")}
+							</p>
 							<p className="mt-1 text-sm">
 								{new Date(user.createdAt).toLocaleDateString(undefined, {
 									year: "numeric",
@@ -131,17 +132,15 @@ export default function SettingsPage() {
 				<CardHeader>
 					<CardTitle className="flex items-center gap-1.5 text-destructive">
 						<ShieldAlert className="size-4" />
-						Danger zone
+						{t("settings.general.dangerTitle")}
 					</CardTitle>
 					<CardDescription>
-						Permanently delete your account and every media item, transcript,
-						generated content, and billing record tied to it. This starts an
-						asynchronous workflow across every service and cannot be undone.
+						{t("settings.general.dangerDescription")}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<Button variant="destructive" onClick={() => setConfirmOpen(true)}>
-						Delete account
+						{t("settings.general.deleteAccount")}
 					</Button>
 				</CardContent>
 			</Card>
@@ -149,11 +148,9 @@ export default function SettingsPage() {
 			<Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Delete your account?</DialogTitle>
+						<DialogTitle>{t("settings.general.confirmTitle")}</DialogTitle>
 						<DialogDescription>
-							Type <span className="font-medium text-foreground">delete</span>{" "}
-							to confirm. This immediately removes your product access and
-							starts permanent deletion across every service.
+							{t("settings.general.confirmDescription")}
 						</DialogDescription>
 					</DialogHeader>
 					<Input
@@ -169,7 +166,7 @@ export default function SettingsPage() {
 								setConfirmText("");
 							}}
 						>
-							Cancel
+							{t("common.cancel")}
 						</Button>
 						<Button
 							variant="destructive"
@@ -178,7 +175,9 @@ export default function SettingsPage() {
 							}
 							onClick={handleDelete}
 						>
-							{deleting ? "Requesting…" : "Delete account"}
+							{deleting
+								? t("settings.general.requesting")
+								: t("settings.general.deleteAccount")}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
