@@ -36,7 +36,7 @@
 	"mediaActions": {
 		"moreOptions": "More options",
 		"editDetails": "Edit details",
-		"generateMore": "Generate more content",
+		"generateMore": "Generate",
 		"moveToTrash": "Move to trash",
 		"trashedToast": "Moved to trash",
 		"trashErrorToast": "Couldn't move to trash. Try again."

@@ -36,7 +36,7 @@
 	"mediaActions": {
 		"moreOptions": "Tùy chọn khác",
 		"editDetails": "Chỉnh sửa thông tin",
-		"generateMore": "Tạo thêm nội dung",
+		"generateMore": "Tạo thêm",
 		"moveToTrash": "Chuyển vào thùng rác",
 		"trashedToast": "Đã chuyển vào thùng rác",
 		"trashErrorToast": "Không thể chuyển vào thùng rác. Vui lòng thử lại."

@@ -37,8 +37,15 @@ export function OptionsPanel({
 	return (
 		<div className="flex flex-col gap-3">
 			{PROCESSING_OPTIONS.map((option) => {
+				// A "required" option (transcribe) is only non-negotiable when
+				// it doesn't exist yet — the create flow, where existingOptions
+				// is never passed. Once it already exists (a regenerate
+				// request), it behaves like any other already-generated
+				// option: available to reselect, not forced.
+				const alreadyExists = existingOptions?.has(option.id) ?? false;
 				const disabled =
-					option.required || (option.dependsOn != null && !summarizeSelected);
+					(option.required && !alreadyExists) ||
+					(option.dependsOn != null && !summarizeSelected);
 				return (
 					<div key={option.id} className="flex items-start gap-3">
 						<Checkbox
@@ -54,7 +61,7 @@ export function OptionsPanel({
 								className={disabled ? "text-muted-foreground" : ""}
 							>
 								{t(`options.${option.id}.label`)}
-								{option.required && (
+								{option.required && !alreadyExists && (
 									<span className="ml-1.5 text-muted-foreground text-xs">
 										{t("options.required")}
 									</span>

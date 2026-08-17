@@ -56,7 +56,7 @@ export function EditMediaDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle>{t("editMediaDialog.title")}</DialogTitle>
 				</DialogHeader>

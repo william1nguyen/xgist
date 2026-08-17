@@ -35,6 +35,16 @@ const OPTIONAL_CONTENT_OPTIONS: Extract<
 	"generate_audio_summary",
 ];
 
+// transcribe isn't "optional content" the way the others are, but a
+// regenerate-eligible media item (COMPLETED or FAILED after transcribe)
+// usually already has one — treating it the same as the other options
+// lets OptionsPanel/RegenerateDialog stop forcing it into every
+// regenerate request when it's already there.
+const ALL_CONTENT_OPTIONS: ProcessingOptionId[] = [
+	"transcribe",
+	...OPTIONAL_CONTENT_OPTIONS,
+];
+
 type MediaActionsMenuProps = {
 	mediaId: string;
 	title: string;
@@ -64,18 +74,19 @@ export function MediaActionsMenu({
 	});
 	const content = data?.contentDetail;
 
-	const present: Record<(typeof OPTIONAL_CONTENT_OPTIONS)[number], boolean> = {
+	const present: Record<ProcessingOptionId, boolean> = {
+		transcribe: content?.transcript != null,
 		summarize: (content?.summaries.length ?? 0) > 0,
 		extract_keywords: (content?.keywords.length ?? 0) > 0,
 		extract_keypoints: (content?.keypoints.length ?? 0) > 0,
 		generate_notes: (content?.notes.length ?? 0) > 0,
 		generate_audio_summary: (content?.summaryAudios.length ?? 0) > 0,
 	};
-	const missingOptions: ProcessingOptionId[] = OPTIONAL_CONTENT_OPTIONS.filter(
+	const missingOptions: ProcessingOptionId[] = ALL_CONTENT_OPTIONS.filter(
 		(id) => !present[id],
 	);
 	const existingOptions = new Set<ProcessingOptionId>(
-		OPTIONAL_CONTENT_OPTIONS.filter((id) => present[id]),
+		ALL_CONTENT_OPTIONS.filter((id) => present[id]),
 	);
 	const canRegenerate = status === "COMPLETED" || status === "FAILED";
 

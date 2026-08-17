@@ -33,7 +33,7 @@ export function RegenerateDialog({
 }: RegenerateDialogProps) {
 	const { t } = useTranslation();
 	const [options, setOptions] = useState<Set<ProcessingOptionId>>(
-		new Set(["transcribe", ...missingOptions]),
+		new Set(missingOptions),
 	);
 	const [voice, setVoice] = useState(DEFAULT_TTS_VOICE);
 	const [requestProcessing, { loading }] = useRequestProcessingMutation();
@@ -41,7 +41,7 @@ export function RegenerateDialog({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: missingOptions is derived fresh each render from content state; only re-seed selection when the dialog transitions open, not on every parent re-render.
 	useEffect(() => {
 		if (open) {
-			setOptions(new Set(["transcribe", ...missingOptions]));
+			setOptions(new Set(missingOptions));
 			setVoice(DEFAULT_TTS_VOICE);
 		}
 	}, [open]);
@@ -67,7 +67,7 @@ export function RegenerateDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
 				<DialogHeader>
 					<DialogTitle>{t("regenerateDialog.title")}</DialogTitle>
 					<DialogDescription>
