@@ -29,7 +29,7 @@ func NewWorkflowRepository(pool *pgxpool.Pool) *WorkflowRepository {
 
 var _ workflow.Repository = (*WorkflowRepository)(nil)
 
-const workflowColumns = `id, media_id, request_id, user_id, state, quote_id, version, started_at, completed_at, audio_voice`
+const workflowColumns = `id, media_id, request_id, user_id, state, quote_id, version, started_at, completed_at, audio_voice, prompt_overrides`
 
 type stepRow struct {
 	ID             uuid.UUID
@@ -49,24 +49,31 @@ func (r *WorkflowRepository) CreateWorkflow(ctx context.Context, in workflow.New
 		return workflow.Workflow{}, err
 	}
 
+	promptOverridesJSON, err := json.Marshal(in.PromptOverrides)
+	if err != nil {
+		return workflow.Workflow{}, err
+	}
+
 	var result workflow.Workflow
 	txErr := withTx(ctx, r.pool, func(ctx context.Context, tx pgx.Tx) error {
 		row := tx.QueryRow(ctx, `
-			INSERT INTO workflows (id, media_id, request_id, user_id, state, quote_id, version, started_at, audio_voice)
-			VALUES ($1, $2, $3, $4, $5, $6, 0, now(), $7)
-			ON CONFLICT (media_id) DO NOTHING
+			INSERT INTO workflows (id, media_id, request_id, user_id, state, quote_id, version, started_at, audio_voice, prompt_overrides)
+			VALUES ($1, $2, $3, $4, $5, $6, 0, now(), $7, $8)
+			ON CONFLICT (media_id) WHERE state NOT IN ('completed', 'failed') DO NOTHING
 			RETURNING `+workflowColumns,
-			uuid.New(), in.MediaID, in.RequestID, in.UserID, string(workflow.StateReservingCredit), in.QuoteID, in.AudioVoice)
+			uuid.New(), in.MediaID, in.RequestID, in.UserID, string(workflow.StateReservingCredit), in.QuoteID, in.AudioVoice, promptOverridesJSON)
 		w, err := scanWorkflow(row)
 		if err != nil {
 			if errors.Is(err, workflow.ErrNotFound) {
-				// ON CONFLICT DO NOTHING: media_id already has a workflow,
-				// created by a redelivery of this same command under a
-				// duplicate request_id our earlier lookup missed (or a
-				// concurrent delivery). Return the existing row rather
-				// than creating steps/dependencies/a second quote a
-				// second time.
-				existing, findErr := findWorkflowByMediaID(ctx, tx, in.MediaID)
+				// ON CONFLICT DO NOTHING: media_id already has an active
+				// (non-terminal) workflow, created by a redelivery of this
+				// same command under a duplicate request_id our earlier
+				// lookup missed (or a concurrent delivery). Return the
+				// existing row rather than creating steps/dependencies/a
+				// second quote a second time. Once the active workflow
+				// reaches a terminal state, the next call for this
+				// media_id inserts a fresh row instead of conflicting here.
+				existing, findErr := findActiveWorkflowByMediaID(ctx, tx, in.MediaID)
 				if findErr != nil {
 					return findErr
 				}
@@ -105,7 +112,7 @@ func (r *WorkflowRepository) CreateWorkflow(ctx context.Context, in workflow.New
 		// generate_thumbnail has no dependency, no billing item, and
 		// does not wait on credit: dispatch it immediately.
 		if thumbID, ok := stepIDs[workflow.StepThumbnail]; ok {
-			if err := dispatchStep(ctx, tx, w.ID, thumbID, workflow.StepThumbnail, in.MediaID, 1, ""); err != nil {
+			if err := dispatchStep(ctx, tx, w.ID, thumbID, workflow.StepThumbnail, in.MediaID, 1, "", ""); err != nil {
 				return err
 			}
 		}
@@ -146,7 +153,7 @@ func (r *WorkflowRepository) ApplyCreditDecision(ctx context.Context, eventID, w
 		if err != nil {
 			return err
 		}
-		return dispatchStep(ctx, tx, w.ID, transcribe.ID, workflow.StepTranscribe, w.MediaID, 1, "")
+		return dispatchStep(ctx, tx, w.ID, transcribe.ID, workflow.StepTranscribe, w.MediaID, 1, "", "")
 	})
 }
 
@@ -207,7 +214,7 @@ func (r *WorkflowRepository) CompleteStep(ctx context.Context, in workflow.StepC
 			if !ready {
 				continue
 			}
-			if err := dispatchStep(ctx, tx, w.ID, dep.ID, dep.StepType, w.MediaID, 1, w.AudioVoice); err != nil {
+			if err := dispatchStep(ctx, tx, w.ID, dep.ID, dep.StepType, w.MediaID, 1, w.AudioVoice, promptOverrideForStep(w.PromptOverrides, dep.StepType)); err != nil {
 				return err
 			}
 		}
@@ -284,7 +291,12 @@ func (r *WorkflowRepository) FailStep(ctx context.Context, in workflow.StepFailu
 
 func (r *WorkflowRepository) CompleteThumbnail(ctx context.Context, mediaID uuid.UUID) error {
 	return withTx(ctx, r.pool, func(ctx context.Context, tx pgx.Tx) error {
-		w, err := findWorkflowByMediaIDForUpdate(ctx, tx, mediaID)
+		// generate_thumbnail is dispatched immediately and does not gate
+		// workflow completion (see CreateWorkflow), so its completion can
+		// legitimately arrive after the workflow itself has already
+		// reached a terminal state — unlike CancelForDeletion, this must
+		// not be scoped to only the active workflow.
+		w, err := findLatestWorkflowByMediaIDForUpdate(ctx, tx, mediaID)
 		if err != nil {
 			if errors.Is(err, workflow.ErrNotFound) {
 				return nil
@@ -368,7 +380,11 @@ func (r *WorkflowRepository) DispatchRetry(ctx context.Context, due workflow.Due
 		}
 
 		voice := ""
-		if due.StepType == workflow.StepSummaryAudio {
+		promptOverride := ""
+		// generate_thumbnail takes neither a voice nor a prompt override —
+		// skip the extra lookup for it, same as the original voice-only
+		// check did for every non-summary_audio step.
+		if due.StepType != workflow.StepThumbnail {
 			w, err := findWorkflowByIDForUpdate(ctx, tx, due.WorkflowID)
 			if err != nil {
 				if errors.Is(err, workflow.ErrNotFound) {
@@ -376,9 +392,12 @@ func (r *WorkflowRepository) DispatchRetry(ctx context.Context, due workflow.Due
 				}
 				return err
 			}
-			voice = w.AudioVoice
+			if due.StepType == workflow.StepSummaryAudio {
+				voice = w.AudioVoice
+			}
+			promptOverride = promptOverrideForStep(w.PromptOverrides, due.StepType)
 		}
-		return dispatchStep(ctx, tx, due.WorkflowID, due.StepID, due.StepType, due.MediaID, due.NextAttempt, voice)
+		return dispatchStep(ctx, tx, due.WorkflowID, due.StepID, due.StepType, due.MediaID, due.NextAttempt, voice, promptOverride)
 	})
 }
 
@@ -422,7 +441,7 @@ func (r *WorkflowRepository) CancelForDeletion(ctx context.Context, deletionID, 
 			return err
 		}
 
-		w, findErr := findWorkflowByMediaIDForUpdate(ctx, tx, mediaID)
+		w, findErr := findActiveWorkflowByMediaIDForUpdate(ctx, tx, mediaID)
 		if findErr != nil && !errors.Is(findErr, workflow.ErrNotFound) {
 			return findErr
 		}
@@ -489,7 +508,19 @@ func (r *WorkflowRepository) CancelForDeletion(ctx context.Context, deletionID, 
 // AudioVoice through unconditionally since it's harmless — it's simply
 // omitted from the payload below unless both the step type matches and a
 // voice was actually selected.
-func dispatchStep(ctx context.Context, tx pgx.Tx, workflowID, stepID uuid.UUID, stepType string, mediaID uuid.UUID, attempt int, voice string) error {
+// promptOverrideForStep returns the caller's custom instruction for
+// stepType's owning option (e.g. "summarize" for StepSummary), or "" if
+// none was saved or stepType has no LLM prompt to append to (transcribe,
+// summary_audio, generate_thumbnail).
+func promptOverrideForStep(overrides map[string]string, stepType string) string {
+	itemID, billable := workflow.BillingItemID(stepType)
+	if !billable {
+		return ""
+	}
+	return overrides[itemID]
+}
+
+func dispatchStep(ctx context.Context, tx pgx.Tx, workflowID, stepID uuid.UUID, stepType string, mediaID uuid.UUID, attempt int, voice, promptOverride string) error {
 	deadline := time.Now().Add(timeout.DeadlineFor(stepType))
 	if _, err := tx.Exec(ctx, `
 		UPDATE workflow_steps SET state = $2, current_attempt = $3, deadline_at = $4 WHERE id = $1
@@ -516,6 +547,9 @@ func dispatchStep(ctx context.Context, tx pgx.Tx, workflowID, stepID uuid.UUID, 
 	}
 	if stepType == workflow.StepSummaryAudio && voice != "" {
 		fields["voice"] = voice
+	}
+	if promptOverride != "" {
+		fields["prompt_override"] = promptOverride
 	}
 	payload, err := json.Marshal(fields)
 	if err != nil {
@@ -644,7 +678,8 @@ func publishSettleCommand(ctx context.Context, tx pgx.Tx, w workflow.Workflow, a
 func scanWorkflow(row rowScanner) (workflow.Workflow, error) {
 	var w workflow.Workflow
 	var state string
-	err := row.Scan(&w.ID, &w.MediaID, &w.RequestID, &w.UserID, &state, &w.QuoteID, &w.Version, &w.StartedAt, &w.CompletedAt, &w.AudioVoice)
+	var promptOverridesJSON []byte
+	err := row.Scan(&w.ID, &w.MediaID, &w.RequestID, &w.UserID, &state, &w.QuoteID, &w.Version, &w.StartedAt, &w.CompletedAt, &w.AudioVoice, &promptOverridesJSON)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return workflow.Workflow{}, workflow.ErrNotFound
@@ -652,6 +687,11 @@ func scanWorkflow(row rowScanner) (workflow.Workflow, error) {
 		return workflow.Workflow{}, err
 	}
 	w.State = workflow.State(state)
+	if len(promptOverridesJSON) > 0 {
+		if err := json.Unmarshal(promptOverridesJSON, &w.PromptOverrides); err != nil {
+			return workflow.Workflow{}, err
+		}
+	}
 	return w, nil
 }
 
@@ -660,13 +700,40 @@ func findWorkflowByRequestID(ctx context.Context, q querier, requestID uuid.UUID
 	return scanWorkflow(row)
 }
 
-func findWorkflowByMediaID(ctx context.Context, q querier, mediaID uuid.UUID) (workflow.Workflow, error) {
-	row := q.QueryRow(ctx, `SELECT `+workflowColumns+` FROM workflows WHERE media_id = $1`, mediaID)
+// findActiveWorkflowByMediaID returns the non-terminal workflow for
+// mediaID, if any. The partial unique index on workflows(media_id)
+// guarantees at most one such row exists, so this still returns at most
+// one workflow even though media_id is no longer globally unique.
+func findActiveWorkflowByMediaID(ctx context.Context, q querier, mediaID uuid.UUID) (workflow.Workflow, error) {
+	row := q.QueryRow(ctx, `
+		SELECT `+workflowColumns+` FROM workflows
+		WHERE media_id = $1 AND state NOT IN ('completed', 'failed')
+		ORDER BY started_at DESC LIMIT 1
+	`, mediaID)
 	return scanWorkflow(row)
 }
 
-func findWorkflowByMediaIDForUpdate(ctx context.Context, tx pgx.Tx, mediaID uuid.UUID) (workflow.Workflow, error) {
-	row := tx.QueryRow(ctx, `SELECT `+workflowColumns+` FROM workflows WHERE media_id = $1 FOR UPDATE`, mediaID)
+func findActiveWorkflowByMediaIDForUpdate(ctx context.Context, tx pgx.Tx, mediaID uuid.UUID) (workflow.Workflow, error) {
+	row := tx.QueryRow(ctx, `
+		SELECT `+workflowColumns+` FROM workflows
+		WHERE media_id = $1 AND state NOT IN ('completed', 'failed')
+		ORDER BY started_at DESC LIMIT 1
+		FOR UPDATE
+	`, mediaID)
+	return scanWorkflow(row)
+}
+
+// findLatestWorkflowByMediaIDForUpdate returns the most recently started
+// workflow for mediaID regardless of state, for callers that need to
+// target "the" workflow a media_id-only event belongs to even after it has
+// gone terminal (see CompleteThumbnail).
+func findLatestWorkflowByMediaIDForUpdate(ctx context.Context, tx pgx.Tx, mediaID uuid.UUID) (workflow.Workflow, error) {
+	row := tx.QueryRow(ctx, `
+		SELECT `+workflowColumns+` FROM workflows
+		WHERE media_id = $1
+		ORDER BY started_at DESC LIMIT 1
+		FOR UPDATE
+	`, mediaID)
 	return scanWorkflow(row)
 }
 

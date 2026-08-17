@@ -50,9 +50,17 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("connection string: %v", err)
 	}
 
-	migration, err := os.ReadFile("../../migrations/V1__init.sql")
-	if err != nil {
-		t.Fatalf("read migration: %v", err)
+	var migration []byte
+	for _, name := range []string{
+		"V1__init.sql",
+		"V2__add_audio_voice.sql",
+		"V3__loosen_workflows_media_id_unique.sql",
+	} {
+		b, err := os.ReadFile("../../migrations/" + name)
+		if err != nil {
+			t.Fatalf("read migration %s: %v", name, err)
+		}
+		migration = append(migration, b...)
 	}
 
 	// The postgres module reports ready after the log line that precedes
@@ -270,6 +278,68 @@ func TestWorkflowLifecycle(t *testing.T) {
 			t.Error("generate_thumbnail must be completed")
 		}
 	})
+}
+
+func TestCreateWorkflowStartsAnotherAfterTheFirstCompletes(t *testing.T) {
+	requireIntegration(t)
+	pool := newTestPool(t)
+	repo := store.NewWorkflowRepository(pool)
+	ctx := context.Background()
+
+	mediaID := uuid.New()
+	userID := uuid.New()
+
+	first, err := repo.CreateWorkflow(ctx, workflow.NewWorkflow{
+		RequestID: uuid.New(), MediaID: mediaID, UserID: userID, QuoteID: uuid.New(),
+		Steps: workflow.PlanSteps([]string{"summarize"}, "audio"),
+	})
+	if err != nil {
+		t.Fatalf("CreateWorkflow (first): %v", err)
+	}
+
+	// Drive the first workflow to completion the same way TestWorkflowLifecycle
+	// does, via ApplyCreditDecision/CompleteStep, rather than writing state
+	// directly: this exercises the same code path RequestProcessing's
+	// second call needs to interoperate with.
+	if err := repo.ApplyCreditDecision(ctx, uuid.New(), first.ID, true); err != nil {
+		t.Fatalf("ApplyCreditDecision: %v", err)
+	}
+	if err := repo.CompleteStep(ctx, workflow.StepCompletion{
+		EventID: uuid.New(), WorkflowID: first.ID, MediaID: mediaID, StepType: workflow.StepTranscribe, Attempt: 1,
+	}); err != nil {
+		t.Fatalf("CompleteStep(transcribe): %v", err)
+	}
+	if err := repo.CompleteStep(ctx, workflow.StepCompletion{
+		EventID: uuid.New(), WorkflowID: first.ID, MediaID: mediaID, StepType: workflow.StepSummary, Attempt: 1,
+	}); err != nil {
+		t.Fatalf("CompleteStep(summary): %v", err)
+	}
+	if workflowState(t, pool, first.ID) != string(workflow.StateCompleted) {
+		t.Fatal("first workflow must be completed before starting a second one")
+	}
+
+	// A second CreateWorkflow call for the same media_id, once the first
+	// workflow is terminal, must start a genuinely new workflow rather than
+	// silently returning the first one (the ON CONFLICT ... WHERE state NOT
+	// IN (...) clause must not fire here).
+	second, err := repo.CreateWorkflow(ctx, workflow.NewWorkflow{
+		RequestID: uuid.New(), MediaID: mediaID, UserID: userID, QuoteID: uuid.New(),
+		Steps: workflow.PlanSteps([]string{"extract_keywords"}, "audio"),
+	})
+	if err != nil {
+		t.Fatalf("CreateWorkflow (second): %v", err)
+	}
+	if second.ID == first.ID {
+		t.Fatal("a second request after the first workflow completed must create a new workflow, not reuse the old one")
+	}
+	if second.State != workflow.StateReservingCredit {
+		t.Errorf("second workflow state = %s, want reserving_credit", second.State)
+	}
+
+	// The first (terminal) workflow's steps are untouched by the second.
+	if stepState(t, pool, first.ID, workflow.StepSummary) != string(workflow.StepStateCompleted) {
+		t.Error("the first workflow's steps must be unaffected by the second workflow")
+	}
 }
 
 func TestFailStepRetryThenExhaust(t *testing.T) {

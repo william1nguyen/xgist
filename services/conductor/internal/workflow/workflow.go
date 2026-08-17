@@ -169,14 +169,17 @@ type Workflow struct {
 	// AudioVoice overrides the worker's default TTS voice for this
 	// workflow's generate_audio_summary step, if selected. Empty means
 	// "use the worker's default".
-	AudioVoice  string
-	RequestID   uuid.UUID
-	UserID      uuid.UUID
-	State       State
-	QuoteID     uuid.UUID
-	Version     int64
-	StartedAt   time.Time
-	CompletedAt *time.Time
+	AudioVoice string
+	// PromptOverrides maps a selected option id (e.g. "summarize") to a
+	// custom instruction string worker appends to that step's LLM prompt.
+	PromptOverrides map[string]string
+	RequestID       uuid.UUID
+	UserID          uuid.UUID
+	State           State
+	QuoteID         uuid.UUID
+	Version         int64
+	StartedAt       time.Time
+	CompletedAt     *time.Time
 }
 
 // Step is one step of a workflow.
@@ -195,20 +198,22 @@ type Step struct {
 // separate processing_request id on this event, and event_id is already
 // the field this and every other consumer dedups on.
 type ProcessingRequested struct {
-	EventID    uuid.UUID
-	MediaID    uuid.UUID
-	Options    []string
-	AudioVoice string
+	EventID         uuid.UUID
+	MediaID         uuid.UUID
+	Options         []string
+	AudioVoice      string
+	PromptOverrides map[string]string
 }
 
 // NewWorkflow is the input to Repository.CreateWorkflow.
 type NewWorkflow struct {
-	RequestID  uuid.UUID
-	MediaID    uuid.UUID
-	UserID     uuid.UUID
-	QuoteID    uuid.UUID
-	AudioVoice string
-	Steps      []StepPlan
+	RequestID       uuid.UUID
+	MediaID         uuid.UUID
+	UserID          uuid.UUID
+	QuoteID         uuid.UUID
+	AudioVoice      string
+	PromptOverrides map[string]string
+	Steps           []StepPlan
 }
 
 // StepCompletion is the input to Repository.CompleteStep, decoded from
@@ -386,12 +391,13 @@ func (s *Service) StartWorkflow(ctx context.Context, req ProcessingRequested) er
 	}
 
 	_, err = s.repo.CreateWorkflow(ctx, NewWorkflow{
-		RequestID:  req.EventID,
-		MediaID:    req.MediaID,
-		UserID:     media.OwnerID,
-		QuoteID:    quoteID,
-		AudioVoice: req.AudioVoice,
-		Steps:      steps,
+		RequestID:       req.EventID,
+		MediaID:         req.MediaID,
+		UserID:          media.OwnerID,
+		QuoteID:         quoteID,
+		AudioVoice:      req.AudioVoice,
+		PromptOverrides: req.PromptOverrides,
+		Steps:           steps,
 	})
 	return err
 }

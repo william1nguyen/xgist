@@ -38,6 +38,28 @@ workflow version, step ID and attempt; stale results are ignored. Joins publish
 only selected parallel outputs. A lease/CAS bounded scheduler persists each new
 attempt before publishing it.
 
+A workflow persists the caller's optional `audio_voice` (from media's
+`ConfirmUpload`/`RequestProcessing`) alongside its other columns and passes it
+through unconditionally on every dispatched step command — harmless for steps
+that ignore it, and it is the only per-request override the
+`generate_audio_summary` step's worker command carries.
+
+`workflows.media_id` is not globally unique: a partial unique index
+(`WHERE state NOT IN ('completed', 'failed')`) enforces the real invariant
+instead — at most one *active* workflow per media item at a time. Once a
+workflow reaches a terminal state, media's `RequestProcessing` can start
+another one for the same media item (to generate content that wasn't
+originally selected, or regenerate content that was); history accumulates
+as separate `workflows` rows. `CreateWorkflow`'s
+`ON CONFLICT (media_id) WHERE state NOT IN ('completed', 'failed') DO NOTHING`
+only absorbs a redelivery of the same logical request while a workflow is
+still active — it does not block a new request once the prior one is
+terminal. Lookups that need "the" workflow for a media_id resolve to the
+active one (`generate_thumbnail`'s completion is the one exception: it is
+dispatched immediately and does not gate workflow completion, so its result
+can legitimately arrive after the workflow already went terminal, and is
+matched against the most recently started workflow regardless of state).
+
 ## Events and tests
 
 Consume the processing and billing result topics in ADR 0003. Publish worker
@@ -50,19 +72,18 @@ restart between persist and publish, parallel join, cancellation and terminal
 settlement/release.
 
 
-## Initial migration: `00001_init.sql`
+## Migrations
 
-```sql
--- +goose Up
-CREATE SCHEMA IF NOT EXISTS workflow;
-CREATE TABLE workflow.workflows (id uuid PRIMARY KEY, media_id uuid NOT NULL UNIQUE, request_id uuid NOT NULL UNIQUE, user_id uuid NOT NULL, state text NOT NULL, version bigint NOT NULL DEFAULT 0, deadline_at timestamptz, started_at timestamptz NOT NULL DEFAULT now(), completed_at timestamptz);
-CREATE TABLE workflow.workflow_steps (id uuid PRIMARY KEY, workflow_id uuid NOT NULL REFERENCES workflow.workflows(id), step_type text NOT NULL, state text NOT NULL, required boolean NOT NULL, current_attempt integer NOT NULL DEFAULT 0, deadline_at timestamptz, UNIQUE (workflow_id, step_type));
-CREATE TABLE workflow.step_dependencies (step_id uuid NOT NULL REFERENCES workflow.workflow_steps(id), depends_on_step_id uuid NOT NULL REFERENCES workflow.workflow_steps(id), PRIMARY KEY (step_id, depends_on_step_id), CHECK (step_id <> depends_on_step_id));
-CREATE TABLE workflow.step_attempts (id uuid PRIMARY KEY, step_id uuid NOT NULL REFERENCES workflow.workflow_steps(id), attempt integer NOT NULL, idempotency_key text NOT NULL UNIQUE, state text NOT NULL, error_code text, retry_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), completed_at timestamptz, UNIQUE (step_id, attempt));
-CREATE INDEX due_step_attempts ON workflow.step_attempts (retry_at) WHERE state = 'retry_scheduled';
-CREATE TABLE workflow.deletion_operations (deletion_id uuid PRIMARY KEY, user_id uuid NOT NULL, state text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), completed_at timestamptz);
-CREATE TABLE workflow.inbox_events (event_id uuid PRIMARY KEY, topic text NOT NULL, received_at timestamptz NOT NULL DEFAULT now(), processed_at timestamptz);
-CREATE TABLE workflow.outbox_events (id uuid PRIMARY KEY, topic text NOT NULL, event_key text NOT NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), published_at timestamptz, attempts integer NOT NULL DEFAULT 0);
--- +goose Down
-DROP SCHEMA workflow CASCADE;
-```
+Flyway-managed (`services/conductor/migrations/V{n}__*.sql`, manual rollback
+scripts under `services/conductor/rollback/`), currently:
+
+- `V1__init.sql` — `workflows`, `workflow_steps`, `step_dependencies`,
+  `step_attempts`, `deletion_operations`, `inbox_events`, `outbox_events`,
+  all in the `public` schema. `workflows.media_id` and `.request_id` were
+  both plain `UNIQUE`; `quote_id` and `started_at`/`completed_at` are also
+  columns on `workflows` (omitted from the summary above — see the file for
+  the exact column list).
+- `V2__add_audio_voice.sql` — `workflows.audio_voice`.
+- `V3__loosen_workflows_media_id_unique.sql` — drops `workflows`'
+  `UNIQUE(media_id)`, replaces it with the partial unique index described
+  above.

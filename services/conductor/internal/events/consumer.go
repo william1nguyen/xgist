@@ -62,6 +62,9 @@ type processingRequestedEnvelope struct {
 	MediaID    uuid.UUID `json:"media_id"`
 	Options    []string  `json:"options"`
 	AudioVoice string    `json:"audio_voice"`
+	// PromptOverrides maps a selected option id to a custom instruction
+	// string worker appends to that step's LLM prompt.
+	PromptOverrides map[string]string `json:"prompt_overrides"`
 }
 
 // deletionRequestedEnvelope matches media's outbox payload shape for
@@ -197,10 +200,11 @@ func (c *Consumer) handleProcessingRequested(ctx context.Context, payload []byte
 		return fmt.Errorf("decode processing requested: %w", err)
 	}
 	return c.workflow.StartWorkflow(ctx, workflow.ProcessingRequested{
-		EventID:    env.EventID,
-		MediaID:    env.MediaID,
-		Options:    env.Options,
-		AudioVoice: env.AudioVoice,
+		EventID:         env.EventID,
+		MediaID:         env.MediaID,
+		Options:         env.Options,
+		AudioVoice:      env.AudioVoice,
+		PromptOverrides: env.PromptOverrides,
 	})
 }
 
