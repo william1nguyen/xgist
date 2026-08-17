@@ -37,6 +37,8 @@ const (
 	MediaService_RegisterDerivative_FullMethodName  = "/media_notes.media.v1.MediaService/RegisterDerivative"
 	MediaService_RequestDeletion_FullMethodName     = "/media_notes.media.v1.MediaService/RequestDeletion"
 	MediaService_GetDeletionStatus_FullMethodName   = "/media_notes.media.v1.MediaService/GetDeletionStatus"
+	MediaService_UpdateMedia_FullMethodName         = "/media_notes.media.v1.MediaService/UpdateMedia"
+	MediaService_RequestProcessing_FullMethodName   = "/media_notes.media.v1.MediaService/RequestProcessing"
 )
 
 // MediaServiceClient is the client API for MediaService service.
@@ -83,6 +85,16 @@ type MediaServiceClient interface {
 	RequestDeletion(ctx context.Context, in *RequestDeletionRequest, opts ...grpc.CallOption) (*RequestDeletionResponse, error)
 	// GetDeletionStatus returns the current state of a deletion operation.
 	GetDeletionStatus(ctx context.Context, in *GetDeletionStatusRequest, opts ...grpc.CallOption) (*GetDeletionStatusResponse, error)
+	// UpdateMedia updates a media item's title and/or description in place.
+	// Fields left unset (nil) are not changed.
+	UpdateMedia(ctx context.Context, in *UpdateMediaRequest, opts ...grpc.CallOption) (*UpdateMediaResponse, error)
+	// RequestProcessing starts a new processing request for a media item that
+	// has already been confirmed at least once, for example to generate a
+	// content type that wasn't originally selected, or to regenerate one that
+	// was. Only accepted while the media item's status is completed or
+	// failed: at most one processing request may be active per media item at
+	// a time. Idempotent per caller idempotency key.
+	RequestProcessing(ctx context.Context, in *RequestProcessingRequest, opts ...grpc.CallOption) (*RequestProcessingResponse, error)
 }
 
 type mediaServiceClient struct {
@@ -183,6 +195,26 @@ func (c *mediaServiceClient) GetDeletionStatus(ctx context.Context, in *GetDelet
 	return out, nil
 }
 
+func (c *mediaServiceClient) UpdateMedia(ctx context.Context, in *UpdateMediaRequest, opts ...grpc.CallOption) (*UpdateMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateMediaResponse)
+	err := c.cc.Invoke(ctx, MediaService_UpdateMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediaServiceClient) RequestProcessing(ctx context.Context, in *RequestProcessingRequest, opts ...grpc.CallOption) (*RequestProcessingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RequestProcessingResponse)
+	err := c.cc.Invoke(ctx, MediaService_RequestProcessing_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MediaServiceServer is the server API for MediaService service.
 // All implementations must embed UnimplementedMediaServiceServer
 // for forward compatibility.
@@ -227,6 +259,16 @@ type MediaServiceServer interface {
 	RequestDeletion(context.Context, *RequestDeletionRequest) (*RequestDeletionResponse, error)
 	// GetDeletionStatus returns the current state of a deletion operation.
 	GetDeletionStatus(context.Context, *GetDeletionStatusRequest) (*GetDeletionStatusResponse, error)
+	// UpdateMedia updates a media item's title and/or description in place.
+	// Fields left unset (nil) are not changed.
+	UpdateMedia(context.Context, *UpdateMediaRequest) (*UpdateMediaResponse, error)
+	// RequestProcessing starts a new processing request for a media item that
+	// has already been confirmed at least once, for example to generate a
+	// content type that wasn't originally selected, or to regenerate one that
+	// was. Only accepted while the media item's status is completed or
+	// failed: at most one processing request may be active per media item at
+	// a time. Idempotent per caller idempotency key.
+	RequestProcessing(context.Context, *RequestProcessingRequest) (*RequestProcessingResponse, error)
 	mustEmbedUnimplementedMediaServiceServer()
 }
 
@@ -263,6 +305,12 @@ func (UnimplementedMediaServiceServer) RequestDeletion(context.Context, *Request
 }
 func (UnimplementedMediaServiceServer) GetDeletionStatus(context.Context, *GetDeletionStatusRequest) (*GetDeletionStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDeletionStatus not implemented")
+}
+func (UnimplementedMediaServiceServer) UpdateMedia(context.Context, *UpdateMediaRequest) (*UpdateMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateMedia not implemented")
+}
+func (UnimplementedMediaServiceServer) RequestProcessing(context.Context, *RequestProcessingRequest) (*RequestProcessingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RequestProcessing not implemented")
 }
 func (UnimplementedMediaServiceServer) mustEmbedUnimplementedMediaServiceServer() {}
 func (UnimplementedMediaServiceServer) testEmbeddedByValue()                      {}
@@ -447,6 +495,42 @@ func _MediaService_GetDeletionStatus_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediaService_UpdateMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).UpdateMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_UpdateMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).UpdateMedia(ctx, req.(*UpdateMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediaService_RequestProcessing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestProcessingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).RequestProcessing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_RequestProcessing_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).RequestProcessing(ctx, req.(*RequestProcessingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MediaService_ServiceDesc is the grpc.ServiceDesc for MediaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -489,6 +573,14 @@ var MediaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDeletionStatus",
 			Handler:    _MediaService_GetDeletionStatus_Handler,
+		},
+		{
+			MethodName: "UpdateMedia",
+			Handler:    _MediaService_UpdateMedia_Handler,
+		},
+		{
+			MethodName: "RequestProcessing",
+			Handler:    _MediaService_RequestProcessing_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

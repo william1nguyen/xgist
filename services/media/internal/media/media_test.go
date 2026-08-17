@@ -48,6 +48,34 @@ func (f *fakeRepo) ApplyWorkflowStatus(ctx context.Context, mediaID uuid.UUID, s
 	return nil
 }
 
+func (f *fakeRepo) Update(ctx context.Context, id uuid.UUID, title, description *string) (media.Media, error) {
+	m, ok := f.byID[id]
+	if !ok {
+		return media.Media{}, media.ErrNotFound
+	}
+	if title != nil {
+		m.Title = *title
+	}
+	if description != nil {
+		m.Description = *description
+	}
+	f.byID[id] = m
+	return m, nil
+}
+
+func (f *fakeRepo) RequestProcessing(ctx context.Context, id uuid.UUID, idempotencyKey string, options []string, audioVoice string, promptOverrides map[string]string) (media.Media, error) {
+	m, ok := f.byID[id]
+	if !ok {
+		return media.Media{}, media.ErrNotFound
+	}
+	if !m.Status.IsTerminal() {
+		return media.Media{}, media.ErrNotProcessable
+	}
+	m.Status = media.StatusProcessing
+	f.byID[id] = m
+	return m, nil
+}
+
 func (f *fakeRepo) FindProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]media.Progress, error) {
 	var out []media.Progress
 	for _, id := range ids {
@@ -145,6 +173,59 @@ func TestApplyWorkflowStatus(t *testing.T) {
 	}
 	if repo.byID[id].Status != media.StatusCompleted {
 		t.Errorf("status = %v, want completed", repo.byID[id].Status)
+	}
+}
+
+func TestUpdateMediaChangesOnlySetFields(t *testing.T) {
+	id := uuid.New()
+	repo := &fakeRepo{byID: map[uuid.UUID]media.Media{
+		id: {ID: id, Title: "old title", Description: "old description", Status: media.StatusCompleted},
+	}}
+	svc := media.NewService(repo, &fakeSigner{}, 15*time.Minute)
+
+	newTitle := "new title"
+	m, err := svc.UpdateMedia(context.Background(), id, &newTitle, nil)
+	if err != nil {
+		t.Fatalf("UpdateMedia: %v", err)
+	}
+	if m.Title != "new title" {
+		t.Errorf("title = %q, want %q", m.Title, "new title")
+	}
+	if m.Description != "old description" {
+		t.Errorf("description = %q, want unchanged %q", m.Description, "old description")
+	}
+}
+
+func TestRequestProcessingRejectsNonTerminalStatus(t *testing.T) {
+	id := uuid.New()
+	repo := &fakeRepo{byID: map[uuid.UUID]media.Media{
+		id: {ID: id, Status: media.StatusProcessing},
+	}}
+	svc := media.NewService(repo, &fakeSigner{}, 15*time.Minute)
+
+	_, err := svc.RequestProcessing(context.Background(), media.RequestProcessingCommand{
+		MediaID: id, Options: []string{"summarize"},
+	})
+	if !errors.Is(err, media.ErrNotProcessable) {
+		t.Fatalf("got %v, want ErrNotProcessable", err)
+	}
+}
+
+func TestRequestProcessingAcceptsTerminalStatus(t *testing.T) {
+	id := uuid.New()
+	repo := &fakeRepo{byID: map[uuid.UUID]media.Media{
+		id: {ID: id, Status: media.StatusFailed},
+	}}
+	svc := media.NewService(repo, &fakeSigner{}, 15*time.Minute)
+
+	m, err := svc.RequestProcessing(context.Background(), media.RequestProcessingCommand{
+		MediaID: id, Options: []string{"summarize"},
+	})
+	if err != nil {
+		t.Fatalf("RequestProcessing: %v", err)
+	}
+	if m.Status != media.StatusProcessing {
+		t.Errorf("status = %v, want processing", m.Status)
 	}
 }
 

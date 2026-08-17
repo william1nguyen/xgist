@@ -134,14 +134,25 @@ class CreateUploadSessionResponse(_message.Message):
     def __init__(self, session: _Optional[_Union[UploadSession, _Mapping]] = ...) -> None: ...
 
 class ConfirmUploadRequest(_message.Message):
-    __slots__ = ("idempotency_key", "upload_session_id", "options")
+    __slots__ = ("idempotency_key", "upload_session_id", "options", "audio_voice", "prompt_overrides")
+    class PromptOverridesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     IDEMPOTENCY_KEY_FIELD_NUMBER: _ClassVar[int]
     UPLOAD_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     OPTIONS_FIELD_NUMBER: _ClassVar[int]
+    AUDIO_VOICE_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_OVERRIDES_FIELD_NUMBER: _ClassVar[int]
     idempotency_key: str
     upload_session_id: str
     options: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, idempotency_key: _Optional[str] = ..., upload_session_id: _Optional[str] = ..., options: _Optional[_Iterable[str]] = ...) -> None: ...
+    audio_voice: str
+    prompt_overrides: _containers.ScalarMap[str, str]
+    def __init__(self, idempotency_key: _Optional[str] = ..., upload_session_id: _Optional[str] = ..., options: _Optional[_Iterable[str]] = ..., audio_voice: _Optional[str] = ..., prompt_overrides: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class ConfirmUploadResponse(_message.Message):
     __slots__ = ("media",)
@@ -150,7 +161,7 @@ class ConfirmUploadResponse(_message.Message):
     def __init__(self, media: _Optional[_Union[Media, _Mapping]] = ...) -> None: ...
 
 class Media(_message.Message):
-    __slots__ = ("id", "owner_id", "title", "media_type", "mime_type", "size_bytes", "duration_ms", "status", "thumbnail_url", "created_at", "updated_at")
+    __slots__ = ("id", "owner_id", "title", "media_type", "mime_type", "size_bytes", "duration_ms", "status", "thumbnail_url", "created_at", "updated_at", "description")
     ID_FIELD_NUMBER: _ClassVar[int]
     OWNER_ID_FIELD_NUMBER: _ClassVar[int]
     TITLE_FIELD_NUMBER: _ClassVar[int]
@@ -162,6 +173,7 @@ class Media(_message.Message):
     THUMBNAIL_URL_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     id: str
     owner_id: str
     title: str
@@ -173,7 +185,8 @@ class Media(_message.Message):
     thumbnail_url: str
     created_at: _timestamp_pb2.Timestamp
     updated_at: _timestamp_pb2.Timestamp
-    def __init__(self, id: _Optional[str] = ..., owner_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[_Union[MediaType, str]] = ..., mime_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., duration_ms: _Optional[int] = ..., status: _Optional[_Union[MediaStatus, str]] = ..., thumbnail_url: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    description: str
+    def __init__(self, id: _Optional[str] = ..., owner_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[_Union[MediaType, str]] = ..., mime_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., duration_ms: _Optional[int] = ..., status: _Optional[_Union[MediaStatus, str]] = ..., thumbnail_url: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., description: _Optional[str] = ...) -> None: ...
 
 class GetMediaRequest(_message.Message):
     __slots__ = ("media_id",)
@@ -188,14 +201,16 @@ class GetMediaResponse(_message.Message):
     def __init__(self, media: _Optional[_Union[Media, _Mapping]] = ...) -> None: ...
 
 class ListMediaRequest(_message.Message):
-    __slots__ = ("owner_id", "cursor", "page_size")
+    __slots__ = ("owner_id", "cursor", "page_size", "search")
     OWNER_ID_FIELD_NUMBER: _ClassVar[int]
     CURSOR_FIELD_NUMBER: _ClassVar[int]
     PAGE_SIZE_FIELD_NUMBER: _ClassVar[int]
+    SEARCH_FIELD_NUMBER: _ClassVar[int]
     owner_id: str
     cursor: str
     page_size: int
-    def __init__(self, owner_id: _Optional[str] = ..., cursor: _Optional[str] = ..., page_size: _Optional[int] = ...) -> None: ...
+    search: str
+    def __init__(self, owner_id: _Optional[str] = ..., cursor: _Optional[str] = ..., page_size: _Optional[int] = ..., search: _Optional[str] = ...) -> None: ...
 
 class ListMediaResponse(_message.Message):
     __slots__ = ("items", "next_cursor")
@@ -340,3 +355,46 @@ class GetDeletionStatusResponse(_message.Message):
     OPERATION_FIELD_NUMBER: _ClassVar[int]
     operation: DeletionOperation
     def __init__(self, operation: _Optional[_Union[DeletionOperation, _Mapping]] = ...) -> None: ...
+
+class UpdateMediaRequest(_message.Message):
+    __slots__ = ("media_id", "title", "description")
+    MEDIA_ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    media_id: str
+    title: str
+    description: str
+    def __init__(self, media_id: _Optional[str] = ..., title: _Optional[str] = ..., description: _Optional[str] = ...) -> None: ...
+
+class UpdateMediaResponse(_message.Message):
+    __slots__ = ("media",)
+    MEDIA_FIELD_NUMBER: _ClassVar[int]
+    media: Media
+    def __init__(self, media: _Optional[_Union[Media, _Mapping]] = ...) -> None: ...
+
+class RequestProcessingRequest(_message.Message):
+    __slots__ = ("idempotency_key", "media_id", "options", "audio_voice", "prompt_overrides")
+    class PromptOverridesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    IDEMPOTENCY_KEY_FIELD_NUMBER: _ClassVar[int]
+    MEDIA_ID_FIELD_NUMBER: _ClassVar[int]
+    OPTIONS_FIELD_NUMBER: _ClassVar[int]
+    AUDIO_VOICE_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_OVERRIDES_FIELD_NUMBER: _ClassVar[int]
+    idempotency_key: str
+    media_id: str
+    options: _containers.RepeatedScalarFieldContainer[str]
+    audio_voice: str
+    prompt_overrides: _containers.ScalarMap[str, str]
+    def __init__(self, idempotency_key: _Optional[str] = ..., media_id: _Optional[str] = ..., options: _Optional[_Iterable[str]] = ..., audio_voice: _Optional[str] = ..., prompt_overrides: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class RequestProcessingResponse(_message.Message):
+    __slots__ = ("media",)
+    MEDIA_FIELD_NUMBER: _ClassVar[int]
+    media: Media
+    def __init__(self, media: _Optional[_Union[Media, _Mapping]] = ...) -> None: ...

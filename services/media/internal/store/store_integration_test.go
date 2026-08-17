@@ -59,15 +59,19 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("connection string: %v", err)
 	}
 
-	v1, err := os.ReadFile("../../migrations/V1__init.sql")
-	if err != nil {
-		t.Fatalf("read migration: %v", err)
+	var migration []byte
+	for _, name := range []string{
+		"V1__init.sql",
+		"V2__add_media_progress_version.sql",
+		"V3__add_media_description.sql",
+		"V4__loosen_processing_requests_unique.sql",
+	} {
+		b, err := os.ReadFile("../../migrations/" + name)
+		if err != nil {
+			t.Fatalf("read migration %s: %v", name, err)
+		}
+		migration = append(migration, b...)
 	}
-	v2, err := os.ReadFile("../../migrations/V2__add_media_progress_version.sql")
-	if err != nil {
-		t.Fatalf("read migration: %v", err)
-	}
-	migration := append(append([]byte{}, v1...), v2...)
 
 	// The postgres module reports ready after the log line that precedes
 	// its internal init-then-restart cycle; connecting immediately can
@@ -164,7 +168,7 @@ func TestStoreIntegration(t *testing.T) {
 			t.Fatalf("create: %v", err)
 		}
 
-		m, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe"}, "", "confirm-1")
+		m, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe"}, "", nil, "confirm-1")
 		if err != nil {
 			t.Fatalf("confirm: %v", err)
 		}
@@ -189,7 +193,7 @@ func TestStoreIntegration(t *testing.T) {
 			t.Fatal("Confirm did not write a processing.requested outbox event")
 		}
 
-		again, err := uploads.Confirm(ctx, session.ID, 999, "audio/mpeg", nil, "", "confirm-2")
+		again, err := uploads.Confirm(ctx, session.ID, 999, "audio/mpeg", nil, "", nil, "confirm-2")
 		if err != nil {
 			t.Fatalf("confirm (replay): %v", err)
 		}
@@ -322,7 +326,7 @@ func TestStoreIntegration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("create: %v", err)
 		}
-		if _, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe", "summarize"}, "", uuid.NewString()); err != nil {
+		if _, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe", "summarize"}, "", nil, uuid.NewString()); err != nil {
 			t.Fatalf("confirm: %v", err)
 		}
 
@@ -333,7 +337,7 @@ func TestStoreIntegration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("create (other owner): %v", err)
 		}
-		if _, err := uploads.Confirm(ctx, otherSession.ID, 100, "video/mp4", nil, "", uuid.NewString()); err != nil {
+		if _, err := uploads.Confirm(ctx, otherSession.ID, 100, "video/mp4", nil, "", nil, uuid.NewString()); err != nil {
 			t.Fatalf("confirm (other owner): %v", err)
 		}
 
@@ -373,6 +377,97 @@ func TestStoreIntegration(t *testing.T) {
 		}
 		if items[0].CompletedSteps != items[0].TotalSteps {
 			t.Errorf("completed steps = %d, want %d once completed", items[0].CompletedSteps, items[0].TotalSteps)
+		}
+	})
+
+	t.Run("Update changes only the set fields", func(t *testing.T) {
+		owner := uuid.New()
+		mediaID, sessionID := uuid.New(), uuid.New()
+		session, err := uploads.Create(ctx, mediaID, sessionID, upload.NewUploadSession{
+			OwnerID: owner, Title: "original title", MimeType: "video/mp4", DeclaredSizeBytes: 100, IdempotencyKey: uuid.NewString(),
+		}, media.TypeVideo, "media/"+mediaID.String()+"/source", time.Now().Add(time.Hour), 3)
+		if err != nil {
+			t.Fatalf("create: %v", err)
+		}
+		if _, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe"}, "", nil, uuid.NewString()); err != nil {
+			t.Fatalf("confirm: %v", err)
+		}
+
+		newTitle := "updated title"
+		m, err := medias.Update(ctx, mediaID, &newTitle, nil)
+		if err != nil {
+			t.Fatalf("Update: %v", err)
+		}
+		if m.Title != "updated title" {
+			t.Errorf("title = %q, want %q", m.Title, "updated title")
+		}
+		if m.Description != "" {
+			t.Errorf("description = %q, want unchanged empty", m.Description)
+		}
+
+		newDescription := "now with a description"
+		m, err = medias.Update(ctx, mediaID, nil, &newDescription)
+		if err != nil {
+			t.Fatalf("Update (description): %v", err)
+		}
+		if m.Title != "updated title" {
+			t.Errorf("title = %q, want unchanged %q", m.Title, "updated title")
+		}
+		if m.Description != "now with a description" {
+			t.Errorf("description = %q, want %q", m.Description, "now with a description")
+		}
+	})
+
+	t.Run("RequestProcessing rejects a non-terminal media item and accepts a terminal one", func(t *testing.T) {
+		owner := uuid.New()
+		mediaID, sessionID := uuid.New(), uuid.New()
+		session, err := uploads.Create(ctx, mediaID, sessionID, upload.NewUploadSession{
+			OwnerID: owner, Title: "t", MimeType: "video/mp4", DeclaredSizeBytes: 100, IdempotencyKey: uuid.NewString(),
+		}, media.TypeVideo, "media/"+mediaID.String()+"/source", time.Now().Add(time.Hour), 3)
+		if err != nil {
+			t.Fatalf("create: %v", err)
+		}
+		if _, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe"}, "", nil, uuid.NewString()); err != nil {
+			t.Fatalf("confirm: %v", err)
+		}
+
+		if _, err := medias.RequestProcessing(ctx, mediaID, uuid.NewString(), []string{"summarize"}, "", nil); !errors.Is(err, media.ErrNotProcessable) {
+			t.Fatalf("got %v, want ErrNotProcessable while still processing", err)
+		}
+
+		if err := medias.ApplyWorkflowStatus(ctx, mediaID, media.StatusCompleted); err != nil {
+			t.Fatalf("ApplyWorkflowStatus: %v", err)
+		}
+
+		key := uuid.NewString()
+		m, err := medias.RequestProcessing(ctx, mediaID, key, []string{"summarize"}, "", nil)
+		if err != nil {
+			t.Fatalf("RequestProcessing: %v", err)
+		}
+		if m.Status != media.StatusProcessing {
+			t.Errorf("status = %v, want processing", m.Status)
+		}
+
+		pending, err := outbox.ListPending(ctx, 100)
+		if err != nil {
+			t.Fatalf("ListPending: %v", err)
+		}
+		var found bool
+		for _, rec := range pending {
+			if rec.Key == mediaID.String() && rec.Topic == events.ProcessingRequestedTopic {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatal("RequestProcessing did not write a processing.requested outbox event")
+		}
+
+		again, err := medias.RequestProcessing(ctx, mediaID, key, []string{"summarize"}, "", nil)
+		if err != nil {
+			t.Fatalf("RequestProcessing (replay): %v", err)
+		}
+		if again.ID != m.ID {
+			t.Error("replayed RequestProcessing returned a different media item")
 		}
 	})
 

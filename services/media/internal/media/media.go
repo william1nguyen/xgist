@@ -14,6 +14,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// IsTerminal reports whether status is a state RequestProcessing accepts a
+// new request against: at most one processing request may be active per
+// media item at a time (see docs/services/media.md).
+func (s Status) IsTerminal() bool {
+	return s == StatusCompleted || s == StatusFailed
+}
+
 // Type is the coarse kind of source media.
 type Type string
 
@@ -35,18 +42,19 @@ const (
 
 // Media is source-media metadata. It never carries object bytes.
 type Media struct {
-	ID         uuid.UUID
-	OwnerID    uuid.UUID
-	Title      string
-	MediaType  Type
-	ObjectKey  string
-	MimeType   string
-	SizeBytes  int64
-	DurationMs int64
-	Checksum   string
-	Status     Status
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID          uuid.UUID
+	OwnerID     uuid.UUID
+	Title       string
+	MediaType   Type
+	ObjectKey   string
+	MimeType    string
+	SizeBytes   int64
+	DurationMs  int64
+	Checksum    string
+	Status      Status
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Description string
 }
 
 // Page is one cursor-paginated page of media, ordered by creation time,
@@ -92,6 +100,11 @@ type Progress struct {
 // normal read operations, per ADR 0006.
 var ErrNotFound = errors.New("media: not found")
 
+// ErrNotProcessable is returned by RequestProcessing when the media item's
+// status is not terminal: at most one processing request may be active per
+// media item at a time.
+var ErrNotProcessable = errors.New("media: not processable while a request is active")
+
 // Repository is the persistence boundary Service depends on. It is
 // implemented by internal/store.
 type Repository interface {
@@ -108,6 +121,16 @@ type Repository interface {
 	// deletion_pending is silently omitted, per ADR 0005 — the API must
 	// not reveal whether another user's media exists.
 	FindProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]Progress, error)
+	// Update changes title and/or description. A nil field is left
+	// unchanged.
+	Update(ctx context.Context, id uuid.UUID, title, description *string) (Media, error)
+	// RequestProcessing atomically re-checks the media item's status under
+	// lock, transitions it back to processing, creates a new processing
+	// request row, and writes the outbox event — returning ErrNotProcessable
+	// if a request is already active. A duplicate call for the same
+	// idempotencyKey returns the existing request's media without
+	// recreating anything.
+	RequestProcessing(ctx context.Context, id uuid.UUID, idempotencyKey string, options []string, audioVoice string, promptOverrides map[string]string) (Media, error)
 }
 
 // ObjectSigner signs a short-lived URL for reading an object.
@@ -183,4 +206,47 @@ func (s *Service) ApplyWorkflowStatus(ctx context.Context, mediaID uuid.UUID, st
 // items owned by ownerID, per ADR 0005.
 func (s *Service) GetProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]Progress, error) {
 	return s.repo.FindProgress(ctx, ownerID, ids)
+}
+
+// UpdateMedia changes a media item's title and/or description. A nil field
+// is left unchanged.
+func (s *Service) UpdateMedia(ctx context.Context, id uuid.UUID, title, description *string) (Media, error) {
+	return s.repo.Update(ctx, id, title, description)
+}
+
+// RequestProcessingCommand is the input to RequestProcessing.
+type RequestProcessingCommand struct {
+	MediaID uuid.UUID
+	Options []string
+	// AudioVoice overrides conductor-worker's static default TTS voice for
+	// this request's generate_audio_summary step, if that option is
+	// selected. Empty means "use the worker's default".
+	AudioVoice string
+	// PromptOverrides maps a selected option id (e.g. "summarize") to a
+	// custom instruction string worker appends to that step's LLM prompt.
+	PromptOverrides map[string]string
+	IdempotencyKey  string
+}
+
+// RequestProcessing starts a new processing request for a media item that
+// has already been confirmed at least once. Only accepted while the media
+// item's status is terminal (completed or failed): at most one processing
+// request may be active per media item at a time.
+func (s *Service) RequestProcessing(ctx context.Context, cmd RequestProcessingCommand) (Media, error) {
+	m, err := s.repo.FindByID(ctx, cmd.MediaID)
+	if err != nil {
+		return Media{}, err
+	}
+	if m.Status == StatusDeletionPending {
+		return Media{}, ErrNotFound
+	}
+	if !m.Status.IsTerminal() {
+		return Media{}, ErrNotProcessable
+	}
+
+	idempotencyKey := cmd.IdempotencyKey
+	if idempotencyKey == "" {
+		idempotencyKey = uuid.NewString()
+	}
+	return s.repo.RequestProcessing(ctx, cmd.MediaID, idempotencyKey, cmd.Options, cmd.AudioVoice, cmd.PromptOverrides)
 }

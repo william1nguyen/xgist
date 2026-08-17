@@ -29,6 +29,8 @@ type MediaService interface {
 	ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int, search string) (media.Page, error)
 	SignPlaybackURL(ctx context.Context, id uuid.UUID) (string, time.Time, error)
 	GetProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]media.Progress, error)
+	UpdateMedia(ctx context.Context, id uuid.UUID, title, description *string) (media.Media, error)
+	RequestProcessing(ctx context.Context, cmd media.RequestProcessingCommand) (media.Media, error)
 }
 
 // UploadService is the upload application-service boundary the server
@@ -101,10 +103,11 @@ func (s *Server) ConfirmUpload(ctx context.Context, req *mediav1.ConfirmUploadRe
 	}
 
 	m, err := s.uploads.ConfirmUpload(ctx, upload.ConfirmUploadCommand{
-		SessionID:      sessionID,
-		Options:        req.GetOptions(),
-		AudioVoice:     req.GetAudioVoice(),
-		IdempotencyKey: req.GetIdempotencyKey(),
+		SessionID:       sessionID,
+		Options:         req.GetOptions(),
+		AudioVoice:      req.GetAudioVoice(),
+		PromptOverrides: req.GetPromptOverrides(),
+		IdempotencyKey:  req.GetIdempotencyKey(),
 	})
 	if err != nil {
 		return nil, mapError(err)
@@ -228,6 +231,41 @@ func (s *Server) RequestDeletion(ctx context.Context, req *mediav1.RequestDeleti
 	return &mediav1.RequestDeletionResponse{Operation: toProtoDeletionOperation(op)}, nil
 }
 
+func (s *Server) UpdateMedia(ctx context.Context, req *mediav1.UpdateMediaRequest) (*mediav1.UpdateMediaResponse, error) {
+	id, err := uuid.Parse(req.GetMediaId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "media_id must be a UUID")
+	}
+
+	m, err := s.media.UpdateMedia(ctx, id, req.Title, req.Description)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &mediav1.UpdateMediaResponse{Media: s.toProtoMediaWithThumbnail(ctx, m)}, nil
+}
+
+func (s *Server) RequestProcessing(ctx context.Context, req *mediav1.RequestProcessingRequest) (*mediav1.RequestProcessingResponse, error) {
+	mediaID, err := uuid.Parse(req.GetMediaId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "media_id must be a UUID")
+	}
+	if req.GetIdempotencyKey() == "" {
+		return nil, status.Error(codes.InvalidArgument, "idempotency_key is required")
+	}
+
+	m, err := s.media.RequestProcessing(ctx, media.RequestProcessingCommand{
+		MediaID:         mediaID,
+		Options:         req.GetOptions(),
+		AudioVoice:      req.GetAudioVoice(),
+		PromptOverrides: req.GetPromptOverrides(),
+		IdempotencyKey:  req.GetIdempotencyKey(),
+	})
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &mediav1.RequestProcessingResponse{Media: s.toProtoMediaWithThumbnail(ctx, m)}, nil
+}
+
 func (s *Server) GetDeletionStatus(ctx context.Context, req *mediav1.GetDeletionStatusRequest) (*mediav1.GetDeletionStatusResponse, error) {
 	id, err := uuid.Parse(req.GetDeletionId())
 	if err != nil {
@@ -272,7 +310,8 @@ func mapError(err error) error {
 		errors.Is(err, upload.ErrSessionExpired),
 		errors.Is(err, upload.ErrObjectMissing),
 		errors.Is(err, upload.ErrObjectEmpty),
-		errors.Is(err, upload.ErrObjectOversize):
+		errors.Is(err, upload.ErrObjectOversize),
+		errors.Is(err, media.ErrNotProcessable):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		// Do not leak internal error detail across the gRPC boundary; the
@@ -283,16 +322,17 @@ func mapError(err error) error {
 
 func toProtoMedia(m media.Media) *mediav1.Media {
 	return &mediav1.Media{
-		Id:         m.ID.String(),
-		OwnerId:    m.OwnerID.String(),
-		Title:      m.Title,
-		MediaType:  toProtoMediaType(m.MediaType),
-		MimeType:   m.MimeType,
-		SizeBytes:  m.SizeBytes,
-		DurationMs: m.DurationMs,
-		Status:     toProtoMediaStatus(m.Status),
-		CreatedAt:  timestamppb.New(m.CreatedAt),
-		UpdatedAt:  timestamppb.New(m.UpdatedAt),
+		Id:          m.ID.String(),
+		OwnerId:     m.OwnerID.String(),
+		Title:       m.Title,
+		MediaType:   toProtoMediaType(m.MediaType),
+		MimeType:    m.MimeType,
+		SizeBytes:   m.SizeBytes,
+		DurationMs:  m.DurationMs,
+		Status:      toProtoMediaStatus(m.Status),
+		CreatedAt:   timestamppb.New(m.CreatedAt),
+		UpdatedAt:   timestamppb.New(m.UpdatedAt),
+		Description: m.Description,
 	}
 }
 

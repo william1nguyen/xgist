@@ -52,6 +52,16 @@ service MediaService {
   rpc RequestDeletion(RequestDeletionRequest) returns (RequestDeletionResponse);
   // GetDeletionStatus returns the current state of a deletion operation.
   rpc GetDeletionStatus(GetDeletionStatusRequest) returns (GetDeletionStatusResponse);
+  // UpdateMedia updates a media item's title and/or description in place.
+  // Fields left unset (nil) are not changed.
+  rpc UpdateMedia(UpdateMediaRequest) returns (UpdateMediaResponse);
+  // RequestProcessing starts a new processing request for a media item that
+  // has already been confirmed at least once, for example to generate a
+  // content type that wasn't originally selected, or to regenerate one that
+  // was. Only accepted while the media item's status is completed or
+  // failed: at most one processing request may be active per media item at
+  // a time. Idempotent per caller idempotency key.
+  rpc RequestProcessing(RequestProcessingRequest) returns (RequestProcessingResponse);
 }
 
 // MediaType is the coarse kind of source media.
@@ -158,6 +168,12 @@ message ConfirmUploadRequest {
   // workflow's generate_audio_summary step, if selected. Empty means "use
   // the worker's default".
   string audio_voice = 4;
+  // prompt_overrides maps a selected option id (e.g. "summarize") to a
+  // custom instruction string worker appends to that step's LLM prompt.
+  // Options with no entry use the model's default prompt only. hermes
+  // populates this from the caller's saved identity prompt settings,
+  // intersected with options.
+  map<string, string> prompt_overrides = 5;
 }
 
 // ConfirmUploadResponse returns the confirmed media item.
@@ -180,6 +196,7 @@ message Media {
   string thumbnail_url = 9;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
+  string description = 12;
 }
 
 // GetMediaRequest identifies the media item to read.
@@ -312,4 +329,39 @@ message GetDeletionStatusRequest {
 // GetDeletionStatusResponse returns the deletion operation.
 message GetDeletionStatusResponse {
   DeletionOperation operation = 1;
+}
+
+// UpdateMediaRequest identifies the media item and the mutable fields to
+// change. Unset optional fields are left unchanged.
+message UpdateMediaRequest {
+  string media_id = 1;
+  optional string title = 2;
+  optional string description = 3;
+}
+
+// UpdateMediaResponse returns the updated media item.
+message UpdateMediaResponse {
+  Media media = 1;
+}
+
+// RequestProcessingRequest carries a caller idempotency key, the media item
+// to reprocess, and the processing options to run this time (which may
+// overlap with, add to, or differ from the media item's previous options).
+message RequestProcessingRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  repeated string options = 3;
+  // audio_voice overrides conductor-worker's default TTS voice for this
+  // request's generate_audio_summary step, if selected. Empty means "use
+  // the worker's default".
+  string audio_voice = 4;
+  // prompt_overrides maps a selected option id to a custom instruction
+  // string worker appends to that step's LLM prompt, per ConfirmUploadRequest.
+  map<string, string> prompt_overrides = 5;
+}
+
+// RequestProcessingResponse returns the media item, now back in
+// processing status.
+message RequestProcessingResponse {
+  Media media = 1;
 }

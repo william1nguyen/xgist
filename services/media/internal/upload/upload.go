@@ -96,7 +96,7 @@ type Repository interface {
 	// type, and creates the processing request and its outbox event. A
 	// duplicate call for an already-completed session returns the
 	// existing media without mutating anything again.
-	Confirm(ctx context.Context, sessionID uuid.UUID, sizeBytes int64, mimeType string, options []string, audioVoice string, idempotencyKey string) (media.Media, error)
+	Confirm(ctx context.Context, sessionID uuid.UUID, sizeBytes int64, mimeType string, options []string, audioVoice string, promptOverrides map[string]string, idempotencyKey string) (media.Media, error)
 	// FindConfirmedMedia returns the media row created by an
 	// already-completed session, for idempotent ConfirmUpload replay.
 	FindConfirmedMedia(ctx context.Context, mediaID uuid.UUID) (media.Media, error)
@@ -168,8 +168,11 @@ type ConfirmUploadCommand struct {
 	// AudioVoice overrides conductor-worker's static default TTS voice for
 	// this workflow's generate_audio_summary step, if that option is
 	// selected. Empty means "use the worker's default".
-	AudioVoice     string
-	IdempotencyKey string
+	AudioVoice string
+	// PromptOverrides maps a selected option id (e.g. "summarize") to a
+	// custom instruction string worker appends to that step's LLM prompt.
+	PromptOverrides map[string]string
+	IdempotencyKey  string
 }
 
 // ConfirmUpload reads authoritative object metadata for the session's
@@ -205,5 +208,5 @@ func (s *Service) ConfirmUpload(ctx context.Context, cmd ConfirmUploadCommand) (
 		return media.Media{}, ErrObjectOversize
 	}
 
-	return s.repo.Confirm(ctx, session.ID, info.SizeBytes, info.ContentType, cmd.Options, cmd.AudioVoice, cmd.IdempotencyKey)
+	return s.repo.Confirm(ctx, session.ID, info.SizeBytes, info.ContentType, cmd.Options, cmd.AudioVoice, cmd.PromptOverrides, cmd.IdempotencyKey)
 }

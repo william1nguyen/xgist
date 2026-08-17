@@ -11,10 +11,12 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nolannguyen1212/media-notes/services/media/internal/events"
 	"github.com/nolannguyen1212/media-notes/services/media/internal/media"
+	"github.com/nolannguyen1212/media-notes/services/media/internal/processing"
 )
 
-const mediaColumns = `id, owner_id, title, media_type, object_key, mime_type, COALESCE(size_bytes, 0), COALESCE(duration_ms, 0), COALESCE(checksum, ''), status, created_at, updated_at`
+const mediaColumns = `id, owner_id, title, media_type, object_key, mime_type, COALESCE(size_bytes, 0), COALESCE(duration_ms, 0), COALESCE(checksum, ''), status, created_at, updated_at, COALESCE(description, '')`
 
 // MediaRepository implements media.Repository over PostgreSQL.
 type MediaRepository struct {
@@ -92,6 +94,97 @@ func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor st
 	return page, nil
 }
 
+func (r *MediaRepository) Update(ctx context.Context, id uuid.UUID, title, description *string) (media.Media, error) {
+	row := r.pool.QueryRow(ctx, `
+		UPDATE media
+		SET title = COALESCE($2, title),
+		    description = CASE WHEN $3::boolean THEN $4 ELSE description END,
+		    updated_at = now()
+		WHERE id = $1 AND status != 'deletion_pending'
+		RETURNING `+mediaColumns,
+		id, title, description != nil, description)
+	return scanMedia(row)
+}
+
+// RequestProcessing atomically re-checks the media item's status under
+// lock, transitions it back to processing, creates a new processing
+// request row, and writes the outbox event.
+func (r *MediaRepository) RequestProcessing(ctx context.Context, mediaID uuid.UUID, idempotencyKey string, options []string, audioVoice string, promptOverrides map[string]string) (media.Media, error) {
+	if existing, err := findMediaByProcessingIdempotencyKey(ctx, r.pool, idempotencyKey); err == nil {
+		return existing, nil
+	} else if !errors.Is(err, media.ErrNotFound) {
+		return media.Media{}, err
+	}
+
+	var result media.Media
+	txErr := withTx(ctx, r.pool, func(ctx context.Context, tx pgx.Tx) error {
+		row := tx.QueryRow(ctx, `SELECT `+mediaColumns+` FROM media WHERE id = $1 FOR UPDATE`, mediaID)
+		m, err := scanMedia(row)
+		if err != nil {
+			return err
+		}
+		if !m.Status.IsTerminal() {
+			return media.ErrNotProcessable
+		}
+
+		row = tx.QueryRow(ctx, `
+			UPDATE media SET status = $2, version = version + 1, updated_at = now()
+			WHERE id = $1
+			RETURNING `+mediaColumns, mediaID, string(media.StatusProcessing))
+		m, err = scanMedia(row)
+		if err != nil {
+			return err
+		}
+		result = m
+
+		optionsJSON, err := json.Marshal(options)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO processing_requests (id, media_id, requested_by, options, status, idempotency_key)
+			VALUES ($1, $2, $3, $4, $5, $6)
+		`, uuid.New(), mediaID, m.OwnerID, optionsJSON, string(processing.StatusRequested), idempotencyKey); err != nil {
+			return err
+		}
+
+		payload, err := json.Marshal(map[string]any{
+			"event_id":         uuid.New(),
+			"media_id":         mediaID,
+			"options":          options,
+			"audio_voice":      audioVoice,
+			"prompt_overrides": promptOverrides,
+		})
+		if err != nil {
+			return err
+		}
+		return insertOutboxEvent(ctx, tx, events.ProcessingRequestedTopic, mediaID.String(), payload)
+	})
+	if txErr != nil {
+		if isUniqueViolation(txErr) {
+			existing, err := findMediaByProcessingIdempotencyKey(ctx, r.pool, idempotencyKey)
+			if err != nil {
+				return media.Media{}, err
+			}
+			return existing, nil
+		}
+		return media.Media{}, txErr
+	}
+	return result, nil
+}
+
+func findMediaByProcessingIdempotencyKey(ctx context.Context, q querier, key string) (media.Media, error) {
+	row := q.QueryRow(ctx, `SELECT media_id FROM processing_requests WHERE idempotency_key = $1`, key)
+	var mediaID uuid.UUID
+	if err := row.Scan(&mediaID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return media.Media{}, media.ErrNotFound
+		}
+		return media.Media{}, err
+	}
+	return findMediaByID(ctx, q, mediaID)
+}
+
 func (r *MediaRepository) ApplyWorkflowStatus(ctx context.Context, mediaID uuid.UUID, status media.Status) error {
 	_, err := r.pool.Exec(ctx, `
 		UPDATE media SET status = $2, updated_at = now(), version = version + 1
@@ -105,7 +198,10 @@ func (r *MediaRepository) FindProgress(ctx context.Context, ownerID uuid.UUID, i
 		SELECT m.id, m.status, m.updated_at, m.version,
 		       COALESCE(pr.status, ''), COALESCE(jsonb_array_length(pr.options), 0)
 		FROM media m
-		LEFT JOIN processing_requests pr ON pr.media_id = m.id
+		LEFT JOIN LATERAL (
+			SELECT status, options FROM processing_requests
+			WHERE media_id = m.id ORDER BY created_at DESC LIMIT 1
+		) pr ON true
 		WHERE m.owner_id = $1 AND m.id = ANY($2) AND m.status != 'deletion_pending'
 	`, ownerID, ids)
 	if err != nil {
@@ -151,7 +247,7 @@ func scanMedia(row rowScanner) (media.Media, error) {
 	var m media.Media
 	var mediaType, status string
 	err := row.Scan(&m.ID, &m.OwnerID, &m.Title, &mediaType, &m.ObjectKey, &m.MimeType,
-		&m.SizeBytes, &m.DurationMs, &m.Checksum, &status, &m.CreatedAt, &m.UpdatedAt)
+		&m.SizeBytes, &m.DurationMs, &m.Checksum, &status, &m.CreatedAt, &m.UpdatedAt, &m.Description)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return media.Media{}, media.ErrNotFound

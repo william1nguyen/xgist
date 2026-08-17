@@ -82,6 +82,16 @@ class MediaServiceStub:
                 request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetDeletionStatusRequest.SerializeToString,
                 response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetDeletionStatusResponse.FromString,
                 _registered_method=True)
+        self.UpdateMedia = channel.unary_unary(
+                '/media_notes.media.v1.MediaService/UpdateMedia',
+                request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.UpdateMediaRequest.SerializeToString,
+                response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.UpdateMediaResponse.FromString,
+                _registered_method=True)
+        self.RequestProcessing = channel.unary_unary(
+                '/media_notes.media.v1.MediaService/RequestProcessing',
+                request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingRequest.SerializeToString,
+                response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingResponse.FromString,
+                _registered_method=True)
 
 
 class MediaServiceServicer:
@@ -171,6 +181,26 @@ class MediaServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def UpdateMedia(self, request, context):
+        """UpdateMedia updates a media item's title and/or description in place.
+        Fields left unset (nil) are not changed.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RequestProcessing(self, request, context):
+        """RequestProcessing starts a new processing request for a media item that
+        has already been confirmed at least once, for example to generate a
+        content type that wasn't originally selected, or to regenerate one that
+        was. Only accepted while the media item's status is completed or
+        failed: at most one processing request may be active per media item at
+        a time. Idempotent per caller idempotency key.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_MediaServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -218,6 +248,16 @@ def add_MediaServiceServicer_to_server(servicer, server):
                     servicer.GetDeletionStatus,
                     request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetDeletionStatusRequest.FromString,
                     response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.GetDeletionStatusResponse.SerializeToString,
+            ),
+            'UpdateMedia': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateMedia,
+                    request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.UpdateMediaRequest.FromString,
+                    response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.UpdateMediaResponse.SerializeToString,
+            ),
+            'RequestProcessing': grpc.unary_unary_rpc_method_handler(
+                    servicer.RequestProcessing,
+                    request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingRequest.FromString,
+                    response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -466,6 +506,60 @@ class MediaService:
             '/media_notes.media.v1.MediaService/GetDeletionStatus',
             media__notes_dot_media_dot_v1_dot_media__pb2.GetDeletionStatusRequest.SerializeToString,
             media__notes_dot_media_dot_v1_dot_media__pb2.GetDeletionStatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateMedia(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.media.v1.MediaService/UpdateMedia',
+            media__notes_dot_media_dot_v1_dot_media__pb2.UpdateMediaRequest.SerializeToString,
+            media__notes_dot_media_dot_v1_dot_media__pb2.UpdateMediaResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RequestProcessing(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.media.v1.MediaService/RequestProcessing',
+            media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingRequest.SerializeToString,
+            media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingResponse.FromString,
             options,
             channel_credentials,
             insecure,
