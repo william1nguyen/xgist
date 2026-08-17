@@ -1,0 +1,271 @@
+# hermes's public schema, per docs/services/hermes.md and
+# docs/adr/0005-progress-update-delivery.md. Every timestamp is an RFC
+# 3339 string. subscriptionCheckout is intentionally not exposed here:
+# billing has no checkout/subscription-ingestion implementation yet
+# (docs/services/billing.md's "Deferred" section) — add it once that
+# lands rather than half-wiring a mutation with nothing behind it.
+
+enum AccountState {
+  ACTIVE
+  DELETION_PENDING
+  TOMBSTONED
+}
+
+enum DeletionState {
+  PENDING
+  COMPLETED
+  FAILED_ATTENTION_REQUIRED
+}
+
+enum MediaType {
+  AUDIO
+  VIDEO
+}
+
+enum MediaStatus {
+  PENDING_UPLOAD
+  PROCESSING
+  COMPLETED
+  FAILED
+  DELETION_PENDING
+}
+
+enum ProcessingStatus {
+  UNSPECIFIED
+  REQUESTED
+  ACCEPTED
+  COMPLETED
+  FAILED
+}
+
+enum SubscriptionStatus {
+  NONE
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum SummaryAudioStatus {
+  READY
+  FAILED
+}
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  imageUrl: String
+  emailVerified: Boolean!
+  state: AccountState!
+  createdAt: String!
+}
+
+type DeletionOperation {
+  deletionId: ID!
+  userId: ID!
+  state: DeletionState!
+  createdAt: String!
+  completedAt: String
+}
+
+type AuthPayload {
+  user: User!
+  sessionToken: String!
+  expiresAt: String!
+}
+
+type UploadSession {
+  id: ID!
+  mediaId: ID!
+  uploadUrl: String!
+  status: String!
+  expiresAt: String!
+}
+
+# Media is the lightweight shape returned by mediaList, per
+# docs/architecture.md's "Media list and thumbnail delivery": no playback
+# URL. mediaDetail returns the richer MediaDetail type instead.
+type Media {
+  id: ID!
+  title: String!
+  mediaType: MediaType!
+  mimeType: String!
+  sizeBytes: Int!
+  durationMs: Int!
+  status: MediaStatus!
+  thumbnailUrl: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type MediaPage {
+  items: [Media!]!
+  nextCursor: String
+}
+
+# MediaDetail additionally carries a short-lived signed playback URL,
+# fetched only for the detail page per docs/architecture.md.
+type MediaDetail {
+  id: ID!
+  title: String!
+  mediaType: MediaType!
+  mimeType: String!
+  sizeBytes: Int!
+  durationMs: Int!
+  status: MediaStatus!
+  thumbnailUrl: String
+  playbackUrl: String
+  playbackUrlExpiresAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+# MediaProgress is the ADR 0005 batched processing-status projection.
+# completedSteps/totalSteps are derived from the processing request's
+# selected options count, not tracked per-step by conductor yet — see
+# services/media/internal/media.Progress.
+type MediaProgress {
+  mediaId: ID!
+  status: MediaStatus!
+  processingStatus: ProcessingStatus!
+  completedSteps: Int!
+  totalSteps: Int!
+  updatedAt: String!
+  version: Int!
+}
+
+type TranscriptSegment {
+  segmentIndex: Int!
+  startMs: Int!
+  endMs: Int!
+  speaker: String
+  text: String!
+}
+
+type Transcript {
+  language: String!
+  text: String!
+  segments: [TranscriptSegment!]!
+}
+
+type SummarySentence {
+  sentenceIndex: Int!
+  text: String!
+  citedSegmentIndexes: [Int!]!
+}
+
+type Summary {
+  summaryType: String!
+  text: String!
+  model: String!
+  promptVersion: String!
+  sentences: [SummarySentence!]!
+  createdAt: String!
+}
+
+type Keyword {
+  keyword: String!
+  score: Float!
+  position: Int!
+}
+
+type Keypoint {
+  pointIndex: Int!
+  text: String!
+  startSegment: Int!
+  endSegment: Int!
+}
+
+type Note {
+  format: String!
+  body: String!
+  createdAt: String!
+}
+
+type SummaryAudio {
+  summaryType: String!
+  mimeType: String!
+  durationMs: Int!
+  voice: String!
+  status: SummaryAudioStatus!
+}
+
+type Content {
+  mediaId: ID!
+  transcript: Transcript
+  summaries: [Summary!]!
+  keywords: [Keyword!]!
+  keypoints: [Keypoint!]!
+  notes: [Note!]!
+  summaryAudios: [SummaryAudio!]!
+  version: Int!
+}
+
+type QuoteItem {
+  itemId: String!
+  credits: Int!
+}
+
+type Quote {
+  id: ID!
+  catalogVersion: String!
+  items: [QuoteItem!]!
+  totalCredits: Int!
+  expiresAt: String!
+}
+
+# BillingSubscription, not Subscription: GraphQL reserves the type name
+# "Subscription" for the root subscription operation type, which hermes
+# does not implement (ADR 0005 rejected GraphQL subscriptions for launch).
+type BillingSubscription {
+  id: ID!
+  plan: String!
+  status: SubscriptionStatus!
+  periodStart: String!
+  periodEnd: String!
+}
+
+type BillingSummary {
+  availableCredits: Int!
+  reservedCredits: Int!
+  subscription: BillingSubscription
+}
+
+type Query {
+  # me returns the authenticated caller's profile.
+  me: User!
+  # mediaList returns a cursor-paginated page of the caller's media,
+  # newest first. pageSize defaults to 20 and is capped at 100 (ADR 0004).
+  mediaList(cursor: String, pageSize: Int): MediaPage!
+  # mediaDetail returns one media item the caller owns, including a
+  # short-lived playback URL.
+  mediaDetail(id: ID!): MediaDetail!
+  # contentDetail returns generated content for one media item the caller
+  # owns.
+  contentDetail(mediaId: ID!): Content!
+  # mediaProgress is ADR 0005's batched polling query: 1-50 ids, owner
+  # derived from the authenticated context.
+  mediaProgress(ids: [ID!]!): [MediaProgress!]!
+  # quote prices a set of processing options for the caller.
+  quote(options: [String!]!): Quote!
+  # billingSummary returns the caller's credit balance and subscription
+  # state.
+  billingSummary: BillingSummary!
+}
+
+type Mutation {
+  # register creates a user and a credential account. It does not issue a
+  # session: identity.RegisterAccount returns no token, so the client
+  # calls login separately, per contracts/proto/media_notes/identity/v1.
+  register(email: String!, password: String!, name: String!, idempotencyKey: String): User!
+  # login validates a credential and issues a session.
+  login(email: String!, password: String!, idempotencyKey: String): AuthPayload!
+  # logout revokes the caller's current session.
+  logout: Boolean!
+  # requestAccountDeletion starts the caller's account deletion workflow.
+  requestAccountDeletion(idempotencyKey: String): DeletionOperation!
+  # createUploadSession starts an upload for the authenticated caller.
+  createUploadSession(title: String!, mimeType: String!, declaredSizeBytes: Int!, idempotencyKey: String): UploadSession!
+  # confirmUpload confirms a completed upload and starts processing.
+  confirmUpload(uploadSessionId: ID!, options: [String!]!, idempotencyKey: String): MediaDetail!
+}
