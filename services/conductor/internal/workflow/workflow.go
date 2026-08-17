@@ -441,12 +441,17 @@ func (s *Service) ScheduleDueRetries(ctx context.Context, now time.Time) error {
 	if err != nil {
 		return err
 	}
+	// One bad entry (e.g. a constraint violation the batch didn't
+	// anticipate) must not starve every other workflow's retries for as
+	// long as it keeps recurring — collect and report failures but keep
+	// dispatching the rest, instead of returning on the first error.
+	var errs []error
 	for _, d := range due {
 		if err := s.repo.DispatchRetry(ctx, d, s.maxAttempts); err != nil {
-			return err
+			errs = append(errs, err)
 		}
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // ExpireTimedOutSteps applies the retry-or-fail policy to every dispatched

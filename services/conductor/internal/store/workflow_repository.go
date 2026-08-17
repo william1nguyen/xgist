@@ -334,10 +334,18 @@ func (r *WorkflowRepository) CompleteThumbnail(ctx context.Context, mediaID uuid
 // --- Retry scheduling ---
 
 func (r *WorkflowRepository) DueRetries(ctx context.Context, now time.Time, limit int) ([]workflow.DueRetry, error) {
+	// sa.attempt = ws.current_attempt restricts the join to each step's
+	// latest attempt row: every earlier failed attempt also carries its
+	// own (already-passed) retry_at, so without this the join would
+	// return one DueRetry per historical attempt instead of one per
+	// step — the extra, stale entries recompute NextAttempt from an old
+	// attempt number that collides with an attempt already recorded in
+	// step_attempts, so DispatchRetry's insert fails its unique
+	// constraint on every tick forever instead of ever advancing.
 	rows, err := r.pool.Query(ctx, `
 		SELECT sa.step_id, ws.workflow_id, w.media_id, ws.step_type, sa.attempt
 		FROM step_attempts sa
-		JOIN workflow_steps ws ON ws.id = sa.step_id
+		JOIN workflow_steps ws ON ws.id = sa.step_id AND sa.attempt = ws.current_attempt
 		JOIN workflows w ON w.id = ws.workflow_id
 		WHERE ws.state = $1 AND sa.retry_at IS NOT NULL AND sa.retry_at <= $2
 		ORDER BY sa.retry_at ASC
