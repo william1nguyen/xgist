@@ -78,6 +78,41 @@ class ContentServiceStub:
                 request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetContentRequest.SerializeToString,
                 response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetContentResponse.FromString,
                 _registered_method=True)
+        self.RequestScriptDraft = channel.unary_unary(
+                '/media_notes.content.v1.ContentService/RequestScriptDraft',
+                request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestScriptDraftRequest.SerializeToString,
+                response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestScriptDraftResponse.FromString,
+                _registered_method=True)
+        self.RequestStandaloneAudio = channel.unary_unary(
+                '/media_notes.content.v1.ContentService/RequestStandaloneAudio',
+                request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestStandaloneAudioRequest.SerializeToString,
+                response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestStandaloneAudioResponse.FromString,
+                _registered_method=True)
+        self.GetStandaloneAudioJob = channel.unary_unary(
+                '/media_notes.content.v1.ContentService/GetStandaloneAudioJob',
+                request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetStandaloneAudioJobRequest.SerializeToString,
+                response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetStandaloneAudioJobResponse.FromString,
+                _registered_method=True)
+        self.ListStandaloneAudioJobs = channel.unary_unary(
+                '/media_notes.content.v1.ContentService/ListStandaloneAudioJobs',
+                request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.ListStandaloneAudioJobsRequest.SerializeToString,
+                response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.ListStandaloneAudioJobsResponse.FromString,
+                _registered_method=True)
+        self.CompleteScriptDraft = channel.unary_unary(
+                '/media_notes.content.v1.ContentService/CompleteScriptDraft',
+                request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteScriptDraftRequest.SerializeToString,
+                response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteScriptDraftResponse.FromString,
+                _registered_method=True)
+        self.CompleteStandaloneAudio = channel.unary_unary(
+                '/media_notes.content.v1.ContentService/CompleteStandaloneAudio',
+                request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteStandaloneAudioRequest.SerializeToString,
+                response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteStandaloneAudioResponse.FromString,
+                _registered_method=True)
+        self.FailStandaloneAudioJob = channel.unary_unary(
+                '/media_notes.content.v1.ContentService/FailStandaloneAudioJob',
+                request_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.FailStandaloneAudioJobRequest.SerializeToString,
+                response_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.FailStandaloneAudioJobResponse.FromString,
+                _registered_method=True)
 
 
 class ContentServiceServicer:
@@ -155,6 +190,65 @@ class ContentServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def RequestScriptDraft(self, request, context):
+        """RequestScriptDraft creates a generating standalone-audio job asking an
+        LLM to draft narration text from a loose description. Idempotent per
+        idempotency_key. See docs/services/worker.md's "Standalone audio
+        generation" section.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RequestStandaloneAudio(self, request, context):
+        """RequestStandaloneAudio creates a generating standalone-audio job that
+        synthesizes text directly to speech, independent of any media item.
+        Idempotent per idempotency_key.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetStandaloneAudioJob(self, request, context):
+        """GetStandaloneAudioJob returns one standalone-audio job.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListStandaloneAudioJobs(self, request, context):
+        """ListStandaloneAudioJobs returns one user's standalone-audio jobs of a
+        given kind, newest first.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CompleteScriptDraft(self, request, context):
+        """CompleteScriptDraft commits a script-draft job's LLM output. Called by
+        conductor-worker; a no-op (returns the job's current state) if the
+        job already left the generating state.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CompleteStandaloneAudio(self, request, context):
+        """CompleteStandaloneAudio commits an audio job's durable object
+        metadata. Called by conductor-worker.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FailStandaloneAudioJob(self, request, context):
+        """FailStandaloneAudioJob marks a generating job of either kind failed.
+        Called by conductor-worker.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ContentServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -197,6 +291,41 @@ def add_ContentServiceServicer_to_server(servicer, server):
                     servicer.GetContent,
                     request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetContentRequest.FromString,
                     response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetContentResponse.SerializeToString,
+            ),
+            'RequestScriptDraft': grpc.unary_unary_rpc_method_handler(
+                    servicer.RequestScriptDraft,
+                    request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestScriptDraftRequest.FromString,
+                    response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestScriptDraftResponse.SerializeToString,
+            ),
+            'RequestStandaloneAudio': grpc.unary_unary_rpc_method_handler(
+                    servicer.RequestStandaloneAudio,
+                    request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestStandaloneAudioRequest.FromString,
+                    response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.RequestStandaloneAudioResponse.SerializeToString,
+            ),
+            'GetStandaloneAudioJob': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetStandaloneAudioJob,
+                    request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetStandaloneAudioJobRequest.FromString,
+                    response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.GetStandaloneAudioJobResponse.SerializeToString,
+            ),
+            'ListStandaloneAudioJobs': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListStandaloneAudioJobs,
+                    request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.ListStandaloneAudioJobsRequest.FromString,
+                    response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.ListStandaloneAudioJobsResponse.SerializeToString,
+            ),
+            'CompleteScriptDraft': grpc.unary_unary_rpc_method_handler(
+                    servicer.CompleteScriptDraft,
+                    request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteScriptDraftRequest.FromString,
+                    response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteScriptDraftResponse.SerializeToString,
+            ),
+            'CompleteStandaloneAudio': grpc.unary_unary_rpc_method_handler(
+                    servicer.CompleteStandaloneAudio,
+                    request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteStandaloneAudioRequest.FromString,
+                    response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.CompleteStandaloneAudioResponse.SerializeToString,
+            ),
+            'FailStandaloneAudioJob': grpc.unary_unary_rpc_method_handler(
+                    servicer.FailStandaloneAudioJob,
+                    request_deserializer=media__notes_dot_content_dot_v1_dot_content__pb2.FailStandaloneAudioJobRequest.FromString,
+                    response_serializer=media__notes_dot_content_dot_v1_dot_content__pb2.FailStandaloneAudioJobResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -419,6 +548,195 @@ class ContentService:
             '/media_notes.content.v1.ContentService/GetContent',
             media__notes_dot_content_dot_v1_dot_content__pb2.GetContentRequest.SerializeToString,
             media__notes_dot_content_dot_v1_dot_content__pb2.GetContentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RequestScriptDraft(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.content.v1.ContentService/RequestScriptDraft',
+            media__notes_dot_content_dot_v1_dot_content__pb2.RequestScriptDraftRequest.SerializeToString,
+            media__notes_dot_content_dot_v1_dot_content__pb2.RequestScriptDraftResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RequestStandaloneAudio(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.content.v1.ContentService/RequestStandaloneAudio',
+            media__notes_dot_content_dot_v1_dot_content__pb2.RequestStandaloneAudioRequest.SerializeToString,
+            media__notes_dot_content_dot_v1_dot_content__pb2.RequestStandaloneAudioResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetStandaloneAudioJob(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.content.v1.ContentService/GetStandaloneAudioJob',
+            media__notes_dot_content_dot_v1_dot_content__pb2.GetStandaloneAudioJobRequest.SerializeToString,
+            media__notes_dot_content_dot_v1_dot_content__pb2.GetStandaloneAudioJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListStandaloneAudioJobs(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.content.v1.ContentService/ListStandaloneAudioJobs',
+            media__notes_dot_content_dot_v1_dot_content__pb2.ListStandaloneAudioJobsRequest.SerializeToString,
+            media__notes_dot_content_dot_v1_dot_content__pb2.ListStandaloneAudioJobsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CompleteScriptDraft(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.content.v1.ContentService/CompleteScriptDraft',
+            media__notes_dot_content_dot_v1_dot_content__pb2.CompleteScriptDraftRequest.SerializeToString,
+            media__notes_dot_content_dot_v1_dot_content__pb2.CompleteScriptDraftResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CompleteStandaloneAudio(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.content.v1.ContentService/CompleteStandaloneAudio',
+            media__notes_dot_content_dot_v1_dot_content__pb2.CompleteStandaloneAudioRequest.SerializeToString,
+            media__notes_dot_content_dot_v1_dot_content__pb2.CompleteStandaloneAudioResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def FailStandaloneAudioJob(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.content.v1.ContentService/FailStandaloneAudioJob',
+            media__notes_dot_content_dot_v1_dot_content__pb2.FailStandaloneAudioJobRequest.SerializeToString,
+            media__notes_dot_content_dot_v1_dot_content__pb2.FailStandaloneAudioJobResponse.FromString,
             options,
             channel_credentials,
             insecure,

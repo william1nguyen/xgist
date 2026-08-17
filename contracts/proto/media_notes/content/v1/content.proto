@@ -43,6 +43,31 @@ service ContentService {
   rpc StoreSummaryAudioMetadata(StoreSummaryAudioMetadataRequest) returns (StoreSummaryAudioMetadataResponse);
   // GetContent returns every generated artifact stored for one media item.
   rpc GetContent(GetContentRequest) returns (GetContentResponse);
+
+  // RequestScriptDraft creates a generating standalone-audio job asking an
+  // LLM to draft narration text from a loose description. Idempotent per
+  // idempotency_key. See docs/services/worker.md's "Standalone audio
+  // generation" section.
+  rpc RequestScriptDraft(RequestScriptDraftRequest) returns (RequestScriptDraftResponse);
+  // RequestStandaloneAudio creates a generating standalone-audio job that
+  // synthesizes text directly to speech, independent of any media item.
+  // Idempotent per idempotency_key.
+  rpc RequestStandaloneAudio(RequestStandaloneAudioRequest) returns (RequestStandaloneAudioResponse);
+  // GetStandaloneAudioJob returns one standalone-audio job.
+  rpc GetStandaloneAudioJob(GetStandaloneAudioJobRequest) returns (GetStandaloneAudioJobResponse);
+  // ListStandaloneAudioJobs returns one user's standalone-audio jobs of a
+  // given kind, newest first.
+  rpc ListStandaloneAudioJobs(ListStandaloneAudioJobsRequest) returns (ListStandaloneAudioJobsResponse);
+  // CompleteScriptDraft commits a script-draft job's LLM output. Called by
+  // conductor-worker; a no-op (returns the job's current state) if the
+  // job already left the generating state.
+  rpc CompleteScriptDraft(CompleteScriptDraftRequest) returns (CompleteScriptDraftResponse);
+  // CompleteStandaloneAudio commits an audio job's durable object
+  // metadata. Called by conductor-worker.
+  rpc CompleteStandaloneAudio(CompleteStandaloneAudioRequest) returns (CompleteStandaloneAudioResponse);
+  // FailStandaloneAudioJob marks a generating job of either kind failed.
+  // Called by conductor-worker.
+  rpc FailStandaloneAudioJob(FailStandaloneAudioJobRequest) returns (FailStandaloneAudioJobResponse);
 }
 
 // ContentVersion is the durable version of one media item's content record
@@ -248,4 +273,115 @@ message Content {
 
 message GetContentResponse {
   Content content = 1;
+}
+
+// StandaloneAudioJobKind distinguishes a script-drafting job (output is
+// text) from an audio-generation job (output is a durable audio object).
+enum StandaloneAudioJobKind {
+  STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED = 0;
+  STANDALONE_AUDIO_JOB_KIND_SCRIPT = 1;
+  STANDALONE_AUDIO_JOB_KIND_AUDIO = 2;
+}
+
+// StandaloneAudioJobStatus is a job's lifecycle state.
+enum StandaloneAudioJobStatus {
+  STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED = 0;
+  STANDALONE_AUDIO_JOB_STATUS_GENERATING = 1;
+  STANDALONE_AUDIO_JOB_STATUS_COMPLETED = 2;
+  STANDALONE_AUDIO_JOB_STATUS_FAILED = 3;
+}
+
+// StandaloneAudioJob is one script-draft or audio-generation request,
+// belonging directly to a user rather than to any media item.
+message StandaloneAudioJob {
+  string id = 1;
+  string user_id = 2;
+  StandaloneAudioJobKind kind = 3;
+  StandaloneAudioJobStatus status = 4;
+  // input_text is the caller's description (kind=script) or the exact
+  // text to synthesize (kind=audio).
+  string input_text = 5;
+  // output_text is the LLM-drafted script; set only for a completed
+  // kind=script job.
+  string output_text = 6;
+  string voice = 7;
+  int64 duration_ms = 8;
+  // url is a short-lived presigned GET URL for the synthesized audio,
+  // populated only for a completed kind=audio job when content has
+  // object-storage credentials configured. Never persisted — signed
+  // fresh on every read, matching SummaryAudio.url.
+  string url = 9;
+  string error_code = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message RequestScriptDraftRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  string description = 3;
+}
+
+message RequestScriptDraftResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message RequestStandaloneAudioRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  string text = 3;
+  string voice = 4;
+}
+
+message RequestStandaloneAudioResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message GetStandaloneAudioJobRequest {
+  string id = 1;
+}
+
+message GetStandaloneAudioJobResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message ListStandaloneAudioJobsRequest {
+  string user_id = 1;
+  StandaloneAudioJobKind kind = 2;
+  string cursor = 3;
+  int32 page_size = 4;
+}
+
+message ListStandaloneAudioJobsResponse {
+  repeated StandaloneAudioJob jobs = 1;
+  string next_cursor = 2;
+}
+
+message CompleteScriptDraftRequest {
+  string job_id = 1;
+  string script_text = 2;
+}
+
+message CompleteScriptDraftResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message CompleteStandaloneAudioRequest {
+  string job_id = 1;
+  string object_key = 2;
+  string mime_type = 3;
+  int64 duration_ms = 4;
+  string voice = 5;
+}
+
+message CompleteStandaloneAudioResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message FailStandaloneAudioJobRequest {
+  string job_id = 1;
+  string error_code = 2;
+}
+
+message FailStandaloneAudioJobResponse {
+  StandaloneAudioJob job = 1;
 }

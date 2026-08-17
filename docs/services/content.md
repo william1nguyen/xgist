@@ -6,6 +6,15 @@ Go gRPC + Kafka service owning transcripts, ordered segments, summaries,
 citations, keywords, keypoints, notes, summary-audio metadata/object keys and
 its deletion state. It does not own upload lifecycle or workflow decisions.
 
+It also owns standalone audio jobs (`internal/audiojob`,
+`standalone_audio_jobs` table): the "Audio" feature's script-draft and
+text-to-speech requests, keyed by `user_id` rather than `media_id` — the
+only content-owned data with no relationship to a media item. A job's
+outbox event (`mn.audio.job.requested.v1`) is consumed directly by
+conductor-worker; there is no conductor workflow involved. See
+`docs/services/worker.md`'s "Standalone audio generation" section for the
+worker side and `docs/services/hermes.md`'s for the GraphQL surface.
+
 ## Structure and data
 
 ```text

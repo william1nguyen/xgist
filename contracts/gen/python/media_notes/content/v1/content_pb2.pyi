@@ -15,9 +15,29 @@ class SummaryAudioStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SUMMARY_AUDIO_STATUS_UNSPECIFIED: _ClassVar[SummaryAudioStatus]
     SUMMARY_AUDIO_STATUS_READY: _ClassVar[SummaryAudioStatus]
     SUMMARY_AUDIO_STATUS_FAILED: _ClassVar[SummaryAudioStatus]
+
+class StandaloneAudioJobKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED: _ClassVar[StandaloneAudioJobKind]
+    STANDALONE_AUDIO_JOB_KIND_SCRIPT: _ClassVar[StandaloneAudioJobKind]
+    STANDALONE_AUDIO_JOB_KIND_AUDIO: _ClassVar[StandaloneAudioJobKind]
+
+class StandaloneAudioJobStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED: _ClassVar[StandaloneAudioJobStatus]
+    STANDALONE_AUDIO_JOB_STATUS_GENERATING: _ClassVar[StandaloneAudioJobStatus]
+    STANDALONE_AUDIO_JOB_STATUS_COMPLETED: _ClassVar[StandaloneAudioJobStatus]
+    STANDALONE_AUDIO_JOB_STATUS_FAILED: _ClassVar[StandaloneAudioJobStatus]
 SUMMARY_AUDIO_STATUS_UNSPECIFIED: SummaryAudioStatus
 SUMMARY_AUDIO_STATUS_READY: SummaryAudioStatus
 SUMMARY_AUDIO_STATUS_FAILED: SummaryAudioStatus
+STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED: StandaloneAudioJobKind
+STANDALONE_AUDIO_JOB_KIND_SCRIPT: StandaloneAudioJobKind
+STANDALONE_AUDIO_JOB_KIND_AUDIO: StandaloneAudioJobKind
+STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED: StandaloneAudioJobStatus
+STANDALONE_AUDIO_JOB_STATUS_GENERATING: StandaloneAudioJobStatus
+STANDALONE_AUDIO_JOB_STATUS_COMPLETED: StandaloneAudioJobStatus
+STANDALONE_AUDIO_JOB_STATUS_FAILED: StandaloneAudioJobStatus
 
 class ContentVersion(_message.Message):
     __slots__ = ("media_id", "version", "updated_at")
@@ -318,3 +338,143 @@ class GetContentResponse(_message.Message):
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     content: Content
     def __init__(self, content: _Optional[_Union[Content, _Mapping]] = ...) -> None: ...
+
+class StandaloneAudioJob(_message.Message):
+    __slots__ = ("id", "user_id", "kind", "status", "input_text", "output_text", "voice", "duration_ms", "url", "error_code", "created_at")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    INPUT_TEXT_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_TEXT_FIELD_NUMBER: _ClassVar[int]
+    VOICE_FIELD_NUMBER: _ClassVar[int]
+    DURATION_MS_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
+    ERROR_CODE_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    user_id: str
+    kind: StandaloneAudioJobKind
+    status: StandaloneAudioJobStatus
+    input_text: str
+    output_text: str
+    voice: str
+    duration_ms: int
+    url: str
+    error_code: str
+    created_at: _timestamp_pb2.Timestamp
+    def __init__(self, id: _Optional[str] = ..., user_id: _Optional[str] = ..., kind: _Optional[_Union[StandaloneAudioJobKind, str]] = ..., status: _Optional[_Union[StandaloneAudioJobStatus, str]] = ..., input_text: _Optional[str] = ..., output_text: _Optional[str] = ..., voice: _Optional[str] = ..., duration_ms: _Optional[int] = ..., url: _Optional[str] = ..., error_code: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
+class RequestScriptDraftRequest(_message.Message):
+    __slots__ = ("idempotency_key", "user_id", "description")
+    IDEMPOTENCY_KEY_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    idempotency_key: str
+    user_id: str
+    description: str
+    def __init__(self, idempotency_key: _Optional[str] = ..., user_id: _Optional[str] = ..., description: _Optional[str] = ...) -> None: ...
+
+class RequestScriptDraftResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: StandaloneAudioJob
+    def __init__(self, job: _Optional[_Union[StandaloneAudioJob, _Mapping]] = ...) -> None: ...
+
+class RequestStandaloneAudioRequest(_message.Message):
+    __slots__ = ("idempotency_key", "user_id", "text", "voice")
+    IDEMPOTENCY_KEY_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    VOICE_FIELD_NUMBER: _ClassVar[int]
+    idempotency_key: str
+    user_id: str
+    text: str
+    voice: str
+    def __init__(self, idempotency_key: _Optional[str] = ..., user_id: _Optional[str] = ..., text: _Optional[str] = ..., voice: _Optional[str] = ...) -> None: ...
+
+class RequestStandaloneAudioResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: StandaloneAudioJob
+    def __init__(self, job: _Optional[_Union[StandaloneAudioJob, _Mapping]] = ...) -> None: ...
+
+class GetStandaloneAudioJobRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class GetStandaloneAudioJobResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: StandaloneAudioJob
+    def __init__(self, job: _Optional[_Union[StandaloneAudioJob, _Mapping]] = ...) -> None: ...
+
+class ListStandaloneAudioJobsRequest(_message.Message):
+    __slots__ = ("user_id", "kind", "cursor", "page_size")
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    CURSOR_FIELD_NUMBER: _ClassVar[int]
+    PAGE_SIZE_FIELD_NUMBER: _ClassVar[int]
+    user_id: str
+    kind: StandaloneAudioJobKind
+    cursor: str
+    page_size: int
+    def __init__(self, user_id: _Optional[str] = ..., kind: _Optional[_Union[StandaloneAudioJobKind, str]] = ..., cursor: _Optional[str] = ..., page_size: _Optional[int] = ...) -> None: ...
+
+class ListStandaloneAudioJobsResponse(_message.Message):
+    __slots__ = ("jobs", "next_cursor")
+    JOBS_FIELD_NUMBER: _ClassVar[int]
+    NEXT_CURSOR_FIELD_NUMBER: _ClassVar[int]
+    jobs: _containers.RepeatedCompositeFieldContainer[StandaloneAudioJob]
+    next_cursor: str
+    def __init__(self, jobs: _Optional[_Iterable[_Union[StandaloneAudioJob, _Mapping]]] = ..., next_cursor: _Optional[str] = ...) -> None: ...
+
+class CompleteScriptDraftRequest(_message.Message):
+    __slots__ = ("job_id", "script_text")
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    SCRIPT_TEXT_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    script_text: str
+    def __init__(self, job_id: _Optional[str] = ..., script_text: _Optional[str] = ...) -> None: ...
+
+class CompleteScriptDraftResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: StandaloneAudioJob
+    def __init__(self, job: _Optional[_Union[StandaloneAudioJob, _Mapping]] = ...) -> None: ...
+
+class CompleteStandaloneAudioRequest(_message.Message):
+    __slots__ = ("job_id", "object_key", "mime_type", "duration_ms", "voice")
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_KEY_FIELD_NUMBER: _ClassVar[int]
+    MIME_TYPE_FIELD_NUMBER: _ClassVar[int]
+    DURATION_MS_FIELD_NUMBER: _ClassVar[int]
+    VOICE_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    object_key: str
+    mime_type: str
+    duration_ms: int
+    voice: str
+    def __init__(self, job_id: _Optional[str] = ..., object_key: _Optional[str] = ..., mime_type: _Optional[str] = ..., duration_ms: _Optional[int] = ..., voice: _Optional[str] = ...) -> None: ...
+
+class CompleteStandaloneAudioResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: StandaloneAudioJob
+    def __init__(self, job: _Optional[_Union[StandaloneAudioJob, _Mapping]] = ...) -> None: ...
+
+class FailStandaloneAudioJobRequest(_message.Message):
+    __slots__ = ("job_id", "error_code")
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    ERROR_CODE_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    error_code: str
+    def __init__(self, job_id: _Optional[str] = ..., error_code: _Optional[str] = ...) -> None: ...
+
+class FailStandaloneAudioJobResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: StandaloneAudioJob
+    def __init__(self, job: _Optional[_Union[StandaloneAudioJob, _Mapping]] = ...) -> None: ...

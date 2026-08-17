@@ -79,6 +79,110 @@ func (SummaryAudioStatus) EnumDescriptor() ([]byte, []int) {
 	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{0}
 }
 
+// StandaloneAudioJobKind distinguishes a script-drafting job (output is
+// text) from an audio-generation job (output is a durable audio object).
+type StandaloneAudioJobKind int32
+
+const (
+	StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED StandaloneAudioJobKind = 0
+	StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_SCRIPT      StandaloneAudioJobKind = 1
+	StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_AUDIO       StandaloneAudioJobKind = 2
+)
+
+// Enum value maps for StandaloneAudioJobKind.
+var (
+	StandaloneAudioJobKind_name = map[int32]string{
+		0: "STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED",
+		1: "STANDALONE_AUDIO_JOB_KIND_SCRIPT",
+		2: "STANDALONE_AUDIO_JOB_KIND_AUDIO",
+	}
+	StandaloneAudioJobKind_value = map[string]int32{
+		"STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED": 0,
+		"STANDALONE_AUDIO_JOB_KIND_SCRIPT":      1,
+		"STANDALONE_AUDIO_JOB_KIND_AUDIO":       2,
+	}
+)
+
+func (x StandaloneAudioJobKind) Enum() *StandaloneAudioJobKind {
+	p := new(StandaloneAudioJobKind)
+	*p = x
+	return p
+}
+
+func (x StandaloneAudioJobKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StandaloneAudioJobKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_media_notes_content_v1_content_proto_enumTypes[1].Descriptor()
+}
+
+func (StandaloneAudioJobKind) Type() protoreflect.EnumType {
+	return &file_media_notes_content_v1_content_proto_enumTypes[1]
+}
+
+func (x StandaloneAudioJobKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StandaloneAudioJobKind.Descriptor instead.
+func (StandaloneAudioJobKind) EnumDescriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{1}
+}
+
+// StandaloneAudioJobStatus is a job's lifecycle state.
+type StandaloneAudioJobStatus int32
+
+const (
+	StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED StandaloneAudioJobStatus = 0
+	StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_GENERATING  StandaloneAudioJobStatus = 1
+	StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_COMPLETED   StandaloneAudioJobStatus = 2
+	StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_FAILED      StandaloneAudioJobStatus = 3
+)
+
+// Enum value maps for StandaloneAudioJobStatus.
+var (
+	StandaloneAudioJobStatus_name = map[int32]string{
+		0: "STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED",
+		1: "STANDALONE_AUDIO_JOB_STATUS_GENERATING",
+		2: "STANDALONE_AUDIO_JOB_STATUS_COMPLETED",
+		3: "STANDALONE_AUDIO_JOB_STATUS_FAILED",
+	}
+	StandaloneAudioJobStatus_value = map[string]int32{
+		"STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED": 0,
+		"STANDALONE_AUDIO_JOB_STATUS_GENERATING":  1,
+		"STANDALONE_AUDIO_JOB_STATUS_COMPLETED":   2,
+		"STANDALONE_AUDIO_JOB_STATUS_FAILED":      3,
+	}
+)
+
+func (x StandaloneAudioJobStatus) Enum() *StandaloneAudioJobStatus {
+	p := new(StandaloneAudioJobStatus)
+	*p = x
+	return p
+}
+
+func (x StandaloneAudioJobStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StandaloneAudioJobStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_media_notes_content_v1_content_proto_enumTypes[2].Descriptor()
+}
+
+func (StandaloneAudioJobStatus) Type() protoreflect.EnumType {
+	return &file_media_notes_content_v1_content_proto_enumTypes[2]
+}
+
+func (x StandaloneAudioJobStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StandaloneAudioJobStatus.Descriptor instead.
+func (StandaloneAudioJobStatus) EnumDescriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{2}
+}
+
 // ContentVersion is the durable version of one media item's content record
 // after a write, used by callers to detect a newer read is available.
 type ContentVersion struct {
@@ -1821,6 +1925,876 @@ func (x *GetContentResponse) GetContent() *Content {
 	return nil
 }
 
+// StandaloneAudioJob is one script-draft or audio-generation request,
+// belonging directly to a user rather than to any media item.
+type StandaloneAudioJob struct {
+	state  protoimpl.MessageState   `protogen:"open.v1"`
+	Id     string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId string                   `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Kind   StandaloneAudioJobKind   `protobuf:"varint,3,opt,name=kind,proto3,enum=media_notes.content.v1.StandaloneAudioJobKind" json:"kind,omitempty"`
+	Status StandaloneAudioJobStatus `protobuf:"varint,4,opt,name=status,proto3,enum=media_notes.content.v1.StandaloneAudioJobStatus" json:"status,omitempty"`
+	// input_text is the caller's description (kind=script) or the exact
+	// text to synthesize (kind=audio).
+	InputText string `protobuf:"bytes,5,opt,name=input_text,json=inputText,proto3" json:"input_text,omitempty"`
+	// output_text is the LLM-drafted script; set only for a completed
+	// kind=script job.
+	OutputText string `protobuf:"bytes,6,opt,name=output_text,json=outputText,proto3" json:"output_text,omitempty"`
+	Voice      string `protobuf:"bytes,7,opt,name=voice,proto3" json:"voice,omitempty"`
+	DurationMs int64  `protobuf:"varint,8,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	// url is a short-lived presigned GET URL for the synthesized audio,
+	// populated only for a completed kind=audio job when content has
+	// object-storage credentials configured. Never persisted — signed
+	// fresh on every read, matching SummaryAudio.url.
+	Url           string                 `protobuf:"bytes,9,opt,name=url,proto3" json:"url,omitempty"`
+	ErrorCode     string                 `protobuf:"bytes,10,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StandaloneAudioJob) Reset() {
+	*x = StandaloneAudioJob{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StandaloneAudioJob) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StandaloneAudioJob) ProtoMessage() {}
+
+func (x *StandaloneAudioJob) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StandaloneAudioJob.ProtoReflect.Descriptor instead.
+func (*StandaloneAudioJob) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *StandaloneAudioJob) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StandaloneAudioJob) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *StandaloneAudioJob) GetKind() StandaloneAudioJobKind {
+	if x != nil {
+		return x.Kind
+	}
+	return StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED
+}
+
+func (x *StandaloneAudioJob) GetStatus() StandaloneAudioJobStatus {
+	if x != nil {
+		return x.Status
+	}
+	return StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED
+}
+
+func (x *StandaloneAudioJob) GetInputText() string {
+	if x != nil {
+		return x.InputText
+	}
+	return ""
+}
+
+func (x *StandaloneAudioJob) GetOutputText() string {
+	if x != nil {
+		return x.OutputText
+	}
+	return ""
+}
+
+func (x *StandaloneAudioJob) GetVoice() string {
+	if x != nil {
+		return x.Voice
+	}
+	return ""
+}
+
+func (x *StandaloneAudioJob) GetDurationMs() int64 {
+	if x != nil {
+		return x.DurationMs
+	}
+	return 0
+}
+
+func (x *StandaloneAudioJob) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *StandaloneAudioJob) GetErrorCode() string {
+	if x != nil {
+		return x.ErrorCode
+	}
+	return ""
+}
+
+func (x *StandaloneAudioJob) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type RequestScriptDraftRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	UserId         string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Description    string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RequestScriptDraftRequest) Reset() {
+	*x = RequestScriptDraftRequest{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestScriptDraftRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestScriptDraftRequest) ProtoMessage() {}
+
+func (x *RequestScriptDraftRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestScriptDraftRequest.ProtoReflect.Descriptor instead.
+func (*RequestScriptDraftRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *RequestScriptDraftRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *RequestScriptDraftRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *RequestScriptDraftRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+type RequestScriptDraftResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           *StandaloneAudioJob    `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestScriptDraftResponse) Reset() {
+	*x = RequestScriptDraftResponse{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestScriptDraftResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestScriptDraftResponse) ProtoMessage() {}
+
+func (x *RequestScriptDraftResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestScriptDraftResponse.ProtoReflect.Descriptor instead.
+func (*RequestScriptDraftResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *RequestScriptDraftResponse) GetJob() *StandaloneAudioJob {
+	if x != nil {
+		return x.Job
+	}
+	return nil
+}
+
+type RequestStandaloneAudioRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	UserId         string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Text           string                 `protobuf:"bytes,3,opt,name=text,proto3" json:"text,omitempty"`
+	Voice          string                 `protobuf:"bytes,4,opt,name=voice,proto3" json:"voice,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RequestStandaloneAudioRequest) Reset() {
+	*x = RequestStandaloneAudioRequest{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestStandaloneAudioRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestStandaloneAudioRequest) ProtoMessage() {}
+
+func (x *RequestStandaloneAudioRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestStandaloneAudioRequest.ProtoReflect.Descriptor instead.
+func (*RequestStandaloneAudioRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *RequestStandaloneAudioRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *RequestStandaloneAudioRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *RequestStandaloneAudioRequest) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *RequestStandaloneAudioRequest) GetVoice() string {
+	if x != nil {
+		return x.Voice
+	}
+	return ""
+}
+
+type RequestStandaloneAudioResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           *StandaloneAudioJob    `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestStandaloneAudioResponse) Reset() {
+	*x = RequestStandaloneAudioResponse{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestStandaloneAudioResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestStandaloneAudioResponse) ProtoMessage() {}
+
+func (x *RequestStandaloneAudioResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestStandaloneAudioResponse.ProtoReflect.Descriptor instead.
+func (*RequestStandaloneAudioResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *RequestStandaloneAudioResponse) GetJob() *StandaloneAudioJob {
+	if x != nil {
+		return x.Job
+	}
+	return nil
+}
+
+type GetStandaloneAudioJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStandaloneAudioJobRequest) Reset() {
+	*x = GetStandaloneAudioJobRequest{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStandaloneAudioJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStandaloneAudioJobRequest) ProtoMessage() {}
+
+func (x *GetStandaloneAudioJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStandaloneAudioJobRequest.ProtoReflect.Descriptor instead.
+func (*GetStandaloneAudioJobRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetStandaloneAudioJobRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetStandaloneAudioJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           *StandaloneAudioJob    `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStandaloneAudioJobResponse) Reset() {
+	*x = GetStandaloneAudioJobResponse{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStandaloneAudioJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStandaloneAudioJobResponse) ProtoMessage() {}
+
+func (x *GetStandaloneAudioJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStandaloneAudioJobResponse.ProtoReflect.Descriptor instead.
+func (*GetStandaloneAudioJobResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetStandaloneAudioJobResponse) GetJob() *StandaloneAudioJob {
+	if x != nil {
+		return x.Job
+	}
+	return nil
+}
+
+type ListStandaloneAudioJobsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Kind          StandaloneAudioJobKind `protobuf:"varint,2,opt,name=kind,proto3,enum=media_notes.content.v1.StandaloneAudioJobKind" json:"kind,omitempty"`
+	Cursor        string                 `protobuf:"bytes,3,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListStandaloneAudioJobsRequest) Reset() {
+	*x = ListStandaloneAudioJobsRequest{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListStandaloneAudioJobsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStandaloneAudioJobsRequest) ProtoMessage() {}
+
+func (x *ListStandaloneAudioJobsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStandaloneAudioJobsRequest.ProtoReflect.Descriptor instead.
+func (*ListStandaloneAudioJobsRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ListStandaloneAudioJobsRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ListStandaloneAudioJobsRequest) GetKind() StandaloneAudioJobKind {
+	if x != nil {
+		return x.Kind
+	}
+	return StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED
+}
+
+func (x *ListStandaloneAudioJobsRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
+}
+
+func (x *ListStandaloneAudioJobsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListStandaloneAudioJobsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Jobs          []*StandaloneAudioJob  `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
+	NextCursor    string                 `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListStandaloneAudioJobsResponse) Reset() {
+	*x = ListStandaloneAudioJobsResponse{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListStandaloneAudioJobsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStandaloneAudioJobsResponse) ProtoMessage() {}
+
+func (x *ListStandaloneAudioJobsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStandaloneAudioJobsResponse.ProtoReflect.Descriptor instead.
+func (*ListStandaloneAudioJobsResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ListStandaloneAudioJobsResponse) GetJobs() []*StandaloneAudioJob {
+	if x != nil {
+		return x.Jobs
+	}
+	return nil
+}
+
+func (x *ListStandaloneAudioJobsResponse) GetNextCursor() string {
+	if x != nil {
+		return x.NextCursor
+	}
+	return ""
+}
+
+type CompleteScriptDraftRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	ScriptText    string                 `protobuf:"bytes,2,opt,name=script_text,json=scriptText,proto3" json:"script_text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteScriptDraftRequest) Reset() {
+	*x = CompleteScriptDraftRequest{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteScriptDraftRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteScriptDraftRequest) ProtoMessage() {}
+
+func (x *CompleteScriptDraftRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteScriptDraftRequest.ProtoReflect.Descriptor instead.
+func (*CompleteScriptDraftRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *CompleteScriptDraftRequest) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+func (x *CompleteScriptDraftRequest) GetScriptText() string {
+	if x != nil {
+		return x.ScriptText
+	}
+	return ""
+}
+
+type CompleteScriptDraftResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           *StandaloneAudioJob    `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteScriptDraftResponse) Reset() {
+	*x = CompleteScriptDraftResponse{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteScriptDraftResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteScriptDraftResponse) ProtoMessage() {}
+
+func (x *CompleteScriptDraftResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteScriptDraftResponse.ProtoReflect.Descriptor instead.
+func (*CompleteScriptDraftResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *CompleteScriptDraftResponse) GetJob() *StandaloneAudioJob {
+	if x != nil {
+		return x.Job
+	}
+	return nil
+}
+
+type CompleteStandaloneAudioRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	ObjectKey     string                 `protobuf:"bytes,2,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	MimeType      string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	DurationMs    int64                  `protobuf:"varint,4,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	Voice         string                 `protobuf:"bytes,5,opt,name=voice,proto3" json:"voice,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteStandaloneAudioRequest) Reset() {
+	*x = CompleteStandaloneAudioRequest{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteStandaloneAudioRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteStandaloneAudioRequest) ProtoMessage() {}
+
+func (x *CompleteStandaloneAudioRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteStandaloneAudioRequest.ProtoReflect.Descriptor instead.
+func (*CompleteStandaloneAudioRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *CompleteStandaloneAudioRequest) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+func (x *CompleteStandaloneAudioRequest) GetObjectKey() string {
+	if x != nil {
+		return x.ObjectKey
+	}
+	return ""
+}
+
+func (x *CompleteStandaloneAudioRequest) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
+}
+
+func (x *CompleteStandaloneAudioRequest) GetDurationMs() int64 {
+	if x != nil {
+		return x.DurationMs
+	}
+	return 0
+}
+
+func (x *CompleteStandaloneAudioRequest) GetVoice() string {
+	if x != nil {
+		return x.Voice
+	}
+	return ""
+}
+
+type CompleteStandaloneAudioResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           *StandaloneAudioJob    `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteStandaloneAudioResponse) Reset() {
+	*x = CompleteStandaloneAudioResponse{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteStandaloneAudioResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteStandaloneAudioResponse) ProtoMessage() {}
+
+func (x *CompleteStandaloneAudioResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteStandaloneAudioResponse.ProtoReflect.Descriptor instead.
+func (*CompleteStandaloneAudioResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *CompleteStandaloneAudioResponse) GetJob() *StandaloneAudioJob {
+	if x != nil {
+		return x.Job
+	}
+	return nil
+}
+
+type FailStandaloneAudioJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	ErrorCode     string                 `protobuf:"bytes,2,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FailStandaloneAudioJobRequest) Reset() {
+	*x = FailStandaloneAudioJobRequest{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FailStandaloneAudioJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FailStandaloneAudioJobRequest) ProtoMessage() {}
+
+func (x *FailStandaloneAudioJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FailStandaloneAudioJobRequest.ProtoReflect.Descriptor instead.
+func (*FailStandaloneAudioJobRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *FailStandaloneAudioJobRequest) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+func (x *FailStandaloneAudioJobRequest) GetErrorCode() string {
+	if x != nil {
+		return x.ErrorCode
+	}
+	return ""
+}
+
+type FailStandaloneAudioJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Job           *StandaloneAudioJob    `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FailStandaloneAudioJobResponse) Reset() {
+	*x = FailStandaloneAudioJobResponse{}
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FailStandaloneAudioJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FailStandaloneAudioJobResponse) ProtoMessage() {}
+
+func (x *FailStandaloneAudioJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_content_v1_content_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FailStandaloneAudioJobResponse.ProtoReflect.Descriptor instead.
+func (*FailStandaloneAudioJobResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_content_v1_content_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *FailStandaloneAudioJobResponse) GetJob() *StandaloneAudioJob {
+	if x != nil {
+		return x.Job
+	}
+	return nil
+}
+
 var File_media_notes_content_v1_content_proto protoreflect.FileDescriptor
 
 const file_media_notes_content_v1_content_proto_rawDesc = "" +
@@ -1969,11 +2943,86 @@ const file_media_notes_content_v1_content_proto_rawDesc = "" +
 	"\x0esummary_audios\x18\a \x03(\v2$.media_notes.content.v1.SummaryAudioR\rsummaryAudios\x12\x18\n" +
 	"\aversion\x18\b \x01(\x05R\aversion\"O\n" +
 	"\x12GetContentResponse\x129\n" +
-	"\acontent\x18\x01 \x01(\v2\x1f.media_notes.content.v1.ContentR\acontent*{\n" +
+	"\acontent\x18\x01 \x01(\v2\x1f.media_notes.content.v1.ContentR\acontent\"\xae\x03\n" +
+	"\x12StandaloneAudioJob\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12B\n" +
+	"\x04kind\x18\x03 \x01(\x0e2..media_notes.content.v1.StandaloneAudioJobKindR\x04kind\x12H\n" +
+	"\x06status\x18\x04 \x01(\x0e20.media_notes.content.v1.StandaloneAudioJobStatusR\x06status\x12\x1d\n" +
+	"\n" +
+	"input_text\x18\x05 \x01(\tR\tinputText\x12\x1f\n" +
+	"\voutput_text\x18\x06 \x01(\tR\n" +
+	"outputText\x12\x14\n" +
+	"\x05voice\x18\a \x01(\tR\x05voice\x12\x1f\n" +
+	"\vduration_ms\x18\b \x01(\x03R\n" +
+	"durationMs\x12\x10\n" +
+	"\x03url\x18\t \x01(\tR\x03url\x12\x1d\n" +
+	"\n" +
+	"error_code\x18\n" +
+	" \x01(\tR\terrorCode\x129\n" +
+	"\n" +
+	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x7f\n" +
+	"\x19RequestScriptDraftRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\"Z\n" +
+	"\x1aRequestScriptDraftResponse\x12<\n" +
+	"\x03job\x18\x01 \x01(\v2*.media_notes.content.v1.StandaloneAudioJobR\x03job\"\x8b\x01\n" +
+	"\x1dRequestStandaloneAudioRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
+	"\x04text\x18\x03 \x01(\tR\x04text\x12\x14\n" +
+	"\x05voice\x18\x04 \x01(\tR\x05voice\"^\n" +
+	"\x1eRequestStandaloneAudioResponse\x12<\n" +
+	"\x03job\x18\x01 \x01(\v2*.media_notes.content.v1.StandaloneAudioJobR\x03job\".\n" +
+	"\x1cGetStandaloneAudioJobRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"]\n" +
+	"\x1dGetStandaloneAudioJobResponse\x12<\n" +
+	"\x03job\x18\x01 \x01(\v2*.media_notes.content.v1.StandaloneAudioJobR\x03job\"\xb2\x01\n" +
+	"\x1eListStandaloneAudioJobsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12B\n" +
+	"\x04kind\x18\x02 \x01(\x0e2..media_notes.content.v1.StandaloneAudioJobKindR\x04kind\x12\x16\n" +
+	"\x06cursor\x18\x03 \x01(\tR\x06cursor\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x82\x01\n" +
+	"\x1fListStandaloneAudioJobsResponse\x12>\n" +
+	"\x04jobs\x18\x01 \x03(\v2*.media_notes.content.v1.StandaloneAudioJobR\x04jobs\x12\x1f\n" +
+	"\vnext_cursor\x18\x02 \x01(\tR\n" +
+	"nextCursor\"T\n" +
+	"\x1aCompleteScriptDraftRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x1f\n" +
+	"\vscript_text\x18\x02 \x01(\tR\n" +
+	"scriptText\"[\n" +
+	"\x1bCompleteScriptDraftResponse\x12<\n" +
+	"\x03job\x18\x01 \x01(\v2*.media_notes.content.v1.StandaloneAudioJobR\x03job\"\xaa\x01\n" +
+	"\x1eCompleteStandaloneAudioRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x1d\n" +
+	"\n" +
+	"object_key\x18\x02 \x01(\tR\tobjectKey\x12\x1b\n" +
+	"\tmime_type\x18\x03 \x01(\tR\bmimeType\x12\x1f\n" +
+	"\vduration_ms\x18\x04 \x01(\x03R\n" +
+	"durationMs\x12\x14\n" +
+	"\x05voice\x18\x05 \x01(\tR\x05voice\"_\n" +
+	"\x1fCompleteStandaloneAudioResponse\x12<\n" +
+	"\x03job\x18\x01 \x01(\v2*.media_notes.content.v1.StandaloneAudioJobR\x03job\"U\n" +
+	"\x1dFailStandaloneAudioJobRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x1d\n" +
+	"\n" +
+	"error_code\x18\x02 \x01(\tR\terrorCode\"^\n" +
+	"\x1eFailStandaloneAudioJobResponse\x12<\n" +
+	"\x03job\x18\x01 \x01(\v2*.media_notes.content.v1.StandaloneAudioJobR\x03job*{\n" +
 	"\x12SummaryAudioStatus\x12$\n" +
 	" SUMMARY_AUDIO_STATUS_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSUMMARY_AUDIO_STATUS_READY\x10\x01\x12\x1f\n" +
-	"\x1bSUMMARY_AUDIO_STATUS_FAILED\x10\x022\x99\a\n" +
+	"\x1bSUMMARY_AUDIO_STATUS_FAILED\x10\x02*\x8e\x01\n" +
+	"\x16StandaloneAudioJobKind\x12)\n" +
+	"%STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED\x10\x00\x12$\n" +
+	" STANDALONE_AUDIO_JOB_KIND_SCRIPT\x10\x01\x12#\n" +
+	"\x1fSTANDALONE_AUDIO_JOB_KIND_AUDIO\x10\x02*\xc6\x01\n" +
+	"\x18StandaloneAudioJobStatus\x12+\n" +
+	"'STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED\x10\x00\x12*\n" +
+	"&STANDALONE_AUDIO_JOB_STATUS_GENERATING\x10\x01\x12)\n" +
+	"%STANDALONE_AUDIO_JOB_STATUS_COMPLETED\x10\x02\x12&\n" +
+	"\"STANDALONE_AUDIO_JOB_STATUS_FAILED\x10\x032\xcb\x0e\n" +
 	"\x0eContentService\x12r\n" +
 	"\x0fStoreTranscript\x12..media_notes.content.v1.StoreTranscriptRequest\x1a/.media_notes.content.v1.StoreTranscriptResponse\x12l\n" +
 	"\rGetTranscript\x12,.media_notes.content.v1.GetTranscriptRequest\x1a-.media_notes.content.v1.GetTranscriptResponse\x12i\n" +
@@ -1984,7 +3033,14 @@ const file_media_notes_content_v1_content_proto_rawDesc = "" +
 	"StoreNotes\x12).media_notes.content.v1.StoreNotesRequest\x1a*.media_notes.content.v1.StoreNotesResponse\x12\x90\x01\n" +
 	"\x19StoreSummaryAudioMetadata\x128.media_notes.content.v1.StoreSummaryAudioMetadataRequest\x1a9.media_notes.content.v1.StoreSummaryAudioMetadataResponse\x12c\n" +
 	"\n" +
-	"GetContent\x12).media_notes.content.v1.GetContentRequest\x1a*.media_notes.content.v1.GetContentResponseB\xfa\x01\n" +
+	"GetContent\x12).media_notes.content.v1.GetContentRequest\x1a*.media_notes.content.v1.GetContentResponse\x12{\n" +
+	"\x12RequestScriptDraft\x121.media_notes.content.v1.RequestScriptDraftRequest\x1a2.media_notes.content.v1.RequestScriptDraftResponse\x12\x87\x01\n" +
+	"\x16RequestStandaloneAudio\x125.media_notes.content.v1.RequestStandaloneAudioRequest\x1a6.media_notes.content.v1.RequestStandaloneAudioResponse\x12\x84\x01\n" +
+	"\x15GetStandaloneAudioJob\x124.media_notes.content.v1.GetStandaloneAudioJobRequest\x1a5.media_notes.content.v1.GetStandaloneAudioJobResponse\x12\x8a\x01\n" +
+	"\x17ListStandaloneAudioJobs\x126.media_notes.content.v1.ListStandaloneAudioJobsRequest\x1a7.media_notes.content.v1.ListStandaloneAudioJobsResponse\x12~\n" +
+	"\x13CompleteScriptDraft\x122.media_notes.content.v1.CompleteScriptDraftRequest\x1a3.media_notes.content.v1.CompleteScriptDraftResponse\x12\x8a\x01\n" +
+	"\x17CompleteStandaloneAudio\x126.media_notes.content.v1.CompleteStandaloneAudioRequest\x1a7.media_notes.content.v1.CompleteStandaloneAudioResponse\x12\x87\x01\n" +
+	"\x16FailStandaloneAudioJob\x125.media_notes.content.v1.FailStandaloneAudioJobRequest\x1a6.media_notes.content.v1.FailStandaloneAudioJobResponseB\xfa\x01\n" +
 	"\x1acom.media_notes.content.v1B\fContentProtoP\x01ZXgithub.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/content/v1;contentv1\xa2\x02\x03MCX\xaa\x02\x15MediaNotes.Content.V1\xca\x02\x15MediaNotes\\Content\\V1\xe2\x02!MediaNotes\\Content\\V1\\GPBMetadata\xea\x02\x17MediaNotes::Content::V1b\x06proto3"
 
 var (
@@ -1999,84 +3055,126 @@ func file_media_notes_content_v1_content_proto_rawDescGZIP() []byte {
 	return file_media_notes_content_v1_content_proto_rawDescData
 }
 
-var file_media_notes_content_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_media_notes_content_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_media_notes_content_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_media_notes_content_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_media_notes_content_v1_content_proto_goTypes = []any{
 	(SummaryAudioStatus)(0),                   // 0: media_notes.content.v1.SummaryAudioStatus
-	(*ContentVersion)(nil),                    // 1: media_notes.content.v1.ContentVersion
-	(*TranscriptSegment)(nil),                 // 2: media_notes.content.v1.TranscriptSegment
-	(*Transcript)(nil),                        // 3: media_notes.content.v1.Transcript
-	(*StoreTranscriptRequest)(nil),            // 4: media_notes.content.v1.StoreTranscriptRequest
-	(*StoreTranscriptResponse)(nil),           // 5: media_notes.content.v1.StoreTranscriptResponse
-	(*GetTranscriptRequest)(nil),              // 6: media_notes.content.v1.GetTranscriptRequest
-	(*GetTranscriptResponse)(nil),             // 7: media_notes.content.v1.GetTranscriptResponse
-	(*SummarySentence)(nil),                   // 8: media_notes.content.v1.SummarySentence
-	(*Summary)(nil),                           // 9: media_notes.content.v1.Summary
-	(*StoreSummaryRequest)(nil),               // 10: media_notes.content.v1.StoreSummaryRequest
-	(*StoreSummaryResponse)(nil),              // 11: media_notes.content.v1.StoreSummaryResponse
-	(*Keyword)(nil),                           // 12: media_notes.content.v1.Keyword
-	(*StoreKeywordsRequest)(nil),              // 13: media_notes.content.v1.StoreKeywordsRequest
-	(*StoreKeywordsResponse)(nil),             // 14: media_notes.content.v1.StoreKeywordsResponse
-	(*Keypoint)(nil),                          // 15: media_notes.content.v1.Keypoint
-	(*StoreKeypointsRequest)(nil),             // 16: media_notes.content.v1.StoreKeypointsRequest
-	(*StoreKeypointsResponse)(nil),            // 17: media_notes.content.v1.StoreKeypointsResponse
-	(*Note)(nil),                              // 18: media_notes.content.v1.Note
-	(*StoreNotesRequest)(nil),                 // 19: media_notes.content.v1.StoreNotesRequest
-	(*StoreNotesResponse)(nil),                // 20: media_notes.content.v1.StoreNotesResponse
-	(*SummaryAudio)(nil),                      // 21: media_notes.content.v1.SummaryAudio
-	(*StoreSummaryAudioMetadataRequest)(nil),  // 22: media_notes.content.v1.StoreSummaryAudioMetadataRequest
-	(*StoreSummaryAudioMetadataResponse)(nil), // 23: media_notes.content.v1.StoreSummaryAudioMetadataResponse
-	(*GetContentRequest)(nil),                 // 24: media_notes.content.v1.GetContentRequest
-	(*Content)(nil),                           // 25: media_notes.content.v1.Content
-	(*GetContentResponse)(nil),                // 26: media_notes.content.v1.GetContentResponse
-	(*timestamppb.Timestamp)(nil),             // 27: google.protobuf.Timestamp
+	(StandaloneAudioJobKind)(0),               // 1: media_notes.content.v1.StandaloneAudioJobKind
+	(StandaloneAudioJobStatus)(0),             // 2: media_notes.content.v1.StandaloneAudioJobStatus
+	(*ContentVersion)(nil),                    // 3: media_notes.content.v1.ContentVersion
+	(*TranscriptSegment)(nil),                 // 4: media_notes.content.v1.TranscriptSegment
+	(*Transcript)(nil),                        // 5: media_notes.content.v1.Transcript
+	(*StoreTranscriptRequest)(nil),            // 6: media_notes.content.v1.StoreTranscriptRequest
+	(*StoreTranscriptResponse)(nil),           // 7: media_notes.content.v1.StoreTranscriptResponse
+	(*GetTranscriptRequest)(nil),              // 8: media_notes.content.v1.GetTranscriptRequest
+	(*GetTranscriptResponse)(nil),             // 9: media_notes.content.v1.GetTranscriptResponse
+	(*SummarySentence)(nil),                   // 10: media_notes.content.v1.SummarySentence
+	(*Summary)(nil),                           // 11: media_notes.content.v1.Summary
+	(*StoreSummaryRequest)(nil),               // 12: media_notes.content.v1.StoreSummaryRequest
+	(*StoreSummaryResponse)(nil),              // 13: media_notes.content.v1.StoreSummaryResponse
+	(*Keyword)(nil),                           // 14: media_notes.content.v1.Keyword
+	(*StoreKeywordsRequest)(nil),              // 15: media_notes.content.v1.StoreKeywordsRequest
+	(*StoreKeywordsResponse)(nil),             // 16: media_notes.content.v1.StoreKeywordsResponse
+	(*Keypoint)(nil),                          // 17: media_notes.content.v1.Keypoint
+	(*StoreKeypointsRequest)(nil),             // 18: media_notes.content.v1.StoreKeypointsRequest
+	(*StoreKeypointsResponse)(nil),            // 19: media_notes.content.v1.StoreKeypointsResponse
+	(*Note)(nil),                              // 20: media_notes.content.v1.Note
+	(*StoreNotesRequest)(nil),                 // 21: media_notes.content.v1.StoreNotesRequest
+	(*StoreNotesResponse)(nil),                // 22: media_notes.content.v1.StoreNotesResponse
+	(*SummaryAudio)(nil),                      // 23: media_notes.content.v1.SummaryAudio
+	(*StoreSummaryAudioMetadataRequest)(nil),  // 24: media_notes.content.v1.StoreSummaryAudioMetadataRequest
+	(*StoreSummaryAudioMetadataResponse)(nil), // 25: media_notes.content.v1.StoreSummaryAudioMetadataResponse
+	(*GetContentRequest)(nil),                 // 26: media_notes.content.v1.GetContentRequest
+	(*Content)(nil),                           // 27: media_notes.content.v1.Content
+	(*GetContentResponse)(nil),                // 28: media_notes.content.v1.GetContentResponse
+	(*StandaloneAudioJob)(nil),                // 29: media_notes.content.v1.StandaloneAudioJob
+	(*RequestScriptDraftRequest)(nil),         // 30: media_notes.content.v1.RequestScriptDraftRequest
+	(*RequestScriptDraftResponse)(nil),        // 31: media_notes.content.v1.RequestScriptDraftResponse
+	(*RequestStandaloneAudioRequest)(nil),     // 32: media_notes.content.v1.RequestStandaloneAudioRequest
+	(*RequestStandaloneAudioResponse)(nil),    // 33: media_notes.content.v1.RequestStandaloneAudioResponse
+	(*GetStandaloneAudioJobRequest)(nil),      // 34: media_notes.content.v1.GetStandaloneAudioJobRequest
+	(*GetStandaloneAudioJobResponse)(nil),     // 35: media_notes.content.v1.GetStandaloneAudioJobResponse
+	(*ListStandaloneAudioJobsRequest)(nil),    // 36: media_notes.content.v1.ListStandaloneAudioJobsRequest
+	(*ListStandaloneAudioJobsResponse)(nil),   // 37: media_notes.content.v1.ListStandaloneAudioJobsResponse
+	(*CompleteScriptDraftRequest)(nil),        // 38: media_notes.content.v1.CompleteScriptDraftRequest
+	(*CompleteScriptDraftResponse)(nil),       // 39: media_notes.content.v1.CompleteScriptDraftResponse
+	(*CompleteStandaloneAudioRequest)(nil),    // 40: media_notes.content.v1.CompleteStandaloneAudioRequest
+	(*CompleteStandaloneAudioResponse)(nil),   // 41: media_notes.content.v1.CompleteStandaloneAudioResponse
+	(*FailStandaloneAudioJobRequest)(nil),     // 42: media_notes.content.v1.FailStandaloneAudioJobRequest
+	(*FailStandaloneAudioJobResponse)(nil),    // 43: media_notes.content.v1.FailStandaloneAudioJobResponse
+	(*timestamppb.Timestamp)(nil),             // 44: google.protobuf.Timestamp
 }
 var file_media_notes_content_v1_content_proto_depIdxs = []int32{
-	27, // 0: media_notes.content.v1.ContentVersion.updated_at:type_name -> google.protobuf.Timestamp
-	2,  // 1: media_notes.content.v1.Transcript.segments:type_name -> media_notes.content.v1.TranscriptSegment
-	2,  // 2: media_notes.content.v1.StoreTranscriptRequest.segments:type_name -> media_notes.content.v1.TranscriptSegment
-	1,  // 3: media_notes.content.v1.StoreTranscriptResponse.version:type_name -> media_notes.content.v1.ContentVersion
-	3,  // 4: media_notes.content.v1.GetTranscriptResponse.transcript:type_name -> media_notes.content.v1.Transcript
-	8,  // 5: media_notes.content.v1.Summary.sentences:type_name -> media_notes.content.v1.SummarySentence
-	27, // 6: media_notes.content.v1.Summary.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 7: media_notes.content.v1.StoreSummaryRequest.sentences:type_name -> media_notes.content.v1.SummarySentence
-	1,  // 8: media_notes.content.v1.StoreSummaryResponse.version:type_name -> media_notes.content.v1.ContentVersion
-	12, // 9: media_notes.content.v1.StoreKeywordsRequest.keywords:type_name -> media_notes.content.v1.Keyword
-	1,  // 10: media_notes.content.v1.StoreKeywordsResponse.version:type_name -> media_notes.content.v1.ContentVersion
-	15, // 11: media_notes.content.v1.StoreKeypointsRequest.keypoints:type_name -> media_notes.content.v1.Keypoint
-	1,  // 12: media_notes.content.v1.StoreKeypointsResponse.version:type_name -> media_notes.content.v1.ContentVersion
-	27, // 13: media_notes.content.v1.Note.created_at:type_name -> google.protobuf.Timestamp
-	1,  // 14: media_notes.content.v1.StoreNotesResponse.version:type_name -> media_notes.content.v1.ContentVersion
+	44, // 0: media_notes.content.v1.ContentVersion.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 1: media_notes.content.v1.Transcript.segments:type_name -> media_notes.content.v1.TranscriptSegment
+	4,  // 2: media_notes.content.v1.StoreTranscriptRequest.segments:type_name -> media_notes.content.v1.TranscriptSegment
+	3,  // 3: media_notes.content.v1.StoreTranscriptResponse.version:type_name -> media_notes.content.v1.ContentVersion
+	5,  // 4: media_notes.content.v1.GetTranscriptResponse.transcript:type_name -> media_notes.content.v1.Transcript
+	10, // 5: media_notes.content.v1.Summary.sentences:type_name -> media_notes.content.v1.SummarySentence
+	44, // 6: media_notes.content.v1.Summary.created_at:type_name -> google.protobuf.Timestamp
+	10, // 7: media_notes.content.v1.StoreSummaryRequest.sentences:type_name -> media_notes.content.v1.SummarySentence
+	3,  // 8: media_notes.content.v1.StoreSummaryResponse.version:type_name -> media_notes.content.v1.ContentVersion
+	14, // 9: media_notes.content.v1.StoreKeywordsRequest.keywords:type_name -> media_notes.content.v1.Keyword
+	3,  // 10: media_notes.content.v1.StoreKeywordsResponse.version:type_name -> media_notes.content.v1.ContentVersion
+	17, // 11: media_notes.content.v1.StoreKeypointsRequest.keypoints:type_name -> media_notes.content.v1.Keypoint
+	3,  // 12: media_notes.content.v1.StoreKeypointsResponse.version:type_name -> media_notes.content.v1.ContentVersion
+	44, // 13: media_notes.content.v1.Note.created_at:type_name -> google.protobuf.Timestamp
+	3,  // 14: media_notes.content.v1.StoreNotesResponse.version:type_name -> media_notes.content.v1.ContentVersion
 	0,  // 15: media_notes.content.v1.SummaryAudio.status:type_name -> media_notes.content.v1.SummaryAudioStatus
-	1,  // 16: media_notes.content.v1.StoreSummaryAudioMetadataResponse.version:type_name -> media_notes.content.v1.ContentVersion
-	3,  // 17: media_notes.content.v1.Content.transcript:type_name -> media_notes.content.v1.Transcript
-	9,  // 18: media_notes.content.v1.Content.summaries:type_name -> media_notes.content.v1.Summary
-	12, // 19: media_notes.content.v1.Content.keywords:type_name -> media_notes.content.v1.Keyword
-	15, // 20: media_notes.content.v1.Content.keypoints:type_name -> media_notes.content.v1.Keypoint
-	18, // 21: media_notes.content.v1.Content.notes:type_name -> media_notes.content.v1.Note
-	21, // 22: media_notes.content.v1.Content.summary_audios:type_name -> media_notes.content.v1.SummaryAudio
-	25, // 23: media_notes.content.v1.GetContentResponse.content:type_name -> media_notes.content.v1.Content
-	4,  // 24: media_notes.content.v1.ContentService.StoreTranscript:input_type -> media_notes.content.v1.StoreTranscriptRequest
-	6,  // 25: media_notes.content.v1.ContentService.GetTranscript:input_type -> media_notes.content.v1.GetTranscriptRequest
-	10, // 26: media_notes.content.v1.ContentService.StoreSummary:input_type -> media_notes.content.v1.StoreSummaryRequest
-	13, // 27: media_notes.content.v1.ContentService.StoreKeywords:input_type -> media_notes.content.v1.StoreKeywordsRequest
-	16, // 28: media_notes.content.v1.ContentService.StoreKeypoints:input_type -> media_notes.content.v1.StoreKeypointsRequest
-	19, // 29: media_notes.content.v1.ContentService.StoreNotes:input_type -> media_notes.content.v1.StoreNotesRequest
-	22, // 30: media_notes.content.v1.ContentService.StoreSummaryAudioMetadata:input_type -> media_notes.content.v1.StoreSummaryAudioMetadataRequest
-	24, // 31: media_notes.content.v1.ContentService.GetContent:input_type -> media_notes.content.v1.GetContentRequest
-	5,  // 32: media_notes.content.v1.ContentService.StoreTranscript:output_type -> media_notes.content.v1.StoreTranscriptResponse
-	7,  // 33: media_notes.content.v1.ContentService.GetTranscript:output_type -> media_notes.content.v1.GetTranscriptResponse
-	11, // 34: media_notes.content.v1.ContentService.StoreSummary:output_type -> media_notes.content.v1.StoreSummaryResponse
-	14, // 35: media_notes.content.v1.ContentService.StoreKeywords:output_type -> media_notes.content.v1.StoreKeywordsResponse
-	17, // 36: media_notes.content.v1.ContentService.StoreKeypoints:output_type -> media_notes.content.v1.StoreKeypointsResponse
-	20, // 37: media_notes.content.v1.ContentService.StoreNotes:output_type -> media_notes.content.v1.StoreNotesResponse
-	23, // 38: media_notes.content.v1.ContentService.StoreSummaryAudioMetadata:output_type -> media_notes.content.v1.StoreSummaryAudioMetadataResponse
-	26, // 39: media_notes.content.v1.ContentService.GetContent:output_type -> media_notes.content.v1.GetContentResponse
-	32, // [32:40] is the sub-list for method output_type
-	24, // [24:32] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	3,  // 16: media_notes.content.v1.StoreSummaryAudioMetadataResponse.version:type_name -> media_notes.content.v1.ContentVersion
+	5,  // 17: media_notes.content.v1.Content.transcript:type_name -> media_notes.content.v1.Transcript
+	11, // 18: media_notes.content.v1.Content.summaries:type_name -> media_notes.content.v1.Summary
+	14, // 19: media_notes.content.v1.Content.keywords:type_name -> media_notes.content.v1.Keyword
+	17, // 20: media_notes.content.v1.Content.keypoints:type_name -> media_notes.content.v1.Keypoint
+	20, // 21: media_notes.content.v1.Content.notes:type_name -> media_notes.content.v1.Note
+	23, // 22: media_notes.content.v1.Content.summary_audios:type_name -> media_notes.content.v1.SummaryAudio
+	27, // 23: media_notes.content.v1.GetContentResponse.content:type_name -> media_notes.content.v1.Content
+	1,  // 24: media_notes.content.v1.StandaloneAudioJob.kind:type_name -> media_notes.content.v1.StandaloneAudioJobKind
+	2,  // 25: media_notes.content.v1.StandaloneAudioJob.status:type_name -> media_notes.content.v1.StandaloneAudioJobStatus
+	44, // 26: media_notes.content.v1.StandaloneAudioJob.created_at:type_name -> google.protobuf.Timestamp
+	29, // 27: media_notes.content.v1.RequestScriptDraftResponse.job:type_name -> media_notes.content.v1.StandaloneAudioJob
+	29, // 28: media_notes.content.v1.RequestStandaloneAudioResponse.job:type_name -> media_notes.content.v1.StandaloneAudioJob
+	29, // 29: media_notes.content.v1.GetStandaloneAudioJobResponse.job:type_name -> media_notes.content.v1.StandaloneAudioJob
+	1,  // 30: media_notes.content.v1.ListStandaloneAudioJobsRequest.kind:type_name -> media_notes.content.v1.StandaloneAudioJobKind
+	29, // 31: media_notes.content.v1.ListStandaloneAudioJobsResponse.jobs:type_name -> media_notes.content.v1.StandaloneAudioJob
+	29, // 32: media_notes.content.v1.CompleteScriptDraftResponse.job:type_name -> media_notes.content.v1.StandaloneAudioJob
+	29, // 33: media_notes.content.v1.CompleteStandaloneAudioResponse.job:type_name -> media_notes.content.v1.StandaloneAudioJob
+	29, // 34: media_notes.content.v1.FailStandaloneAudioJobResponse.job:type_name -> media_notes.content.v1.StandaloneAudioJob
+	6,  // 35: media_notes.content.v1.ContentService.StoreTranscript:input_type -> media_notes.content.v1.StoreTranscriptRequest
+	8,  // 36: media_notes.content.v1.ContentService.GetTranscript:input_type -> media_notes.content.v1.GetTranscriptRequest
+	12, // 37: media_notes.content.v1.ContentService.StoreSummary:input_type -> media_notes.content.v1.StoreSummaryRequest
+	15, // 38: media_notes.content.v1.ContentService.StoreKeywords:input_type -> media_notes.content.v1.StoreKeywordsRequest
+	18, // 39: media_notes.content.v1.ContentService.StoreKeypoints:input_type -> media_notes.content.v1.StoreKeypointsRequest
+	21, // 40: media_notes.content.v1.ContentService.StoreNotes:input_type -> media_notes.content.v1.StoreNotesRequest
+	24, // 41: media_notes.content.v1.ContentService.StoreSummaryAudioMetadata:input_type -> media_notes.content.v1.StoreSummaryAudioMetadataRequest
+	26, // 42: media_notes.content.v1.ContentService.GetContent:input_type -> media_notes.content.v1.GetContentRequest
+	30, // 43: media_notes.content.v1.ContentService.RequestScriptDraft:input_type -> media_notes.content.v1.RequestScriptDraftRequest
+	32, // 44: media_notes.content.v1.ContentService.RequestStandaloneAudio:input_type -> media_notes.content.v1.RequestStandaloneAudioRequest
+	34, // 45: media_notes.content.v1.ContentService.GetStandaloneAudioJob:input_type -> media_notes.content.v1.GetStandaloneAudioJobRequest
+	36, // 46: media_notes.content.v1.ContentService.ListStandaloneAudioJobs:input_type -> media_notes.content.v1.ListStandaloneAudioJobsRequest
+	38, // 47: media_notes.content.v1.ContentService.CompleteScriptDraft:input_type -> media_notes.content.v1.CompleteScriptDraftRequest
+	40, // 48: media_notes.content.v1.ContentService.CompleteStandaloneAudio:input_type -> media_notes.content.v1.CompleteStandaloneAudioRequest
+	42, // 49: media_notes.content.v1.ContentService.FailStandaloneAudioJob:input_type -> media_notes.content.v1.FailStandaloneAudioJobRequest
+	7,  // 50: media_notes.content.v1.ContentService.StoreTranscript:output_type -> media_notes.content.v1.StoreTranscriptResponse
+	9,  // 51: media_notes.content.v1.ContentService.GetTranscript:output_type -> media_notes.content.v1.GetTranscriptResponse
+	13, // 52: media_notes.content.v1.ContentService.StoreSummary:output_type -> media_notes.content.v1.StoreSummaryResponse
+	16, // 53: media_notes.content.v1.ContentService.StoreKeywords:output_type -> media_notes.content.v1.StoreKeywordsResponse
+	19, // 54: media_notes.content.v1.ContentService.StoreKeypoints:output_type -> media_notes.content.v1.StoreKeypointsResponse
+	22, // 55: media_notes.content.v1.ContentService.StoreNotes:output_type -> media_notes.content.v1.StoreNotesResponse
+	25, // 56: media_notes.content.v1.ContentService.StoreSummaryAudioMetadata:output_type -> media_notes.content.v1.StoreSummaryAudioMetadataResponse
+	28, // 57: media_notes.content.v1.ContentService.GetContent:output_type -> media_notes.content.v1.GetContentResponse
+	31, // 58: media_notes.content.v1.ContentService.RequestScriptDraft:output_type -> media_notes.content.v1.RequestScriptDraftResponse
+	33, // 59: media_notes.content.v1.ContentService.RequestStandaloneAudio:output_type -> media_notes.content.v1.RequestStandaloneAudioResponse
+	35, // 60: media_notes.content.v1.ContentService.GetStandaloneAudioJob:output_type -> media_notes.content.v1.GetStandaloneAudioJobResponse
+	37, // 61: media_notes.content.v1.ContentService.ListStandaloneAudioJobs:output_type -> media_notes.content.v1.ListStandaloneAudioJobsResponse
+	39, // 62: media_notes.content.v1.ContentService.CompleteScriptDraft:output_type -> media_notes.content.v1.CompleteScriptDraftResponse
+	41, // 63: media_notes.content.v1.ContentService.CompleteStandaloneAudio:output_type -> media_notes.content.v1.CompleteStandaloneAudioResponse
+	43, // 64: media_notes.content.v1.ContentService.FailStandaloneAudioJob:output_type -> media_notes.content.v1.FailStandaloneAudioJobResponse
+	50, // [50:65] is the sub-list for method output_type
+	35, // [35:50] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_media_notes_content_v1_content_proto_init() }
@@ -2089,8 +3187,8 @@ func file_media_notes_content_v1_content_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_notes_content_v1_content_proto_rawDesc), len(file_media_notes_content_v1_content_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   26,
+			NumEnums:      3,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

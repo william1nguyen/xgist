@@ -34,6 +34,13 @@ const (
 	ContentService_StoreNotes_FullMethodName                = "/media_notes.content.v1.ContentService/StoreNotes"
 	ContentService_StoreSummaryAudioMetadata_FullMethodName = "/media_notes.content.v1.ContentService/StoreSummaryAudioMetadata"
 	ContentService_GetContent_FullMethodName                = "/media_notes.content.v1.ContentService/GetContent"
+	ContentService_RequestScriptDraft_FullMethodName        = "/media_notes.content.v1.ContentService/RequestScriptDraft"
+	ContentService_RequestStandaloneAudio_FullMethodName    = "/media_notes.content.v1.ContentService/RequestStandaloneAudio"
+	ContentService_GetStandaloneAudioJob_FullMethodName     = "/media_notes.content.v1.ContentService/GetStandaloneAudioJob"
+	ContentService_ListStandaloneAudioJobs_FullMethodName   = "/media_notes.content.v1.ContentService/ListStandaloneAudioJobs"
+	ContentService_CompleteScriptDraft_FullMethodName       = "/media_notes.content.v1.ContentService/CompleteScriptDraft"
+	ContentService_CompleteStandaloneAudio_FullMethodName   = "/media_notes.content.v1.ContentService/CompleteStandaloneAudio"
+	ContentService_FailStandaloneAudioJob_FullMethodName    = "/media_notes.content.v1.ContentService/FailStandaloneAudioJob"
 )
 
 // ContentServiceClient is the client API for ContentService service.
@@ -73,6 +80,30 @@ type ContentServiceClient interface {
 	StoreSummaryAudioMetadata(ctx context.Context, in *StoreSummaryAudioMetadataRequest, opts ...grpc.CallOption) (*StoreSummaryAudioMetadataResponse, error)
 	// GetContent returns every generated artifact stored for one media item.
 	GetContent(ctx context.Context, in *GetContentRequest, opts ...grpc.CallOption) (*GetContentResponse, error)
+	// RequestScriptDraft creates a generating standalone-audio job asking an
+	// LLM to draft narration text from a loose description. Idempotent per
+	// idempotency_key. See docs/services/worker.md's "Standalone audio
+	// generation" section.
+	RequestScriptDraft(ctx context.Context, in *RequestScriptDraftRequest, opts ...grpc.CallOption) (*RequestScriptDraftResponse, error)
+	// RequestStandaloneAudio creates a generating standalone-audio job that
+	// synthesizes text directly to speech, independent of any media item.
+	// Idempotent per idempotency_key.
+	RequestStandaloneAudio(ctx context.Context, in *RequestStandaloneAudioRequest, opts ...grpc.CallOption) (*RequestStandaloneAudioResponse, error)
+	// GetStandaloneAudioJob returns one standalone-audio job.
+	GetStandaloneAudioJob(ctx context.Context, in *GetStandaloneAudioJobRequest, opts ...grpc.CallOption) (*GetStandaloneAudioJobResponse, error)
+	// ListStandaloneAudioJobs returns one user's standalone-audio jobs of a
+	// given kind, newest first.
+	ListStandaloneAudioJobs(ctx context.Context, in *ListStandaloneAudioJobsRequest, opts ...grpc.CallOption) (*ListStandaloneAudioJobsResponse, error)
+	// CompleteScriptDraft commits a script-draft job's LLM output. Called by
+	// conductor-worker; a no-op (returns the job's current state) if the
+	// job already left the generating state.
+	CompleteScriptDraft(ctx context.Context, in *CompleteScriptDraftRequest, opts ...grpc.CallOption) (*CompleteScriptDraftResponse, error)
+	// CompleteStandaloneAudio commits an audio job's durable object
+	// metadata. Called by conductor-worker.
+	CompleteStandaloneAudio(ctx context.Context, in *CompleteStandaloneAudioRequest, opts ...grpc.CallOption) (*CompleteStandaloneAudioResponse, error)
+	// FailStandaloneAudioJob marks a generating job of either kind failed.
+	// Called by conductor-worker.
+	FailStandaloneAudioJob(ctx context.Context, in *FailStandaloneAudioJobRequest, opts ...grpc.CallOption) (*FailStandaloneAudioJobResponse, error)
 }
 
 type contentServiceClient struct {
@@ -163,6 +194,76 @@ func (c *contentServiceClient) GetContent(ctx context.Context, in *GetContentReq
 	return out, nil
 }
 
+func (c *contentServiceClient) RequestScriptDraft(ctx context.Context, in *RequestScriptDraftRequest, opts ...grpc.CallOption) (*RequestScriptDraftResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RequestScriptDraftResponse)
+	err := c.cc.Invoke(ctx, ContentService_RequestScriptDraft_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentServiceClient) RequestStandaloneAudio(ctx context.Context, in *RequestStandaloneAudioRequest, opts ...grpc.CallOption) (*RequestStandaloneAudioResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RequestStandaloneAudioResponse)
+	err := c.cc.Invoke(ctx, ContentService_RequestStandaloneAudio_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentServiceClient) GetStandaloneAudioJob(ctx context.Context, in *GetStandaloneAudioJobRequest, opts ...grpc.CallOption) (*GetStandaloneAudioJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStandaloneAudioJobResponse)
+	err := c.cc.Invoke(ctx, ContentService_GetStandaloneAudioJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentServiceClient) ListStandaloneAudioJobs(ctx context.Context, in *ListStandaloneAudioJobsRequest, opts ...grpc.CallOption) (*ListStandaloneAudioJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListStandaloneAudioJobsResponse)
+	err := c.cc.Invoke(ctx, ContentService_ListStandaloneAudioJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentServiceClient) CompleteScriptDraft(ctx context.Context, in *CompleteScriptDraftRequest, opts ...grpc.CallOption) (*CompleteScriptDraftResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteScriptDraftResponse)
+	err := c.cc.Invoke(ctx, ContentService_CompleteScriptDraft_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentServiceClient) CompleteStandaloneAudio(ctx context.Context, in *CompleteStandaloneAudioRequest, opts ...grpc.CallOption) (*CompleteStandaloneAudioResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteStandaloneAudioResponse)
+	err := c.cc.Invoke(ctx, ContentService_CompleteStandaloneAudio_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentServiceClient) FailStandaloneAudioJob(ctx context.Context, in *FailStandaloneAudioJobRequest, opts ...grpc.CallOption) (*FailStandaloneAudioJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FailStandaloneAudioJobResponse)
+	err := c.cc.Invoke(ctx, ContentService_FailStandaloneAudioJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContentServiceServer is the server API for ContentService service.
 // All implementations must embed UnimplementedContentServiceServer
 // for forward compatibility.
@@ -200,6 +301,30 @@ type ContentServiceServer interface {
 	StoreSummaryAudioMetadata(context.Context, *StoreSummaryAudioMetadataRequest) (*StoreSummaryAudioMetadataResponse, error)
 	// GetContent returns every generated artifact stored for one media item.
 	GetContent(context.Context, *GetContentRequest) (*GetContentResponse, error)
+	// RequestScriptDraft creates a generating standalone-audio job asking an
+	// LLM to draft narration text from a loose description. Idempotent per
+	// idempotency_key. See docs/services/worker.md's "Standalone audio
+	// generation" section.
+	RequestScriptDraft(context.Context, *RequestScriptDraftRequest) (*RequestScriptDraftResponse, error)
+	// RequestStandaloneAudio creates a generating standalone-audio job that
+	// synthesizes text directly to speech, independent of any media item.
+	// Idempotent per idempotency_key.
+	RequestStandaloneAudio(context.Context, *RequestStandaloneAudioRequest) (*RequestStandaloneAudioResponse, error)
+	// GetStandaloneAudioJob returns one standalone-audio job.
+	GetStandaloneAudioJob(context.Context, *GetStandaloneAudioJobRequest) (*GetStandaloneAudioJobResponse, error)
+	// ListStandaloneAudioJobs returns one user's standalone-audio jobs of a
+	// given kind, newest first.
+	ListStandaloneAudioJobs(context.Context, *ListStandaloneAudioJobsRequest) (*ListStandaloneAudioJobsResponse, error)
+	// CompleteScriptDraft commits a script-draft job's LLM output. Called by
+	// conductor-worker; a no-op (returns the job's current state) if the
+	// job already left the generating state.
+	CompleteScriptDraft(context.Context, *CompleteScriptDraftRequest) (*CompleteScriptDraftResponse, error)
+	// CompleteStandaloneAudio commits an audio job's durable object
+	// metadata. Called by conductor-worker.
+	CompleteStandaloneAudio(context.Context, *CompleteStandaloneAudioRequest) (*CompleteStandaloneAudioResponse, error)
+	// FailStandaloneAudioJob marks a generating job of either kind failed.
+	// Called by conductor-worker.
+	FailStandaloneAudioJob(context.Context, *FailStandaloneAudioJobRequest) (*FailStandaloneAudioJobResponse, error)
 	mustEmbedUnimplementedContentServiceServer()
 }
 
@@ -233,6 +358,27 @@ func (UnimplementedContentServiceServer) StoreSummaryAudioMetadata(context.Conte
 }
 func (UnimplementedContentServiceServer) GetContent(context.Context, *GetContentRequest) (*GetContentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetContent not implemented")
+}
+func (UnimplementedContentServiceServer) RequestScriptDraft(context.Context, *RequestScriptDraftRequest) (*RequestScriptDraftResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RequestScriptDraft not implemented")
+}
+func (UnimplementedContentServiceServer) RequestStandaloneAudio(context.Context, *RequestStandaloneAudioRequest) (*RequestStandaloneAudioResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RequestStandaloneAudio not implemented")
+}
+func (UnimplementedContentServiceServer) GetStandaloneAudioJob(context.Context, *GetStandaloneAudioJobRequest) (*GetStandaloneAudioJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetStandaloneAudioJob not implemented")
+}
+func (UnimplementedContentServiceServer) ListStandaloneAudioJobs(context.Context, *ListStandaloneAudioJobsRequest) (*ListStandaloneAudioJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListStandaloneAudioJobs not implemented")
+}
+func (UnimplementedContentServiceServer) CompleteScriptDraft(context.Context, *CompleteScriptDraftRequest) (*CompleteScriptDraftResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteScriptDraft not implemented")
+}
+func (UnimplementedContentServiceServer) CompleteStandaloneAudio(context.Context, *CompleteStandaloneAudioRequest) (*CompleteStandaloneAudioResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteStandaloneAudio not implemented")
+}
+func (UnimplementedContentServiceServer) FailStandaloneAudioJob(context.Context, *FailStandaloneAudioJobRequest) (*FailStandaloneAudioJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FailStandaloneAudioJob not implemented")
 }
 func (UnimplementedContentServiceServer) mustEmbedUnimplementedContentServiceServer() {}
 func (UnimplementedContentServiceServer) testEmbeddedByValue()                        {}
@@ -399,6 +545,132 @@ func _ContentService_GetContent_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ContentService_RequestScriptDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestScriptDraftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).RequestScriptDraft(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentService_RequestScriptDraft_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).RequestScriptDraft(ctx, req.(*RequestScriptDraftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContentService_RequestStandaloneAudio_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestStandaloneAudioRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).RequestStandaloneAudio(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentService_RequestStandaloneAudio_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).RequestStandaloneAudio(ctx, req.(*RequestStandaloneAudioRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContentService_GetStandaloneAudioJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStandaloneAudioJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).GetStandaloneAudioJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentService_GetStandaloneAudioJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).GetStandaloneAudioJob(ctx, req.(*GetStandaloneAudioJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContentService_ListStandaloneAudioJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStandaloneAudioJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).ListStandaloneAudioJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentService_ListStandaloneAudioJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).ListStandaloneAudioJobs(ctx, req.(*ListStandaloneAudioJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContentService_CompleteScriptDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteScriptDraftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).CompleteScriptDraft(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentService_CompleteScriptDraft_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).CompleteScriptDraft(ctx, req.(*CompleteScriptDraftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContentService_CompleteStandaloneAudio_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteStandaloneAudioRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).CompleteStandaloneAudio(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentService_CompleteStandaloneAudio_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).CompleteStandaloneAudio(ctx, req.(*CompleteStandaloneAudioRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContentService_FailStandaloneAudioJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FailStandaloneAudioJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).FailStandaloneAudioJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentService_FailStandaloneAudioJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).FailStandaloneAudioJob(ctx, req.(*FailStandaloneAudioJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ContentService_ServiceDesc is the grpc.ServiceDesc for ContentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -437,6 +709,34 @@ var ContentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetContent",
 			Handler:    _ContentService_GetContent_Handler,
+		},
+		{
+			MethodName: "RequestScriptDraft",
+			Handler:    _ContentService_RequestScriptDraft_Handler,
+		},
+		{
+			MethodName: "RequestStandaloneAudio",
+			Handler:    _ContentService_RequestStandaloneAudio_Handler,
+		},
+		{
+			MethodName: "GetStandaloneAudioJob",
+			Handler:    _ContentService_GetStandaloneAudioJob_Handler,
+		},
+		{
+			MethodName: "ListStandaloneAudioJobs",
+			Handler:    _ContentService_ListStandaloneAudioJobs_Handler,
+		},
+		{
+			MethodName: "CompleteScriptDraft",
+			Handler:    _ContentService_CompleteScriptDraft_Handler,
+		},
+		{
+			MethodName: "CompleteStandaloneAudio",
+			Handler:    _ContentService_CompleteStandaloneAudio_Handler,
+		},
+		{
+			MethodName: "FailStandaloneAudioJob",
+			Handler:    _ContentService_FailStandaloneAudioJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

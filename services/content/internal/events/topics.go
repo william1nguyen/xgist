@@ -21,6 +21,11 @@ const (
 	// not hardcode this name yet either, so this is a forward-compatible
 	// definition rather than one negotiated against a live consumer.
 	DeletionCompletedTopic = "mn.content.deletion.completed.v1"
+	// AudioJobRequestedTopic starts one standalone script-draft or
+	// audio-generation job. Produced by content (internal/audiojob),
+	// consumed directly by conductor-worker — no conductor workflow is
+	// ever involved, unlike every other processing step.
+	AudioJobRequestedTopic = "mn.audio.job.requested.v1"
 
 	eventsConsumerGroup = "content-events"
 )

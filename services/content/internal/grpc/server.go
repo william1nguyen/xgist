@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	contentv1 "github.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/content/v1"
+	"github.com/nolannguyen1212/media-notes/services/content/internal/audiojob"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/content"
 )
 
@@ -36,6 +37,18 @@ type ContentService interface {
 	GetContent(ctx context.Context, mediaID uuid.UUID) (content.Content, error)
 }
 
+// AudioJobService is the standalone-audio-job application-service
+// boundary the server depends on. *audiojob.Service implements it.
+type AudioJobService interface {
+	RequestScriptDraft(ctx context.Context, userID uuid.UUID, idempotencyKey, description string) (audiojob.Job, error)
+	RequestStandaloneAudio(ctx context.Context, userID uuid.UUID, idempotencyKey, text, voice string) (audiojob.Job, error)
+	CompleteScriptDraft(ctx context.Context, jobID uuid.UUID, scriptText string) (audiojob.Job, error)
+	CompleteStandaloneAudio(ctx context.Context, jobID uuid.UUID, objectKey, mimeType string, durationMs int64, voice string) (audiojob.Job, error)
+	FailJob(ctx context.Context, jobID uuid.UUID, errorCode string) (audiojob.Job, error)
+	GetJob(ctx context.Context, jobID uuid.UUID) (audiojob.Job, error)
+	ListJobs(ctx context.Context, userID uuid.UUID, kind audiojob.Kind, cursor string, pageSize int) (audiojob.Page, error)
+}
+
 // ObjectStore presigns read URLs for summary-audio objects.
 // *objectstore.Client implements it. Nil is valid: GetContent falls back
 // to returning summary-audio metadata with no url.
@@ -47,13 +60,14 @@ type ObjectStore interface {
 type Server struct {
 	contentv1.UnimplementedContentServiceServer
 	content     ContentService
+	audioJobs   AudioJobService
 	objectStore ObjectStore
 	logger      *slog.Logger
 }
 
 // NewServer returns a Server. objectStore may be nil (see ObjectStore).
-func NewServer(content ContentService, objectStore ObjectStore, logger *slog.Logger) *Server {
-	return &Server{content: content, objectStore: objectStore, logger: logger}
+func NewServer(content ContentService, audioJobs AudioJobService, objectStore ObjectStore, logger *slog.Logger) *Server {
+	return &Server{content: content, audioJobs: audioJobs, objectStore: objectStore, logger: logger}
 }
 
 func (s *Server) StoreTranscript(ctx context.Context, req *contentv1.StoreTranscriptRequest) (*contentv1.StoreTranscriptResponse, error) {
@@ -249,6 +263,120 @@ func (s *Server) GetContent(ctx context.Context, req *contentv1.GetContentReques
 	return &contentv1.GetContentResponse{Content: s.toProtoContent(ctx, c)}, nil
 }
 
+func (s *Server) RequestScriptDraft(ctx context.Context, req *contentv1.RequestScriptDraftRequest) (*contentv1.RequestScriptDraftResponse, error) {
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+	if req.GetIdempotencyKey() == "" {
+		return nil, status.Error(codes.InvalidArgument, "idempotency_key is required")
+	}
+	if req.GetDescription() == "" {
+		return nil, status.Error(codes.InvalidArgument, "description is required")
+	}
+
+	job, err := s.audioJobs.RequestScriptDraft(ctx, userID, req.GetIdempotencyKey(), req.GetDescription())
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &contentv1.RequestScriptDraftResponse{Job: s.toProtoAudioJob(ctx, job)}, nil
+}
+
+func (s *Server) RequestStandaloneAudio(ctx context.Context, req *contentv1.RequestStandaloneAudioRequest) (*contentv1.RequestStandaloneAudioResponse, error) {
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+	if req.GetIdempotencyKey() == "" {
+		return nil, status.Error(codes.InvalidArgument, "idempotency_key is required")
+	}
+	if req.GetText() == "" {
+		return nil, status.Error(codes.InvalidArgument, "text is required")
+	}
+
+	job, err := s.audioJobs.RequestStandaloneAudio(ctx, userID, req.GetIdempotencyKey(), req.GetText(), req.GetVoice())
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &contentv1.RequestStandaloneAudioResponse{Job: s.toProtoAudioJob(ctx, job)}, nil
+}
+
+func (s *Server) GetStandaloneAudioJob(ctx context.Context, req *contentv1.GetStandaloneAudioJobRequest) (*contentv1.GetStandaloneAudioJobResponse, error) {
+	jobID, err := uuid.Parse(req.GetId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "id must be a UUID")
+	}
+
+	job, err := s.audioJobs.GetJob(ctx, jobID)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &contentv1.GetStandaloneAudioJobResponse{Job: s.toProtoAudioJob(ctx, job)}, nil
+}
+
+func (s *Server) ListStandaloneAudioJobs(ctx context.Context, req *contentv1.ListStandaloneAudioJobsRequest) (*contentv1.ListStandaloneAudioJobsResponse, error) {
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+	pageSize := int(req.GetPageSize())
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+
+	page, err := s.audioJobs.ListJobs(ctx, userID, toDomainAudioJobKind(req.GetKind()), req.GetCursor(), pageSize)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	jobs := make([]*contentv1.StandaloneAudioJob, 0, len(page.Items))
+	for _, j := range page.Items {
+		jobs = append(jobs, s.toProtoAudioJob(ctx, j))
+	}
+	return &contentv1.ListStandaloneAudioJobsResponse{Jobs: jobs, NextCursor: page.NextCursor}, nil
+}
+
+func (s *Server) CompleteScriptDraft(ctx context.Context, req *contentv1.CompleteScriptDraftRequest) (*contentv1.CompleteScriptDraftResponse, error) {
+	jobID, err := uuid.Parse(req.GetJobId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "job_id must be a UUID")
+	}
+
+	job, err := s.audioJobs.CompleteScriptDraft(ctx, jobID, req.GetScriptText())
+	if err != nil && !errors.Is(err, audiojob.ErrNotGenerating) {
+		return nil, mapError(err)
+	}
+	return &contentv1.CompleteScriptDraftResponse{Job: s.toProtoAudioJob(ctx, job)}, nil
+}
+
+func (s *Server) CompleteStandaloneAudio(ctx context.Context, req *contentv1.CompleteStandaloneAudioRequest) (*contentv1.CompleteStandaloneAudioResponse, error) {
+	jobID, err := uuid.Parse(req.GetJobId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "job_id must be a UUID")
+	}
+	if req.GetObjectKey() == "" {
+		return nil, status.Error(codes.InvalidArgument, "object_key is required")
+	}
+
+	job, err := s.audioJobs.CompleteStandaloneAudio(ctx, jobID, req.GetObjectKey(), req.GetMimeType(), req.GetDurationMs(), req.GetVoice())
+	if err != nil && !errors.Is(err, audiojob.ErrNotGenerating) {
+		return nil, mapError(err)
+	}
+	return &contentv1.CompleteStandaloneAudioResponse{Job: s.toProtoAudioJob(ctx, job)}, nil
+}
+
+func (s *Server) FailStandaloneAudioJob(ctx context.Context, req *contentv1.FailStandaloneAudioJobRequest) (*contentv1.FailStandaloneAudioJobResponse, error) {
+	jobID, err := uuid.Parse(req.GetJobId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "job_id must be a UUID")
+	}
+
+	job, err := s.audioJobs.FailJob(ctx, jobID, req.GetErrorCode())
+	if err != nil && !errors.Is(err, audiojob.ErrNotGenerating) {
+		return nil, mapError(err)
+	}
+	return &contentv1.FailStandaloneAudioJobResponse{Job: s.toProtoAudioJob(ctx, job)}, nil
+}
+
 func parseMediaAndWorkflow(mediaID, workflowID string) (uuid.UUID, uuid.UUID, error) {
 	mid, err := uuid.Parse(mediaID)
 	if err != nil {
@@ -263,7 +391,7 @@ func parseMediaAndWorkflow(mediaID, workflowID string) (uuid.UUID, uuid.UUID, er
 
 func mapError(err error) error {
 	switch {
-	case errors.Is(err, content.ErrNotFound):
+	case errors.Is(err, content.ErrNotFound), errors.Is(err, audiojob.ErrNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, content.ErrUnknownSegment),
 		errors.Is(err, content.ErrInvalidSegments):
@@ -428,4 +556,69 @@ func toProtoAudioStatus(s content.AudioStatus) contentv1.SummaryAudioStatus {
 	default:
 		return contentv1.SummaryAudioStatus_SUMMARY_AUDIO_STATUS_UNSPECIFIED
 	}
+}
+
+// standaloneAudioURLExpiry matches summaryAudioURLExpiry: both are
+// short-lived signed reads of the same object storage.
+const standaloneAudioURLExpiry = summaryAudioURLExpiry
+
+func toProtoAudioJobKind(k audiojob.Kind) contentv1.StandaloneAudioJobKind {
+	switch k {
+	case audiojob.KindScript:
+		return contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_SCRIPT
+	case audiojob.KindAudio:
+		return contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_AUDIO
+	default:
+		return contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED
+	}
+}
+
+func toDomainAudioJobKind(k contentv1.StandaloneAudioJobKind) audiojob.Kind {
+	switch k {
+	case contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_SCRIPT:
+		return audiojob.KindScript
+	case contentv1.StandaloneAudioJobKind_STANDALONE_AUDIO_JOB_KIND_AUDIO:
+		return audiojob.KindAudio
+	default:
+		return ""
+	}
+}
+
+func toProtoAudioJobStatus(s audiojob.Status) contentv1.StandaloneAudioJobStatus {
+	switch s {
+	case audiojob.StatusGenerating:
+		return contentv1.StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_GENERATING
+	case audiojob.StatusCompleted:
+		return contentv1.StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_COMPLETED
+	case audiojob.StatusFailed:
+		return contentv1.StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_FAILED
+	default:
+		return contentv1.StandaloneAudioJobStatus_STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED
+	}
+}
+
+func (s *Server) toProtoAudioJob(ctx context.Context, j audiojob.Job) *contentv1.StandaloneAudioJob {
+	out := &contentv1.StandaloneAudioJob{
+		Id:         j.ID.String(),
+		UserId:     j.UserID.String(),
+		Kind:       toProtoAudioJobKind(j.Kind),
+		Status:     toProtoAudioJobStatus(j.Status),
+		InputText:  j.InputText,
+		OutputText: j.OutputText,
+		Voice:      j.Voice,
+		DurationMs: j.DurationMs,
+		ErrorCode:  j.ErrorCode,
+		CreatedAt:  timestamppb.New(j.CreatedAt),
+	}
+	if s.objectStore != nil && j.Kind == audiojob.KindAudio && j.Status == audiojob.StatusCompleted && j.ObjectKey != "" {
+		signedURL, err := s.objectStore.PresignGetObject(ctx, j.ObjectKey, standaloneAudioURLExpiry)
+		if err != nil {
+			if s.logger != nil {
+				s.logger.ErrorContext(ctx, "presign standalone audio url", "object_key", j.ObjectKey, "error", err)
+			}
+		} else {
+			out.Url = signedURL
+		}
+	}
+	return out
 }

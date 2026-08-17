@@ -21,6 +21,7 @@ import (
 
 	contentv1 "github.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/content/v1"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/app"
+	"github.com/nolannguyen1212/media-notes/services/content/internal/audiojob"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/content"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/deletion"
 	"github.com/nolannguyen1212/media-notes/services/content/internal/events"
@@ -73,11 +74,13 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 
 	contentRepo := store.NewContentRepository(pool)
 	deletionRepo := store.NewDeletionRepository(pool)
+	audioJobRepo := store.NewAudioJobRepository(pool)
 	outboxRepo := store.NewOutboxRepository(pool)
 	inboxRepo := store.NewInboxRepository(pool)
 
 	deletionSvc := deletion.NewService(deletionRepo)
 	contentSvc := content.NewService(contentRepo, deletionSvc)
+	audioJobSvc := audiojob.NewService(audioJobRepo)
 
 	// Declared as the interface, not *objectstore.Client: assigning a nil
 	// *Client to an ObjectStore-typed variable would leave a non-nil
@@ -102,7 +105,7 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 			grpcserver.UnaryLoggingInterceptor(logger),
 		),
 	)
-	contentv1.RegisterContentServiceServer(grpcSrv, grpcserver.NewServer(contentSvc, objectStore, logger))
+	contentv1.RegisterContentServiceServer(grpcSrv, grpcserver.NewServer(contentSvc, audioJobSvc, objectStore, logger))
 	// Reflection lets grpcurl/grpcui introspect the API without a local
 	// copy of content.proto. content is only ever called by hermes and
 	// conductor-worker on the internal network, so exposing the schema
