@@ -11,6 +11,16 @@ query Quote($options: [String!]!) {
 	}
 }
 
+query PriceCatalog {
+	priceCatalog {
+		catalogVersion
+		items {
+			itemId
+			credits
+		}
+	}
+}
+
 query CreditLedgerHistory($cursor: String, $pageSize: Int) {
 	creditLedgerHistory(cursor: $cursor, pageSize: $pageSize) {
 		items {

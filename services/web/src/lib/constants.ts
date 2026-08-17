@@ -34,52 +34,46 @@ type ProcessingOption = {
 	id: ProcessingOptionId;
 	label: string;
 	description: string;
-	credits: number;
 	required?: boolean;
 	dependsOn?: ProcessingOptionId;
 };
 
-// billing.md's seeded "launch-v1" catalog (services/billing/migrations/V1__init.sql).
-// The live price for a selection always comes from the `quote` query — these
-// are shown only as an at-a-glance reference before a quote is fetched.
+// Copy only — never a price. Every credit cost is fetched live from the
+// backend (the `quote`/`priceCatalog` queries, billing's catalog as the
+// single source of truth) and rendered from there; nothing here may be
+// used to display or compute a cost.
 export const PROCESSING_OPTIONS: readonly ProcessingOption[] = [
 	{
 		id: "transcribe",
 		label: "Transcript",
 		description:
 			"Timestamped transcript segments (required for everything else)",
-		credits: 10,
 		required: true,
 	},
 	{
 		id: "summarize",
 		label: "Summary",
 		description: "Cited summary with evidence links back to the transcript",
-		credits: 20,
 	},
 	{
 		id: "extract_keywords",
 		label: "Keywords",
 		description: "Ranked keywords",
-		credits: 5,
 	},
 	{
 		id: "extract_keypoints",
 		label: "Keypoints",
 		description: "Key points tied to transcript ranges",
-		credits: 10,
 	},
 	{
 		id: "generate_notes",
 		label: "Notes",
 		description: "Structured notes",
-		credits: 15,
 	},
 	{
 		id: "generate_audio_summary",
 		label: "Audio summary",
 		description: "Text-to-speech summary audio",
-		credits: 30,
 		dependsOn: "summarize",
 	},
 ];

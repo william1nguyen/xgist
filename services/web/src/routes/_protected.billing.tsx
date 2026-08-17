@@ -4,7 +4,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBillingSummaryQuery } from "@/graphql/generated/graphql";
+import {
+	useBillingSummaryQuery,
+	usePriceCatalogQuery,
+} from "@/graphql/generated/graphql";
 import { PROCESSING_OPTIONS } from "@/lib/constants";
 
 const SUBSCRIPTION_STATUS_VARIANT = {
@@ -20,6 +23,16 @@ export default function BillingPage() {
 		fetchPolicy: "cache-and-network",
 	});
 	const summary = data?.billingSummary;
+
+	const { data: catalogData, loading: catalogLoading } = usePriceCatalogQuery({
+		fetchPolicy: "cache-and-network",
+	});
+	const creditsByItem = new Map(
+		catalogData?.priceCatalog.items.map((item) => [
+			item.itemId,
+			item.credits,
+		]) ?? [],
+	);
 
 	return (
 		<div className="flex flex-col gap-6 px-4 py-6 md:px-6 lg:px-8">
@@ -111,7 +124,11 @@ export default function BillingPage() {
 								</p>
 							</div>
 							<span className="shrink-0 text-muted-foreground">
-								{option.credits} {t("billingPage.creditsSuffix")}
+								{catalogLoading && !catalogData ? (
+									<Skeleton className="h-4 w-14" />
+								) : (
+									`${creditsByItem.get(option.id) ?? "—"} ${t("billingPage.creditsSuffix")}`
+								)}
 							</span>
 						</div>
 					))}
