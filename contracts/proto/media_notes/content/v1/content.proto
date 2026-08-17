@@ -1,0 +1,387 @@
+// Package media_notes.content.v1 defines the content service contract:
+// transcript, ordered segments, summaries, citations, keywords, keypoints,
+// notes, and summary-audio metadata. conductor-worker calls this service to
+// commit structured step output and to read inputs for a later step; hermes
+// calls it for transcript and generated-content reads. content does not own
+// upload lifecycle or workflow decisions, per docs/services/content.md.
+syntax = "proto3";
+
+package media_notes.content.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// ContentService owns transcript, ordered segments, summaries, citations,
+// keywords, keypoints, notes, and summary-audio metadata for one media item,
+// plus its deletion state. It does not own media metadata, upload lifecycle,
+// or workflow state.
+service ContentService {
+  // StoreTranscript commits an ordered transcript and its segments.
+  // Idempotent per idempotency_key; a call with an attempt lower than the
+  // highest already applied for this media's transcript step is rejected
+  // as stale.
+  rpc StoreTranscript(StoreTranscriptRequest) returns (StoreTranscriptResponse);
+  // GetTranscript returns one media item's transcript and ordered segments.
+  rpc GetTranscript(GetTranscriptRequest) returns (GetTranscriptResponse);
+  // StoreSummary commits summary text and its sentence-level citations.
+  // Every cited segment index must already exist in the stored transcript.
+  // Idempotent per idempotency_key, one summary per (media_id,
+  // summary_type).
+  rpc StoreSummary(StoreSummaryRequest) returns (StoreSummaryResponse);
+  // StoreKeywords replaces the stored keyword set for one media item.
+  // Idempotent per idempotency_key.
+  rpc StoreKeywords(StoreKeywordsRequest) returns (StoreKeywordsResponse);
+  // StoreKeypoints replaces the stored keypoint set for one media item.
+  // Every referenced segment range must already exist in the stored
+  // transcript. Idempotent per idempotency_key.
+  rpc StoreKeypoints(StoreKeypointsRequest) returns (StoreKeypointsResponse);
+  // StoreNotes commits one note document, one per (media_id, format).
+  // Idempotent per idempotency_key.
+  rpc StoreNotes(StoreNotesRequest) returns (StoreNotesResponse);
+  // StoreSummaryAudioMetadata commits the metadata of a summary-audio
+  // object already durable in object storage. Idempotent per
+  // idempotency_key, one per (media_id, summary_type).
+  rpc StoreSummaryAudioMetadata(StoreSummaryAudioMetadataRequest) returns (StoreSummaryAudioMetadataResponse);
+  // GetContent returns every generated artifact stored for one media item.
+  rpc GetContent(GetContentRequest) returns (GetContentResponse);
+
+  // RequestScriptDraft creates a generating standalone-audio job asking an
+  // LLM to draft narration text from a loose description. Idempotent per
+  // idempotency_key. See docs/services/worker.md's "Standalone audio
+  // generation" section.
+  rpc RequestScriptDraft(RequestScriptDraftRequest) returns (RequestScriptDraftResponse);
+  // RequestStandaloneAudio creates a generating standalone-audio job that
+  // synthesizes text directly to speech, independent of any media item.
+  // Idempotent per idempotency_key.
+  rpc RequestStandaloneAudio(RequestStandaloneAudioRequest) returns (RequestStandaloneAudioResponse);
+  // GetStandaloneAudioJob returns one standalone-audio job.
+  rpc GetStandaloneAudioJob(GetStandaloneAudioJobRequest) returns (GetStandaloneAudioJobResponse);
+  // ListStandaloneAudioJobs returns one user's standalone-audio jobs of a
+  // given kind, newest first.
+  rpc ListStandaloneAudioJobs(ListStandaloneAudioJobsRequest) returns (ListStandaloneAudioJobsResponse);
+  // CompleteScriptDraft commits a script-draft job's LLM output. Called by
+  // conductor-worker; a no-op (returns the job's current state) if the
+  // job already left the generating state.
+  rpc CompleteScriptDraft(CompleteScriptDraftRequest) returns (CompleteScriptDraftResponse);
+  // CompleteStandaloneAudio commits an audio job's durable object
+  // metadata. Called by conductor-worker.
+  rpc CompleteStandaloneAudio(CompleteStandaloneAudioRequest) returns (CompleteStandaloneAudioResponse);
+  // FailStandaloneAudioJob marks a generating job of either kind failed.
+  // Called by conductor-worker.
+  rpc FailStandaloneAudioJob(FailStandaloneAudioJobRequest) returns (FailStandaloneAudioJobResponse);
+}
+
+// ContentVersion is the durable version of one media item's content record
+// after a write, used by callers to detect a newer read is available.
+message ContentVersion {
+  string media_id = 1;
+  int32 version = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+// TranscriptSegment is one ordered, timestamped span of a transcript.
+message TranscriptSegment {
+  int32 segment_index = 1;
+  int64 start_ms = 2;
+  int64 end_ms = 3;
+  string speaker = 4;
+  string text = 5;
+}
+
+// Transcript is one media item's full transcript and ordered segments.
+message Transcript {
+  string media_id = 1;
+  string language = 2;
+  string text = 3;
+  repeated TranscriptSegment segments = 4;
+  int32 version = 5;
+}
+
+// StoreTranscriptRequest carries a caller idempotency key and attempt
+// number alongside the ordered transcript to commit.
+message StoreTranscriptRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  string workflow_id = 3;
+  int32 attempt = 4;
+  string language = 5;
+  string text = 6;
+  repeated TranscriptSegment segments = 7;
+}
+
+message StoreTranscriptResponse {
+  ContentVersion version = 1;
+}
+
+message GetTranscriptRequest {
+  string media_id = 1;
+}
+
+message GetTranscriptResponse {
+  Transcript transcript = 1;
+}
+
+// SummarySentence is one sentence of a summary and the transcript segments
+// it cites as evidence.
+message SummarySentence {
+  int32 sentence_index = 1;
+  string text = 2;
+  repeated int32 cited_segment_indexes = 3;
+}
+
+// Summary is generated summary text of one type ("short", "detailed", ...)
+// for one media item.
+message Summary {
+  string summary_type = 1;
+  string text = 2;
+  string model = 3;
+  string prompt_version = 4;
+  repeated SummarySentence sentences = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message StoreSummaryRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  string workflow_id = 3;
+  int32 attempt = 4;
+  string summary_type = 5;
+  string text = 6;
+  string model = 7;
+  string prompt_version = 8;
+  repeated SummarySentence sentences = 9;
+}
+
+message StoreSummaryResponse {
+  ContentVersion version = 1;
+}
+
+// Keyword is one extracted keyword and its relevance score.
+message Keyword {
+  string keyword = 1;
+  double score = 2;
+  int32 position = 3;
+}
+
+message StoreKeywordsRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  string workflow_id = 3;
+  int32 attempt = 4;
+  repeated Keyword keywords = 5;
+}
+
+message StoreKeywordsResponse {
+  ContentVersion version = 1;
+}
+
+// Keypoint is one extracted keypoint and the transcript segment range it
+// summarizes.
+message Keypoint {
+  int32 point_index = 1;
+  string text = 2;
+  int32 start_segment = 3;
+  int32 end_segment = 4;
+}
+
+message StoreKeypointsRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  string workflow_id = 3;
+  int32 attempt = 4;
+  repeated Keypoint keypoints = 5;
+}
+
+message StoreKeypointsResponse {
+  ContentVersion version = 1;
+}
+
+// Note is one generated note document in a given format ("markdown",
+// "outline", ...).
+message Note {
+  string format = 1;
+  string body = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message StoreNotesRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  string workflow_id = 3;
+  int32 attempt = 4;
+  string format = 5;
+  string body = 6;
+}
+
+message StoreNotesResponse {
+  ContentVersion version = 1;
+}
+
+// SummaryAudioStatus is the lifecycle state of one summary-audio object.
+enum SummaryAudioStatus {
+  SUMMARY_AUDIO_STATUS_UNSPECIFIED = 0;
+  SUMMARY_AUDIO_STATUS_READY = 1;
+  SUMMARY_AUDIO_STATUS_FAILED = 2;
+}
+
+// SummaryAudio is the metadata of one durable summary-audio object.
+// content never stores the audio bytes themselves.
+message SummaryAudio {
+  string summary_type = 1;
+  string object_key = 2;
+  string mime_type = 3;
+  int64 duration_ms = 4;
+  string voice = 5;
+  SummaryAudioStatus status = 6;
+  // url is a short-lived presigned GET URL for object_key, populated by
+  // GetContent when status is READY and content has object-storage
+  // credentials configured; empty otherwise. Never persisted — signed
+  // fresh on every read, matching how media signs MediaDetail.playback_url.
+  string url = 7;
+}
+
+message StoreSummaryAudioMetadataRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  string workflow_id = 3;
+  int32 attempt = 4;
+  string summary_type = 5;
+  string object_key = 6;
+  string mime_type = 7;
+  int64 duration_ms = 8;
+  string voice = 9;
+}
+
+message StoreSummaryAudioMetadataResponse {
+  ContentVersion version = 1;
+}
+
+message GetContentRequest {
+  string media_id = 1;
+}
+
+// Content is every generated artifact stored for one media item.
+message Content {
+  string media_id = 1;
+  Transcript transcript = 2;
+  repeated Summary summaries = 3;
+  repeated Keyword keywords = 4;
+  repeated Keypoint keypoints = 5;
+  repeated Note notes = 6;
+  repeated SummaryAudio summary_audios = 7;
+  int32 version = 8;
+}
+
+message GetContentResponse {
+  Content content = 1;
+}
+
+// StandaloneAudioJobKind distinguishes a script-drafting job (output is
+// text) from an audio-generation job (output is a durable audio object).
+enum StandaloneAudioJobKind {
+  STANDALONE_AUDIO_JOB_KIND_UNSPECIFIED = 0;
+  STANDALONE_AUDIO_JOB_KIND_SCRIPT = 1;
+  STANDALONE_AUDIO_JOB_KIND_AUDIO = 2;
+}
+
+// StandaloneAudioJobStatus is a job's lifecycle state.
+enum StandaloneAudioJobStatus {
+  STANDALONE_AUDIO_JOB_STATUS_UNSPECIFIED = 0;
+  STANDALONE_AUDIO_JOB_STATUS_GENERATING = 1;
+  STANDALONE_AUDIO_JOB_STATUS_COMPLETED = 2;
+  STANDALONE_AUDIO_JOB_STATUS_FAILED = 3;
+}
+
+// StandaloneAudioJob is one script-draft or audio-generation request,
+// belonging directly to a user rather than to any media item.
+message StandaloneAudioJob {
+  string id = 1;
+  string user_id = 2;
+  StandaloneAudioJobKind kind = 3;
+  StandaloneAudioJobStatus status = 4;
+  // input_text is the caller's description (kind=script) or the exact
+  // text to synthesize (kind=audio).
+  string input_text = 5;
+  // output_text is the LLM-drafted script; set only for a completed
+  // kind=script job.
+  string output_text = 6;
+  string voice = 7;
+  int64 duration_ms = 8;
+  // url is a short-lived presigned GET URL for the synthesized audio,
+  // populated only for a completed kind=audio job when content has
+  // object-storage credentials configured. Never persisted — signed
+  // fresh on every read, matching SummaryAudio.url.
+  string url = 9;
+  string error_code = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message RequestScriptDraftRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  string description = 3;
+}
+
+message RequestScriptDraftResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message RequestStandaloneAudioRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  string text = 3;
+  string voice = 4;
+}
+
+message RequestStandaloneAudioResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message GetStandaloneAudioJobRequest {
+  string id = 1;
+}
+
+message GetStandaloneAudioJobResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message ListStandaloneAudioJobsRequest {
+  string user_id = 1;
+  StandaloneAudioJobKind kind = 2;
+  string cursor = 3;
+  int32 page_size = 4;
+}
+
+message ListStandaloneAudioJobsResponse {
+  repeated StandaloneAudioJob jobs = 1;
+  string next_cursor = 2;
+}
+
+message CompleteScriptDraftRequest {
+  string job_id = 1;
+  string script_text = 2;
+}
+
+message CompleteScriptDraftResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message CompleteStandaloneAudioRequest {
+  string job_id = 1;
+  string object_key = 2;
+  string mime_type = 3;
+  int64 duration_ms = 4;
+  string voice = 5;
+}
+
+message CompleteStandaloneAudioResponse {
+  StandaloneAudioJob job = 1;
+}
+
+message FailStandaloneAudioJobRequest {
+  string job_id = 1;
+  string error_code = 2;
+}
+
+message FailStandaloneAudioJobResponse {
+  StandaloneAudioJob job = 1;
+}

@@ -4,11 +4,11 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-47
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
-Media Notes 2 uses Kafka to connect independently deployed domain services and
+Media Notes uses Kafka to connect independently deployed domain services and
 a horizontally scaled executor pool. Delivery is at least once, workflow steps
 may complete in parallel, and billing mutations must remain ordered for one
 account.
@@ -27,15 +27,15 @@ topic version.
 
 | Topic | Record key | Producer | Consumer group | Purpose |
 | --- | --- | --- | --- | --- |
-| `mn.media.processing.requested.v1` | `media_id` | `mediasvc` | `conductorsvc-processing` | Start one processing workflow |
-| `mn.processing.step.requested.v1` | `media_id` | `conductorsvc` | `conductor-worker-steps` | Dispatch an executable workflow step |
-| `mn.processing.step.completed.v1` | `media_id` | `contentsvc` | `conductorsvc-step-results` | Advance a workflow after durable output |
-| `mn.processing.step.failed.v1` | `media_id` | `conductor-worker` | `conductorsvc-step-results` | Apply retry or terminal-failure policy |
-| `mn.media.derivative.ready.v1` | `media_id` | `mediasvc` | `conductorsvc-derivatives` | Record a durable derivative result |
-| `mn.media.status.changed.v1` | `media_id` | `conductorsvc` | `mediasvc-status` | Project workflow state into media state |
-| `mn.billing.credit.reserve.v1` | `user_id` | `conductorsvc` | `billingsvc-credit-commands` | Reserve workflow credit |
-| `mn.billing.credit.reserved.v1` | `user_id` | `billingsvc` | `conductorsvc-credit-results` | Continue or reject a workflow start |
-| `mn.billing.credit.settle.v1` | `user_id` | `conductorsvc` | `billingsvc-credit-commands` | Capture or release reserved credit |
+| `mn.media.processing.requested.v1` | `media_id` | `media` | `conductor-processing` | Start one processing workflow |
+| `mn.processing.step.requested.v1` | `media_id` | `conductor` | `conductor-worker-steps` | Dispatch an executable workflow step |
+| `mn.processing.step.completed.v1` | `media_id` | `content` | `conductor-step-results` | Advance a workflow after durable output |
+| `mn.processing.step.failed.v1` | `media_id` | `conductor-worker` | `conductor-step-results` | Apply retry or terminal-failure policy |
+| `mn.media.derivative.ready.v1` | `media_id` | `media` | `conductor-derivatives` | Record a durable derivative result |
+| `mn.media.status.changed.v1` | `media_id` | `conductor` | `media-status` | Project workflow state into media state |
+| `mn.billing.credit.reserve.v1` | `user_id` | `conductor` | `billing-credit-commands` | Reserve workflow credit |
+| `mn.billing.credit.reserved.v1` | `user_id` | `billing` | `conductor-credit-results` | Continue or reject a workflow start |
+| `mn.billing.credit.settle.v1` | `user_id` | `conductor` | `billing-credit-commands` | Capture or release reserved credit |
 | `mn.processing.dlq.v1` | original record key | retry owner | operations tooling | Retain an exhausted record and failure context |
 
 The two step-result topics share a consumer-group name intentionally. Consumer
@@ -95,7 +95,7 @@ never published.
   outbox.
 - Consumers commit offsets only after their durable state transition succeeds.
 - Inbox uniqueness or a domain idempotency key makes duplicate delivery safe.
-- `conductorsvc` owns workflow retry policy. It persists the retry decision and
+- `conductor` owns workflow retry policy. It persists the retry decision and
   publishes a new `processing.step.requested.v1` command with an incremented
   attempt and a new event ID.
 - Broker redelivery handles transient consumer interruption; it is not the
@@ -145,7 +145,7 @@ correlation ID, workflow ID, and attempt without logging full payloads.
 - **Key all workflow records by `workflow_id`:** weakens the required ordering
   between media lifecycle events before a workflow ID exists.
 - **Use retry topics as the workflow scheduler:** splits retry ownership between
-  Kafka timing conventions and `conductorsvc` durable state.
+  Kafka timing conventions and `conductor` durable state.
 - **Enable log compaction for status events:** consumers need transitions, while
   current state already lives in the owning PostgreSQL service.
 

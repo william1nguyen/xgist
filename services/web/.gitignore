@@ -1,0 +1,13 @@
+node_modules
+build
+.react-router
+.env
+.env*.local
+*.tsbuildinfo
+.vite
+coverage
+src/graphql/generated
+
+# jsPDF's Node-environment save() fallback writes here directly during
+# `pnpm test` (src/lib/export.test.ts exercises downloadPdf).
+*.pdf

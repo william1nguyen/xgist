@@ -1,0 +1,59 @@
+query Me {
+	me {
+		id
+		email
+		name
+		imageUrl
+		emailVerified
+		state
+		createdAt
+	}
+}
+
+mutation Register(
+	$email: String!
+	$password: String!
+	$name: String!
+	$idempotencyKey: String
+) {
+	register(
+		email: $email
+		password: $password
+		name: $name
+		idempotencyKey: $idempotencyKey
+	) {
+		id
+		email
+		name
+	}
+}
+
+mutation Login($email: String!, $password: String!, $idempotencyKey: String) {
+	login(email: $email, password: $password, idempotencyKey: $idempotencyKey) {
+		sessionToken
+		expiresAt
+		user {
+			id
+			email
+			name
+			imageUrl
+			emailVerified
+			state
+			createdAt
+		}
+	}
+}
+
+mutation Logout {
+	logout
+}
+
+mutation RequestAccountDeletion($idempotencyKey: String) {
+	requestAccountDeletion(idempotencyKey: $idempotencyKey) {
+		deletionId
+		userId
+		state
+		createdAt
+		completedAt
+	}
+}

@@ -4,32 +4,29 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-18
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
-Media Notes version 1 combines public API handling, authentication, billing,
-media management, job publication, result consumption, and persistence in one
-TypeScript server. Its Python worker performs the processing pipeline
-sequentially.
-
-Media Notes version 2 introduces independently deployable services and an
-explicit asynchronous workflow. Without strict ownership rules, the new
+Media Notes is built as independently deployable services with an explicit
+asynchronous workflow, rather than one server handling public API,
+authentication, billing, media management, job publication, result
+consumption, and persistence together. Without strict ownership rules, the
 services could still behave as a distributed monolith by sharing tables,
 domain models, or internal implementations.
 
 ## Decision
 
-Media Notes 2 will use the following application-service boundaries:
+Media Notes uses the following application-service boundaries:
 
 | Service | Owns | Does not own |
 | --- | --- | --- |
 | `hermes` | Public GraphQL schema, request authentication context, batching, response aggregation | Domain records or domain database tables |
-| `identitysvc` | Users, accounts, sessions, verification records, roles | Media, content, workflow, or billing records |
-| `billingsvc` | Billing accounts, subscriptions, credit balances, reservations, ledger entries, Polar webhook state | Media processing state or generated content |
-| `mediasvc` | Upload sessions, source-media metadata, processing requests, media derivatives | Transcripts, generated content, workflow attempts, or credit balances |
-| `contentsvc` | Transcripts, transcript segments, summaries, citations, keywords, keypoints, notes, summary-audio metadata | Source-media lifecycle, workflow decisions, or billing |
-| `conductorsvc` | Workflows, steps, dependencies, attempts, retry decisions, timeouts, and joins | AI execution, media bytes, generated content, or credit ledger entries |
+| `identity` | Users, accounts, sessions, verification records, roles | Media, content, workflow, or billing records |
+| `billing` | Billing accounts, subscriptions, credit balances, reservations, ledger entries, Polar webhook state | Media processing state or generated content |
+| `media` | Upload sessions, source-media metadata, processing requests, media derivatives | Transcripts, generated content, workflow attempts, or credit balances |
+| `content` | Transcripts, transcript segments, summaries, citations, keywords, keypoints, notes, summary-audio metadata | Source-media lifecycle, workflow decisions, or billing |
+| `conductor` | Workflows, steps, dependencies, attempts, retry decisions, timeouts, and joins | AI execution, media bytes, generated content, or credit ledger entries |
 | `conductor-worker` | Stateless execution of Whisper, Gemini, FFmpeg, and TTS commands | Durable workflow or domain state |
 
 Kafka, PostgreSQL, MinIO/S3, Redis, and OpenTelemetry are infrastructure rather
@@ -37,18 +34,20 @@ than application services.
 
 ## Database Rules
 
-1. Each stateful service owns a dedicated PostgreSQL schema and database
-   credential.
-2. A service may read or write only its own schema.
-3. Cross-service identifiers are UUID values without cross-schema foreign keys.
+1. Each stateful service owns a dedicated PostgreSQL database and
+   credential — not just a dedicated schema in a shared database.
+2. A service may read or write only its own database.
+3. Cross-service identifiers are UUID values without cross-database foreign
+   keys.
 4. Cross-service reads use versioned gRPC contracts.
 5. Cross-service state changes use gRPC commands or versioned Kafka events.
 6. Consumers use inbox records or idempotency keys for at-least-once delivery.
 7. Database writes coupled to event publication use a transactional outbox.
-8. Schema migrations are packaged and executed independently per service.
+8. Migrations are packaged and executed independently per service.
 
-One PostgreSQL cluster may host multiple schemas during the initial deployment.
-Sharing a cluster does not relax service ownership.
+One PostgreSQL server may host multiple service databases during the initial
+deployment. Sharing a server does not relax service ownership: each service
+credential can connect only to its own database.
 
 ## Storage Rules
 
@@ -117,7 +116,7 @@ The repository and CI will enforce these boundaries through:
 ### Positive
 
 - Ownership and operational responsibility are explicit.
-- Services can be migrated, deployed, and scaled independently.
+- Services can be deployed, scaled, and evolved independently.
 - Workflow recovery does not depend on worker process lifetime.
 - Contract and integration testing can detect incompatible changes.
 - A future repository split remains possible without redesigning domain
@@ -129,7 +128,7 @@ The repository and CI will enforce these boundaries through:
 - Workflows must handle eventual consistency and duplicate delivery.
 - Contract evolution and deployment compatibility require deliberate
   versioning.
-- Local development needs multiple schemas, services, and infrastructure
+- Local development needs multiple databases, services, and infrastructure
   dependencies.
 
 ## Rejected Alternatives

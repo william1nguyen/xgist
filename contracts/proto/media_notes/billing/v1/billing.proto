@@ -1,0 +1,139 @@
+// Package media_notes.billing.v1 defines the billing service's synchronous
+// read contract: quotes and billing summaries. Credit reservation and
+// settlement are workflow mutations that enter through Kafka commands
+// (mn.billing.credit.reserve.v1, mn.billing.credit.settle.v1), not gRPC —
+// see docs/services/billing.md and ADR 0008.
+syntax = "proto3";
+
+package media_notes.billing.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// BillingService owns billing accounts, subscriptions, catalog/quotes, and
+// credit balances. Only hermes calls this service.
+service BillingService {
+  // GetQuote prices a set of processing options against the active catalog
+  // version and returns a time-limited, immutable quote snapshot.
+  rpc GetQuote(GetQuoteRequest) returns (GetQuoteResponse);
+  // GetBillingSummary returns current credit balance and subscription
+  // state for one user.
+  rpc GetBillingSummary(GetBillingSummaryRequest) returns (GetBillingSummaryResponse);
+  // ListCreditLedger returns a cursor-paginated page of one user's credit
+  // ledger entries, newest first — the append-only reserve/settle/release/
+  // purchase history backing the web app's usage charts.
+  rpc ListCreditLedger(ListCreditLedgerRequest) returns (ListCreditLedgerResponse);
+  // GetPriceCatalog returns every priced item in the active catalog
+  // version. Callers must never hardcode a price locally — this is the
+  // single source of truth a client renders a price list from before the
+  // caller has made a selection to price with GetQuote.
+  rpc GetPriceCatalog(GetPriceCatalogRequest) returns (GetPriceCatalogResponse);
+}
+
+// QuoteItem is one priced option within a quote.
+message QuoteItem {
+  string item_id = 1;
+  int64 credits = 2;
+}
+
+// Quote is an immutable, time-limited price snapshot for a set of
+// processing options.
+message Quote {
+  string id = 1;
+  string user_id = 2;
+  string catalog_version = 3;
+  repeated QuoteItem items = 4;
+  int64 total_credits = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// GetQuoteRequest carries a caller idempotency key and the canonical price
+// item identifiers the user selected (for example "transcribe",
+// "summarize", "generate_audio_summary").
+message GetQuoteRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  repeated string options = 3;
+}
+
+// GetQuoteResponse returns the priced quote.
+message GetQuoteResponse {
+  Quote quote = 1;
+}
+
+message GetPriceCatalogRequest {
+}
+
+// GetPriceCatalogResponse returns the full active catalog: every item id
+// the caller may pass to GetQuote, with its current price.
+message GetPriceCatalogResponse {
+  string catalog_version = 1;
+  repeated QuoteItem items = 2;
+}
+
+// SubscriptionStatus is the lifecycle state of a billing subscription.
+enum SubscriptionStatus {
+  SUBSCRIPTION_STATUS_UNSPECIFIED = 0;
+  SUBSCRIPTION_STATUS_NONE = 1;
+  SUBSCRIPTION_STATUS_ACTIVE = 2;
+  SUBSCRIPTION_STATUS_CANCELED = 3;
+  SUBSCRIPTION_STATUS_PAST_DUE = 4;
+}
+
+// Subscription is the user's current subscription, if any.
+message Subscription {
+  string id = 1;
+  string plan = 2;
+  SubscriptionStatus status = 3;
+  google.protobuf.Timestamp period_start = 4;
+  google.protobuf.Timestamp period_end = 5;
+}
+
+// BillingSummary is current credit balance and subscription state for one
+// user.
+message BillingSummary {
+  string user_id = 1;
+  int64 available_credits = 2;
+  int64 reserved_credits = 3;
+  // subscription is unset when the user has never subscribed.
+  Subscription subscription = 4;
+}
+
+// GetBillingSummaryRequest identifies the user to summarize.
+message GetBillingSummaryRequest {
+  string user_id = 1;
+}
+
+// GetBillingSummaryResponse returns the requested summary.
+message GetBillingSummaryResponse {
+  BillingSummary summary = 1;
+}
+
+// LedgerEntry is one row of billing.credit_ledger: an immutable credit
+// movement. delta is negative for a reserve, zero for a settle (the
+// reserve already moved the credits; settle only records which item_id
+// they paid for), positive for a release or purchase.
+message LedgerEntry {
+  string id = 1;
+  int64 delta = 2;
+  string entry_type = 3;
+  // item_id is only set on "settle" entries — the processing option id
+  // (e.g. "summarize") the reservation was settled against.
+  string item_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// ListCreditLedgerRequest carries the user to list and cursor pagination.
+// cursor is opaque, returned by a previous response's next_cursor.
+message ListCreditLedgerRequest {
+  string user_id = 1;
+  string cursor = 2;
+  int32 page_size = 3;
+}
+
+// ListCreditLedgerResponse returns one page of ledger entries, newest
+// first. next_cursor is empty on the last page.
+message ListCreditLedgerResponse {
+  repeated LedgerEntry entries = 1;
+  string next_cursor = 2;
+}

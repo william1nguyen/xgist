@@ -4,87 +4,80 @@ AI-powered media transcription and summarization platform that turns video or au
 
 ## Architecture
 
-<p align="center">
-  <img src="docs/architecture.png" alt="media-notes system architecture" width="100%" />
-</p>
-
-## Version 2 Migration
-
-Media Notes 2 is currently a design package; its implementation is intentionally
-not present in this branch. The existing version 1 application remains the
-executable system and the migration can be implemented afresh from the accepted
-decisions.
-
-Start with the [target design](proposal/mn2_design.md), the
-[brainstorm and open questions](proposal/mn2_brainstorm.md), the
-[accepted architecture decisions](docs/adr/), and the
-[planned service boundaries](services/README.md). The infrastructure, CI, and
-database documents under `docs/` are implementation specifications, not
-instructions for commands that exist today.
+Seven independently deployable services — a public GraphQL gateway, five
+domain services, and a Python executor pool — communicating over gRPC and
+Kafka. See [docs/architecture.md](docs/architecture.md) for the full diagram
+and end-to-end flow, [docs/adr/](docs/adr/) for the accepted design
+decisions, and [docs/services/](docs/services/) for each service's scope and
+schema.
 
 ## System Design
 
 ### Web (React)
 
-- **Media workspace** — drag-and-drop uploads with processing options and credit-cost previews
-- **Progress tracking** — polls job state and presents queued, processing, completed, and failed states
+- **Media workspace** — drag-and-drop uploads with processing options and live credit-cost previews
+- **Progress tracking** — adaptive GraphQL polling (ADR 0005) presents queued, processing, completed, and failed states
 - **Synchronized results** — connects transcript timestamps and summary citations to the media player
-- **User accounts and billing** — Better Auth sessions with Polar-backed subscriptions and credit usage
+- **Accounts and billing** — session auth against `identity` and credit/subscription status from `billing`
 
-### API (Fastify)
+### hermes (public API)
 
-- **Typed API** — oRPC contracts connect the React client to Fastify handlers
-- **Media storage** — uploads source media and generated audio summaries through MinIO
-- **Persistent metadata** — Drizzle ORM stores users, media, processing state, and billing data in PostgreSQL
-- **Asynchronous jobs** — publishes processing jobs and consumes worker results through Redis Streams
+- **GraphQL gateway** — the only service the web app talks to; owns authentication context, request limits, and response aggregation over the domain services
 
-### Worker (Python)
+### Domain services (`identity`, `billing`, `media`, `content`, `conductor`, `conductor-worker`)
 
-- **Transcription** — OpenAI Whisper produces timestamped transcript segments
-- **AI enrichment** — Google Gemini generates cited summaries, keywords, main ideas, and notes
-- **Parallel processing** — independent enrichment tasks run concurrently after transcription
-- **Audio summaries** — optional text-to-speech output is uploaded to MinIO
-- **Reliable consumption** — Redis consumer groups acknowledge completed jobs and retry failed processing
-
-### Communication
-
-<p align="center">
-  <img src="docs/communication.png" alt="media-notes communication flow" width="100%" />
-</p>
+- **identity** — users, accounts, sessions
+- **billing** — subscriptions, credit reservation/settlement, ledger
+- **media** — uploads, source-media metadata, processing requests
+- **content** — transcripts, summaries, keywords, keypoints, notes, summary audio
+- **conductor** — workflow orchestration: dependencies, joins, retries, timeouts
+- **conductor-worker** — Whisper transcription, Gemini enrichment, TTS, deployed as a Kafka consumer-group pool
 
 ## Tech Stack
 
 | Component | Stack |
 | --- | --- |
-| Web | React Router v7, TypeScript, Tailwind CSS, shadcn/ui |
-| API | Fastify, oRPC, Bun, Drizzle ORM |
-| Worker | Python, OpenAI Whisper, Google Gemini |
-| Data | PostgreSQL, Redis Streams, MinIO |
-| Auth & Billing | Better Auth, Polar |
-| Tooling | pnpm, Turborepo, Biome, Lefthook, Docker Compose |
+| Web | React Router v7, TypeScript, Tailwind CSS, shadcn/ui, Apollo Client |
+| hermes, identity, billing, media, content, conductor | Go, gRPC, Kafka |
+| conductor-worker | Python, OpenAI Whisper, Google Gemini |
+| Data | PostgreSQL (one database per service), Kafka, Redis, MinIO/S3 |
+| Tooling | Docker Compose, Make, Buf (protobuf), Flyway |
 
 ## Quick Start
 
 ```bash
-pnpm install
-cp apps/server/.env.example apps/server/.env
-cp apps/web/.env.example apps/web/.env
-make infra:up
-pnpm db:migrate
-pnpm dev
+make infra:up            # Postgres, Kafka, Kafka UI, Redis, MinIO
+make identity:migrate && make billing:migrate && make media:migrate \
+  && make content:migrate && make conductor:migrate
 ```
 
-Web: `http://localhost:5173` · API: `http://localhost:3000`
+Run each service (each loads its own `.env`, copied from `.env.example` on
+first run — see the relevant `make <service>:run` target):
 
+```bash
+make identity:run
+make billing:run
+make media:run
+make content:run
+make conductor:run
+make hermes:run
+make web:dev
+```
 
+Web: `http://localhost:5173` · hermes GraphQL: `http://localhost:8086/graphql`
+
+Or bring everything up in containers: `docker compose --profile app up --build`.
+
+<details>
 <summary><b>Development commands</b></summary>
 
 ```bash
-pnpm dev:web          # frontend only
-pnpm dev:server       # API only
-pnpm db:studio        # inspect the database
-pnpm check-types      # type-check all workspaces
-pnpm lint             # run Biome
+make help             # list every target across the root and per-service makefiles
+make build             # build the web app and every v2 service
+make lint              # lint the web app
+make typecheck         # type-check the web app
+make test              # run web and v2 service tests
+make check              # everything CI runs
 ```
 
-See the [product tour](docs/README.md) for screenshots and a walkthrough of the user experience.
+</details>

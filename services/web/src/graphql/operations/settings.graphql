@@ -1,0 +1,15 @@
+query PromptSettings {
+	promptSettings {
+		section
+		promptText
+		updatedAt
+	}
+}
+
+mutation UpdatePromptSetting($section: String!, $promptText: String!) {
+	updatePromptSetting(section: $section, promptText: $promptText) {
+		section
+		promptText
+		updatedAt
+	}
+}

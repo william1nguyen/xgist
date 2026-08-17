@@ -1,0 +1,438 @@
+// Package media_notes.media.v1 defines the media service contract: upload
+// sessions, source-media metadata, derivative metadata, and media deletion.
+// hermes calls this service for uploads, media metadata, and processing
+// status; conductor-worker calls it to read media metadata and to register
+// derivative (thumbnail/cover/waveform) metadata after writing the
+// derivative object. ApplyWorkflowStatus is not exposed here: it is a
+// Kafka-only projection of mn.media.status.changed.v1, per
+// docs/services/media.md.
+syntax = "proto3";
+
+package media_notes.media.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// MediaService owns upload sessions, source-media metadata, object key
+// inventory, derivative metadata, processing requests, and media deletion.
+// It does not own transcript/content, workflow attempts, or credit balance.
+service MediaService {
+  // CreateUploadSession validates the declared MIME type and size against
+  // launch limits (ADR 0004), enforces the three-active-session cap per
+  // owner, and returns a session with a short-lived presigned upload URL.
+  // Idempotent per caller idempotency key; a duplicate request returns the
+  // existing session.
+  rpc CreateUploadSession(CreateUploadSessionRequest) returns (CreateUploadSessionResponse);
+  // ConfirmUpload reads authoritative object metadata, rejects a missing,
+  // empty, oversized, or key-mismatched object, then atomically creates the
+  // processing request and outbox event. Idempotent per caller idempotency
+  // key.
+  rpc ConfirmUpload(ConfirmUploadRequest) returns (ConfirmUploadResponse);
+  // GetMedia returns one media item's metadata. A media item in
+  // deletion_pending state is not returned.
+  rpc GetMedia(GetMediaRequest) returns (GetMediaResponse);
+  // ListMedia returns a cursor-paginated page of lightweight fields for one
+  // owner, ordered by creation time, descending.
+  rpc ListMedia(ListMediaRequest) returns (ListMediaResponse);
+  // SignPlaybackUrl returns a short-lived signed URL for the source object.
+  rpc SignPlaybackUrl(SignPlaybackUrlRequest) returns (SignPlaybackUrlResponse);
+  // GetMediaProgress returns a batched processing-status projection for
+  // 1-50 media items owned by owner_id, per ADR 0005. Unknown and
+  // unauthorized ids are both omitted so the API does not reveal whether
+  // another user's media exists.
+  rpc GetMediaProgress(GetMediaProgressRequest) returns (GetMediaProgressResponse);
+  // RegisterDerivative records a durable derivative object (thumbnail,
+  // cover, or waveform) after conductor-worker has written it to object
+  // storage. Idempotent per (media_id, derivative_type, version).
+  rpc RegisterDerivative(RegisterDerivativeRequest) returns (RegisterDerivativeResponse);
+  // RequestDerivativeUpload returns a short-lived presigned PUT URL for a
+  // caller-supplied derivative image (currently thumbnail only), mirroring
+  // CreateUploadSession's pattern for the source object. The caller PUTs
+  // the file directly to object storage, then calls RegisterDerivative
+  // with the returned object_key to finalize it — this RPC does not
+  // itself register anything.
+  rpc RequestDerivativeUpload(RequestDerivativeUploadRequest) returns (RequestDerivativeUploadResponse);
+  // RequestDeletion starts the media deletion workflow: the media item is
+  // immediately excluded from normal operations, media deletes its own
+  // owned object keys and rows, and the operation completes once every
+  // required participant reports completion. Idempotent per caller
+  // idempotency key; a duplicate request returns the existing operation.
+  rpc RequestDeletion(RequestDeletionRequest) returns (RequestDeletionResponse);
+  // GetDeletionStatus returns the current state of a deletion operation.
+  rpc GetDeletionStatus(GetDeletionStatusRequest) returns (GetDeletionStatusResponse);
+  // UpdateMedia updates a media item's title and/or description in place.
+  // Fields left unset (nil) are not changed.
+  rpc UpdateMedia(UpdateMediaRequest) returns (UpdateMediaResponse);
+  // RequestProcessing starts a new processing request for a media item that
+  // has already been confirmed at least once, for example to generate a
+  // content type that wasn't originally selected, or to regenerate one that
+  // was. Only accepted while the media item's status is completed or
+  // failed: at most one processing request may be active per media item at
+  // a time. Idempotent per caller idempotency key.
+  rpc RequestProcessing(RequestProcessingRequest) returns (RequestProcessingResponse);
+  // TrashMedia moves a media item to the trash: a reversible, user-visible
+  // soft delete distinct from RequestDeletion's irreversible hard-delete
+  // flow. A trashed item is excluded from GetMedia/ListMedia until
+  // restored or purged (30 days after trashing, via RequestDeletion).
+  // Idempotent: trashing an already-trashed item leaves its original
+  // trashed_at unchanged.
+  rpc TrashMedia(TrashMediaRequest) returns (TrashMediaResponse);
+  // RestoreMedia clears a trashed item's trashed_at. A no-op if the item
+  // isn't trashed.
+  rpc RestoreMedia(RestoreMediaRequest) returns (RestoreMediaResponse);
+  // ListTrashedMedia returns a cursor-paginated page of one owner's
+  // trashed media, newest-trashed first.
+  rpc ListTrashedMedia(ListTrashedMediaRequest) returns (ListTrashedMediaResponse);
+}
+
+// MediaType is the coarse kind of source media.
+enum MediaType {
+  MEDIA_TYPE_UNSPECIFIED = 0;
+  MEDIA_TYPE_AUDIO = 1;
+  MEDIA_TYPE_VIDEO = 2;
+}
+
+// MediaStatus is the lifecycle state of one media item.
+enum MediaStatus {
+  MEDIA_STATUS_UNSPECIFIED = 0;
+  MEDIA_STATUS_PENDING_UPLOAD = 1;
+  MEDIA_STATUS_PROCESSING = 2;
+  MEDIA_STATUS_COMPLETED = 3;
+  MEDIA_STATUS_FAILED = 4;
+  MEDIA_STATUS_DELETION_PENDING = 5;
+}
+
+// UploadSessionStatus is the lifecycle state of one upload session.
+enum UploadSessionStatus {
+  UPLOAD_SESSION_STATUS_UNSPECIFIED = 0;
+  UPLOAD_SESSION_STATUS_ACTIVE = 1;
+  UPLOAD_SESSION_STATUS_COMPLETED = 2;
+  UPLOAD_SESSION_STATUS_EXPIRED = 3;
+  UPLOAD_SESSION_STATUS_CANCELED = 4;
+}
+
+// DerivativeType is the kind of a generated derivative object.
+enum DerivativeType {
+  DERIVATIVE_TYPE_UNSPECIFIED = 0;
+  DERIVATIVE_TYPE_THUMBNAIL = 1;
+  DERIVATIVE_TYPE_COVER = 2;
+  DERIVATIVE_TYPE_WAVEFORM = 3;
+}
+
+// DerivativeStatus is the lifecycle state of one derivative.
+enum DerivativeStatus {
+  DERIVATIVE_STATUS_UNSPECIFIED = 0;
+  DERIVATIVE_STATUS_PENDING = 1;
+  DERIVATIVE_STATUS_READY = 2;
+  DERIVATIVE_STATUS_FAILED = 3;
+}
+
+// DeletionState is the state of a media deletion operation.
+enum DeletionState {
+  DELETION_STATE_UNSPECIFIED = 0;
+  DELETION_STATE_PENDING = 1;
+  DELETION_STATE_COMPLETED = 2;
+  DELETION_STATE_FAILED_ATTENTION_REQUIRED = 3;
+}
+
+// ProcessingStatus is the lifecycle state of one media item's processing
+// request, as tracked by media (a coarse projection, not the workflow
+// state machine conductor owns).
+enum ProcessingStatus {
+  PROCESSING_STATUS_UNSPECIFIED = 0;
+  PROCESSING_STATUS_REQUESTED = 1;
+  PROCESSING_STATUS_ACCEPTED = 2;
+  PROCESSING_STATUS_COMPLETED = 3;
+  PROCESSING_STATUS_FAILED = 4;
+}
+
+// UploadSession is one in-progress or completed upload.
+message UploadSession {
+  string id = 1;
+  string media_id = 2;
+  string owner_id = 3;
+  string object_key = 4;
+  // upload_url is a short-lived presigned PUT URL. It is recomputed on
+  // every read rather than stored, and is empty once the session is no
+  // longer active.
+  string upload_url = 5;
+  UploadSessionStatus status = 6;
+  google.protobuf.Timestamp expires_at = 7;
+}
+
+// CreateUploadSessionRequest carries a caller idempotency key and the
+// declared (untrusted) properties of the media to upload.
+message CreateUploadSessionRequest {
+  string idempotency_key = 1;
+  string owner_id = 2;
+  string title = 3;
+  MediaType media_type = 4;
+  string mime_type = 5;
+  int64 declared_size_bytes = 6;
+}
+
+// CreateUploadSessionResponse returns the created (or existing, if
+// idempotency_key was replayed) session.
+message CreateUploadSessionResponse {
+  UploadSession session = 1;
+}
+
+// ConfirmUploadRequest carries a caller idempotency key, the session to
+// confirm, and the processing options the caller selected (for example
+// "transcribe", "summarize"). ConfirmUpload atomically creates the
+// processing request alongside the media transition.
+message ConfirmUploadRequest {
+  string idempotency_key = 1;
+  string upload_session_id = 2;
+  repeated string options = 3;
+  // audio_voice overrides conductor-worker's default TTS voice for this
+  // workflow's generate_audio_summary step, if selected. Empty means "use
+  // the worker's default".
+  string audio_voice = 4;
+  // prompt_overrides maps a selected option id (e.g. "summarize") to a
+  // custom instruction string worker appends to that step's LLM prompt.
+  // Options with no entry use the model's default prompt only. hermes
+  // populates this from the caller's saved identity prompt settings,
+  // intersected with options.
+  map<string, string> prompt_overrides = 5;
+}
+
+// ConfirmUploadResponse returns the confirmed media item.
+message ConfirmUploadResponse {
+  Media media = 1;
+}
+
+// Media is source-media metadata. It never carries object bytes.
+message Media {
+  string id = 1;
+  string owner_id = 2;
+  string title = 3;
+  MediaType media_type = 4;
+  string mime_type = 5;
+  int64 size_bytes = 6;
+  int64 duration_ms = 7;
+  MediaStatus status = 8;
+  // thumbnail_url is a short-lived signed URL, set only when a ready
+  // thumbnail derivative exists.
+  string thumbnail_url = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string description = 12;
+  // trashed_at is set when the owner moved this item to the trash. Unset
+  // means not trashed. GetMedia/ListMedia never return a trashed item, so
+  // this is only ever set on results from ListTrashedMedia.
+  google.protobuf.Timestamp trashed_at = 13;
+}
+
+// GetMediaRequest identifies the media item to read.
+message GetMediaRequest {
+  string media_id = 1;
+}
+
+// GetMediaResponse returns the requested media item.
+message GetMediaResponse {
+  Media media = 1;
+}
+
+// ListMediaRequest pages through one owner's media, newest first.
+// page_size defaults to 20 and is capped at 100, per ADR 0004.
+message ListMediaRequest {
+  string owner_id = 1;
+  string cursor = 2;
+  int32 page_size = 3;
+  // search is an optional case-insensitive substring match against title.
+  // Empty returns every item, same as omitting it.
+  string search = 4;
+}
+
+// ListMediaResponse returns one page of lightweight media fields.
+// next_cursor is empty on the last page.
+message ListMediaResponse {
+  repeated Media items = 1;
+  string next_cursor = 2;
+}
+
+// TrashMediaRequest identifies the media item to trash.
+message TrashMediaRequest {
+  string media_id = 1;
+}
+
+// TrashMediaResponse returns the trashed media item.
+message TrashMediaResponse {
+  Media media = 1;
+}
+
+// RestoreMediaRequest identifies the media item to restore.
+message RestoreMediaRequest {
+  string media_id = 1;
+}
+
+// RestoreMediaResponse returns the restored media item.
+message RestoreMediaResponse {
+  Media media = 1;
+}
+
+// ListTrashedMediaRequest carries the owner to list and cursor pagination.
+message ListTrashedMediaRequest {
+  string owner_id = 1;
+  string cursor = 2;
+  int32 page_size = 3;
+}
+
+// ListTrashedMediaResponse returns one page of trashed media, newest-
+// trashed first. next_cursor is empty on the last page.
+message ListTrashedMediaResponse {
+  repeated Media items = 1;
+  string next_cursor = 2;
+}
+
+// SignPlaybackUrlRequest identifies the media item to sign a playback URL
+// for.
+message SignPlaybackUrlRequest {
+  string media_id = 1;
+}
+
+// SignPlaybackUrlResponse returns a short-lived signed URL for the source
+// object (15 minutes, per ADR 0004).
+message SignPlaybackUrlResponse {
+  string url = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+// MediaProgress is a batched processing-status projection for one media
+// item, per ADR 0005. completed_steps and total_steps are derived from the
+// processing request's selected options count: conductor does not publish
+// per-step detail into mn.media.status.changed.v1, so this is a coarse
+// workflow-stage indicator, not a guarantee of step-level accuracy. version
+// increments on every applied status transition.
+message MediaProgress {
+  string media_id = 1;
+  MediaStatus status = 2;
+  ProcessingStatus processing_status = 3;
+  int32 completed_steps = 4;
+  int32 total_steps = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  int32 version = 7;
+}
+
+// GetMediaProgressRequest carries the caller-derived owner (never accepted
+// from client input at the hermes boundary) and 1-50 media ids.
+message GetMediaProgressRequest {
+  string owner_id = 1;
+  repeated string media_ids = 2;
+}
+
+// GetMediaProgressResponse returns the progress projection for every
+// requested id that owner_id is authorized to read.
+message GetMediaProgressResponse {
+  repeated MediaProgress items = 1;
+}
+
+// Derivative is one generated derivative object's metadata.
+message Derivative {
+  string id = 1;
+  string media_id = 2;
+  DerivativeType derivative_type = 3;
+  int32 version = 4;
+  string mime_type = 5;
+  int32 width = 6;
+  int32 height = 7;
+  int64 size_bytes = 8;
+  DerivativeStatus status = 9;
+}
+
+// RegisterDerivativeRequest carries a caller idempotency key and the
+// metadata of a derivative object already durable in object storage.
+message RegisterDerivativeRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  DerivativeType derivative_type = 3;
+  int32 version = 4;
+  string object_key = 5;
+  string mime_type = 6;
+  int32 width = 7;
+  int32 height = 8;
+  int64 size_bytes = 9;
+}
+
+// RegisterDerivativeResponse returns the registered derivative.
+message RegisterDerivativeResponse {
+  Derivative derivative = 1;
+}
+
+message RequestDerivativeUploadRequest {
+  string media_id = 1;
+  DerivativeType derivative_type = 2;
+  string mime_type = 3;
+}
+
+message RequestDerivativeUploadResponse {
+  string object_key = 1;
+  // upload_url is a short-lived presigned PUT URL, not stored.
+  string upload_url = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+// DeletionOperation tracks one media deletion request.
+message DeletionOperation {
+  string deletion_id = 1;
+  string media_id = 2;
+  DeletionState state = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp completed_at = 5;
+}
+
+// RequestDeletionRequest carries a caller idempotency key.
+message RequestDeletionRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+}
+
+// RequestDeletionResponse returns the deletion operation.
+message RequestDeletionResponse {
+  DeletionOperation operation = 1;
+}
+
+// GetDeletionStatusRequest identifies the deletion operation.
+message GetDeletionStatusRequest {
+  string deletion_id = 1;
+}
+
+// GetDeletionStatusResponse returns the deletion operation.
+message GetDeletionStatusResponse {
+  DeletionOperation operation = 1;
+}
+
+// UpdateMediaRequest identifies the media item and the mutable fields to
+// change. Unset optional fields are left unchanged.
+message UpdateMediaRequest {
+  string media_id = 1;
+  optional string title = 2;
+  optional string description = 3;
+}
+
+// UpdateMediaResponse returns the updated media item.
+message UpdateMediaResponse {
+  Media media = 1;
+}
+
+// RequestProcessingRequest carries a caller idempotency key, the media item
+// to reprocess, and the processing options to run this time (which may
+// overlap with, add to, or differ from the media item's previous options).
+message RequestProcessingRequest {
+  string idempotency_key = 1;
+  string media_id = 2;
+  repeated string options = 3;
+  // audio_voice overrides conductor-worker's default TTS voice for this
+  // request's generate_audio_summary step, if selected. Empty means "use
+  // the worker's default".
+  string audio_voice = 4;
+  // prompt_overrides maps a selected option id to a custom instruction
+  // string worker appends to that step's LLM prompt, per ConfirmUploadRequest.
+  map<string, string> prompt_overrides = 5;
+}
+
+// RequestProcessingResponse returns the media item, now back in
+// processing status.
+message RequestProcessingResponse {
+  Media media = 1;
+}

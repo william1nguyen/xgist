@@ -1,0 +1,427 @@
+# hermes's public schema, per docs/services/hermes.md and
+# docs/adr/0005-progress-update-delivery.md. Every timestamp is an RFC
+# 3339 string. subscriptionCheckout is intentionally not exposed here:
+# billing has no checkout/subscription-ingestion implementation yet
+# (docs/services/billing.md's "Deferred" section) — add it once that
+# lands rather than half-wiring a mutation with nothing behind it.
+
+enum AccountState {
+  ACTIVE
+  DELETION_PENDING
+  TOMBSTONED
+}
+
+enum DeletionState {
+  PENDING
+  COMPLETED
+  FAILED_ATTENTION_REQUIRED
+}
+
+enum MediaType {
+  AUDIO
+  VIDEO
+}
+
+enum MediaStatus {
+  PENDING_UPLOAD
+  PROCESSING
+  COMPLETED
+  FAILED
+  DELETION_PENDING
+}
+
+enum ProcessingStatus {
+  UNSPECIFIED
+  REQUESTED
+  ACCEPTED
+  COMPLETED
+  FAILED
+}
+
+enum SubscriptionStatus {
+  NONE
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum SummaryAudioStatus {
+  READY
+  FAILED
+}
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  imageUrl: String
+  emailVerified: Boolean!
+  state: AccountState!
+  createdAt: String!
+}
+
+type DeletionOperation {
+  deletionId: ID!
+  userId: ID!
+  state: DeletionState!
+  createdAt: String!
+  completedAt: String
+}
+
+type AuthPayload {
+  user: User!
+  sessionToken: String!
+  expiresAt: String!
+}
+
+type UploadSession {
+  id: ID!
+  mediaId: ID!
+  uploadUrl: String!
+  status: String!
+  expiresAt: String!
+}
+
+# Media is the lightweight shape returned by mediaList, per
+# docs/architecture.md's "Media list and thumbnail delivery": no playback
+# URL. mediaDetail returns the richer MediaDetail type instead.
+type Media {
+  id: ID!
+  title: String!
+  mediaType: MediaType!
+  mimeType: String!
+  sizeBytes: Int!
+  durationMs: Int!
+  status: MediaStatus!
+  thumbnailUrl: String
+  createdAt: String!
+  updatedAt: String!
+  description: String
+  # trashedAt is set when the owner moved this item to the trash. Only
+  # ever set on results from the trashedMedia query — mediaList never
+  # returns a trashed item.
+  trashedAt: String
+}
+
+type MediaPage {
+  items: [Media!]!
+  nextCursor: String
+}
+
+# ThumbnailUpload is a short-lived presigned upload target for a custom
+# thumbnail image, returned by requestThumbnailUpload. Never persisted —
+# the caller PUTs the file to uploadUrl, then calls setThumbnail with
+# objectKey to finalize it.
+type ThumbnailUpload {
+  objectKey: String!
+  uploadUrl: String!
+  expiresAt: String!
+}
+
+# MediaDetail additionally carries a short-lived signed playback URL,
+# fetched only for the detail page per docs/architecture.md.
+type MediaDetail {
+  id: ID!
+  title: String!
+  mediaType: MediaType!
+  mimeType: String!
+  sizeBytes: Int!
+  durationMs: Int!
+  status: MediaStatus!
+  thumbnailUrl: String
+  playbackUrl: String
+  playbackUrlExpiresAt: String
+  createdAt: String!
+  updatedAt: String!
+  description: String
+}
+
+# MediaProgress is the ADR 0005 batched processing-status projection.
+# completedSteps/totalSteps are derived from the processing request's
+# selected options count, not tracked per-step by conductor yet — see
+# services/media/internal/media.Progress.
+type MediaProgress {
+  mediaId: ID!
+  status: MediaStatus!
+  processingStatus: ProcessingStatus!
+  completedSteps: Int!
+  totalSteps: Int!
+  updatedAt: String!
+  version: Int!
+}
+
+type TranscriptSegment {
+  segmentIndex: Int!
+  startMs: Int!
+  endMs: Int!
+  speaker: String
+  text: String!
+}
+
+type Transcript {
+  language: String!
+  text: String!
+  segments: [TranscriptSegment!]!
+}
+
+type SummarySentence {
+  sentenceIndex: Int!
+  text: String!
+  citedSegmentIndexes: [Int!]!
+}
+
+type Summary {
+  summaryType: String!
+  text: String!
+  model: String!
+  promptVersion: String!
+  sentences: [SummarySentence!]!
+  createdAt: String!
+}
+
+type Keyword {
+  keyword: String!
+  score: Float!
+  position: Int!
+}
+
+type Keypoint {
+  pointIndex: Int!
+  text: String!
+  startSegment: Int!
+  endSegment: Int!
+}
+
+type Note {
+  format: String!
+  body: String!
+  createdAt: String!
+}
+
+type SummaryAudio {
+  summaryType: String!
+  mimeType: String!
+  durationMs: Int!
+  voice: String!
+  status: SummaryAudioStatus!
+  # url is a short-lived signed playback URL, present only once status is
+  # READY and content has object-storage credentials configured.
+  url: String
+}
+
+type Content {
+  mediaId: ID!
+  transcript: Transcript
+  summaries: [Summary!]!
+  keywords: [Keyword!]!
+  keypoints: [Keypoint!]!
+  notes: [Note!]!
+  summaryAudios: [SummaryAudio!]!
+  version: Int!
+}
+
+type QuoteItem {
+  itemId: String!
+  credits: Int!
+}
+
+type Quote {
+  id: ID!
+  catalogVersion: String!
+  items: [QuoteItem!]!
+  totalCredits: Int!
+  expiresAt: String!
+}
+
+# PriceCatalog is the full active price list: every item id a client may
+# pass to quote(options:), with its current cost. Clients must render
+# prices from this query, never from a hardcoded local list — it is the
+# only source of truth and can change between catalog versions.
+type PriceCatalog {
+  catalogVersion: String!
+  items: [QuoteItem!]!
+}
+
+# BillingSubscription, not Subscription: GraphQL reserves the type name
+# "Subscription" for the root subscription operation type, which hermes
+# does not implement (ADR 0005 rejected GraphQL subscriptions for launch).
+type BillingSubscription {
+  id: ID!
+  plan: String!
+  status: SubscriptionStatus!
+  periodStart: String!
+  periodEnd: String!
+}
+
+type BillingSummary {
+  availableCredits: Int!
+  reservedCredits: Int!
+  subscription: BillingSubscription
+}
+
+# CreditLedgerEntry is one immutable row of the caller's credit history —
+# a reserve, settle, release, or purchase. itemId is only set on a settle
+# entry (the processing option id the reservation paid for).
+type CreditLedgerEntry {
+  id: ID!
+  delta: Int!
+  entryType: String!
+  itemId: String
+  createdAt: String!
+}
+
+type CreditLedgerPage {
+  items: [CreditLedgerEntry!]!
+  nextCursor: String
+}
+
+# PromptSetting is the caller's saved custom system prompt for one
+# section (a processing option id, e.g. "summarize"). It is appended to
+# that section's LLM prompt on every future generation until changed.
+type PromptSetting {
+  section: String!
+  promptText: String!
+  updatedAt: String!
+}
+
+# AudioJob is one standalone script-draft or audio-generation job — the
+# "Audio" feature's own artifact, independent of any media item. kind is
+# "script" or "audio"; status is "generating", "completed", or "failed".
+type AudioJob {
+  id: ID!
+  kind: String!
+  status: String!
+  inputText: String!
+  # outputText is the LLM-drafted script; set only for a completed
+  # kind="script" job.
+  outputText: String
+  voice: String
+  durationMs: Int
+  # url is a short-lived presigned playback URL, set only for a completed
+  # kind="audio" job.
+  url: String
+  errorCode: String
+  createdAt: String!
+}
+
+type AudioJobPage {
+  items: [AudioJob!]!
+  nextCursor: String
+}
+
+type Query {
+  # me returns the authenticated caller's profile.
+  me: User!
+  # mediaList returns a cursor-paginated page of the caller's media,
+  # newest first. pageSize defaults to 20 and is capped at 100 (ADR 0004).
+  # search is an optional case-insensitive substring match against title,
+  # applied server-side alongside pagination — not a client-side filter
+  # over an already-fetched page.
+  #
+  # There is no ranking/recommendation query yet: the media detail page's
+  # "Recommended" shelf currently shuffles a page of the caller's own
+  # mediaList results client-side as a placeholder. A real
+  # recommendedMedia query (ranked, cross-user where appropriate) is
+  # planned future work — see docs/services/hermes.md.
+  mediaList(cursor: String, pageSize: Int, search: String): MediaPage!
+  # mediaDetail returns one media item the caller owns, including a
+  # short-lived playback URL.
+  mediaDetail(id: ID!): MediaDetail!
+  # contentDetail returns generated content for one media item the caller
+  # owns.
+  contentDetail(mediaId: ID!): Content!
+  # mediaProgress is ADR 0005's batched polling query: 1-50 ids, owner
+  # derived from the authenticated context.
+  mediaProgress(ids: [ID!]!): [MediaProgress!]!
+  # quote prices a set of processing options for the caller.
+  quote(options: [String!]!): Quote!
+  # priceCatalog returns every priced item in the active catalog, for
+  # rendering a price list before the caller has made a selection.
+  priceCatalog: PriceCatalog!
+  # billingSummary returns the caller's credit balance and subscription
+  # state.
+  billingSummary: BillingSummary!
+  # creditLedgerHistory returns a cursor-paginated page of the caller's
+  # credit ledger, newest first — backs the usage screen's charts.
+  creditLedgerHistory(cursor: String, pageSize: Int): CreditLedgerPage!
+  # promptSettings returns every custom system prompt the caller has
+  # saved, one per section they've customized.
+  promptSettings: [PromptSetting!]!
+  # trashedMedia returns a cursor-paginated page of the caller's trashed
+  # media, newest-trashed first — backs the Trash screen. mediaList never
+  # includes these.
+  trashedMedia(cursor: String, pageSize: Int): MediaPage!
+  # audioJob returns one of the caller's standalone audio jobs.
+  audioJob(id: ID!): AudioJob!
+  # audioJobs returns a cursor-paginated page of the caller's standalone
+  # audio jobs of kind ("script" or "audio"), newest first — backs the
+  # Audio screen. kind defaults to "audio": the list view shows finished
+  # artifacts, not intermediate script drafts.
+  audioJobs(kind: String, cursor: String, pageSize: Int): AudioJobPage!
+}
+
+type Mutation {
+  # register creates a user and a credential account. It does not issue a
+  # session: identity.RegisterAccount returns no token, so the client
+  # calls login separately, per contracts/proto/media_notes/identity/v1.
+  register(email: String!, password: String!, name: String!, idempotencyKey: String): User!
+  # login validates a credential and issues a session.
+  login(email: String!, password: String!, idempotencyKey: String): AuthPayload!
+  # logout revokes the caller's current session.
+  logout: Boolean!
+  # requestAccountDeletion starts the caller's account deletion workflow.
+  requestAccountDeletion(idempotencyKey: String): DeletionOperation!
+  # createUploadSession starts an upload for the authenticated caller.
+  createUploadSession(title: String!, mimeType: String!, declaredSizeBytes: Int!, idempotencyKey: String): UploadSession!
+  # confirmUpload confirms a completed upload and starts processing.
+  # audioVoice selects a TTS voice for generate_audio_summary, if selected
+  # in options; ignored otherwise. Omitted or null uses conductor-worker's
+  # default voice.
+  confirmUpload(uploadSessionId: ID!, options: [String!]!, audioVoice: String, idempotencyKey: String): MediaDetail!
+  # updateMedia changes a media item's title and/or description. Omitted
+  # (null) fields are left unchanged.
+  updateMedia(id: ID!, title: String, description: String): MediaDetail!
+  # requestThumbnailUpload returns a presigned target for a custom
+  # thumbnail image (image/jpeg, image/png, or image/webp) for a media
+  # item the caller owns — usable any time after createUploadSession,
+  # even before confirmUpload. Follow with setThumbnail once the file is
+  # uploaded.
+  requestThumbnailUpload(mediaId: ID!, mimeType: String!): ThumbnailUpload!
+  # setThumbnail registers a thumbnail image already uploaded to
+  # objectKey (via requestThumbnailUpload) as mediaId's thumbnail,
+  # replacing any auto-generated one.
+  setThumbnail(mediaId: ID!, objectKey: String!, mimeType: String!): Media!
+  # requestProcessing starts a new processing request for a media item that
+  # has already been confirmed at least once — to generate a content type
+  # that wasn't originally selected, or to regenerate one that was. Only
+  # accepted while the media item's status is COMPLETED or FAILED: at most
+  # one processing request may be active per media item at a time.
+  # audioVoice behaves as in confirmUpload.
+  requestProcessing(mediaId: ID!, options: [String!]!, audioVoice: String, idempotencyKey: String): MediaDetail!
+  # updatePromptSetting creates or replaces the caller's custom system
+  # prompt for one section. promptText is capped at 500 characters; an
+  # empty string clears it. Applied on every future generation for that
+  # section until changed again.
+  updatePromptSetting(section: String!, promptText: String!): PromptSetting!
+  # trashMedia moves a media item to the trash — a reversible soft
+  # delete. It disappears from mediaList/mediaDetail until restored or
+  # purged 30 days after trashing.
+  trashMedia(id: ID!): Media!
+  # restoreMedia moves a trashed item back out of the trash.
+  restoreMedia(id: ID!): Media!
+  # deleteMediaPermanently starts the irreversible hard-delete flow
+  # (ADR 0006) for a trashed item: media and every service that owns
+  # data for it (content, conductor) remove their rows and objects.
+  # Cannot be undone.
+  deleteMediaPermanently(id: ID!): Boolean!
+  # draftAudioScript asks an LLM to draft narration text from a loose
+  # description ("chat with AI" mode of the Audio feature) — the returned
+  # job starts generating and its outputText is filled in once complete;
+  # poll audioJob(id) or audioJobs for the result.
+  draftAudioScript(description: String!, idempotencyKey: String): AudioJob!
+  # generateStandaloneAudio synthesizes text directly to speech,
+  # independent of any media item ("paste text" mode of the Audio
+  # feature, or the confirmation step after draftAudioScript). Poll
+  # audioJob(id) or audioJobs for the result.
+  generateStandaloneAudio(text: String!, voice: String, idempotencyKey: String): AudioJob!
+}

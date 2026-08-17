@@ -1,0 +1,70 @@
+query AudioJobs($kind: String, $cursor: String, $pageSize: Int) {
+	audioJobs(kind: $kind, cursor: $cursor, pageSize: $pageSize) {
+		items {
+			id
+			kind
+			status
+			inputText
+			outputText
+			voice
+			durationMs
+			url
+			errorCode
+			createdAt
+		}
+		nextCursor
+	}
+}
+
+query AudioJob($id: ID!) {
+	audioJob(id: $id) {
+		id
+		kind
+		status
+		inputText
+		outputText
+		voice
+		durationMs
+		url
+		errorCode
+		createdAt
+	}
+}
+
+mutation DraftAudioScript($description: String!, $idempotencyKey: String) {
+	draftAudioScript(description: $description, idempotencyKey: $idempotencyKey) {
+		id
+		kind
+		status
+		inputText
+		outputText
+		voice
+		durationMs
+		url
+		errorCode
+		createdAt
+	}
+}
+
+mutation GenerateStandaloneAudio(
+	$text: String!
+	$voice: String
+	$idempotencyKey: String
+) {
+	generateStandaloneAudio(
+		text: $text
+		voice: $voice
+		idempotencyKey: $idempotencyKey
+	) {
+		id
+		kind
+		status
+		inputText
+		outputText
+		voice
+		durationMs
+		url
+		errorCode
+		createdAt
+	}
+}

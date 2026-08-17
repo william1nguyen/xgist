@@ -4,7 +4,7 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-46
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
@@ -20,8 +20,8 @@ is not guaranteed:
 
 - <https://ai.google.dev/gemini-api/docs/rate-limits>
 
-Version 1 uses `edge-tts`, a third-party Python client for Microsoft Edge's
-online TTS service without an API key:
+Local development and tests use `edge-tts`, a third-party Python client for
+Microsoft Edge's online TTS service without an API key:
 
 - <https://github.com/rany2/edge-tts>
 
@@ -52,7 +52,7 @@ Studio, recording the verification timestamp, and setting operational limits
 no higher than 80% of the lowest applicable provider limit. Preview model IDs
 are not production defaults.
 
-`conductorsvc` owns durable admission because it owns step scheduling. Before
+`conductor` owns durable admission because it owns step scheduling. Before
 publishing a Gemini step, it reserves bounded request and estimated-input-token
 capacity in its own schema. Reservations use a database transaction and
 expire after a configured timeout. The estimate includes the complete prompt
@@ -69,7 +69,7 @@ concurrency. Minute and daily usage remain in their bounded windows until
 expiry.
 
 Provider `429 RESOURCE_EXHAUSTED` responses are normalized as retriable step
-failures and honor `Retry-After` when present. `conductorsvc`, not the worker,
+failures and honor `Retry-After` when present. `conductor`, not the worker,
 persists the retry time and applies bounded exponential backoff with jitter.
 Authentication, invalid request, safety rejection, and unsupported model
 errors are terminal unless explicitly classified otherwise.
@@ -84,7 +84,7 @@ quota visibility, and a quota-increase or capacity-provisioning path.
 The production TTS configuration records characters or tokens per period,
 requests per period, concurrency, maximum input length, timeout, voice and
 locale availability, cost budget, and data-processing region where applicable.
-`conductorsvc` applies the same durable reservation pattern before publishing a
+`conductor` applies the same durable reservation pattern before publishing a
 TTS step. Workers apply local concurrency and reject text above the configured
 bound before calling the provider.
 
@@ -144,7 +144,7 @@ not bypass admission. TTS cannot be enabled in production while only
 | --- | --- |
 | Limit only each worker replica | Aggregate calls grow whenever replicas scale |
 | Use Kafka partition count as quota | Partitions bound consumers, not RPM, tokens, daily usage, or retries |
-| Retry `429` immediately in workers | Creates retry storms and splits retry ownership from `conductorsvc` |
+| Retry `429` immediately in workers | Creates retry storms and splits retry ownership from `conductor` |
 | Hard-code published Gemini limits | Active limits vary by project and tier and are not guaranteed |
 | Use `edge-tts` in production | No authenticated project quota, SLA, or supported capacity path |
 | Silently fall back between providers | Changes output and policy without a durable workflow decision |

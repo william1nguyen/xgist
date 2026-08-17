@@ -1,0 +1,23 @@
+schema:
+  - internal/graphql/schema.graphqls
+
+exec:
+  filename: internal/graphql/generated.go
+  package: graphql
+
+model:
+  filename: internal/graphql/model/models_gen.go
+  package: model
+
+# hermes has no per-field resolvers beyond Query/Mutation: every nested
+# type is a plain struct populated up front by the root resolver's
+# bounded parallel gRPC reads (docs/services/hermes.md's control flow), so
+# every type below binds to a generated struct instead of a resolver
+# method. internal/graphql/mappers.go converts internal/clients domain
+# types into these structs.
+resolver:
+  layout: single-file
+  filename: internal/graphql/resolver.go
+  package: graphql
+
+omit_slice_element_pointers: true

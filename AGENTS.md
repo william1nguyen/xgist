@@ -60,8 +60,7 @@ task:
   distributed workflows, and migrations.
 - `golang-development` for Go source, tests, modules, APIs, concurrency, and
   performance-sensitive Go components.
-- `typescript-development` for the Web application, TypeScript packages, and
-  the version 1 server.
+- `typescript-development` for the Web application.
 - `testing-strategy` for test planning and implementation.
 - `systematic-debugging` before fixing any bug, failure, or unexpected behavior.
 - `performance-engineering` for evidence-based performance work.
@@ -81,9 +80,9 @@ Use the checks relevant to the changed area:
 ```sh
 make test:v2
 make build:v2
-pnpm test
-pnpm check-types
-pnpm lint
+make web:test
+make web:typecheck
+make web:lint
 git diff --check
 ```
 
@@ -105,6 +104,7 @@ change.
 
 - Follow `.agents/skills/william-git-commit/SKILL.md` for commits and pull
   requests.
+- Commit messages must be exactly one line, with no body or footer.
 - Never include secrets, generated local state, co-author trailers, or unrelated
   changes.
 - Do not commit, push, create a branch, or open a pull request unless the user

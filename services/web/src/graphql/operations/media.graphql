@@ -1,0 +1,196 @@
+query MediaList($cursor: String, $pageSize: Int, $search: String) {
+	mediaList(cursor: $cursor, pageSize: $pageSize, search: $search) {
+		items {
+			id
+			title
+			mediaType
+			mimeType
+			sizeBytes
+			durationMs
+			status
+			thumbnailUrl
+			createdAt
+			updatedAt
+			description
+		}
+		nextCursor
+	}
+}
+
+query MediaDetail($id: ID!) {
+	mediaDetail(id: $id) {
+		id
+		title
+		mediaType
+		mimeType
+		sizeBytes
+		durationMs
+		status
+		thumbnailUrl
+		playbackUrl
+		playbackUrlExpiresAt
+		createdAt
+		updatedAt
+		description
+	}
+}
+
+query TrashedMedia($cursor: String, $pageSize: Int) {
+	trashedMedia(cursor: $cursor, pageSize: $pageSize) {
+		items {
+			id
+			title
+			mediaType
+			mimeType
+			sizeBytes
+			durationMs
+			status
+			thumbnailUrl
+			createdAt
+			updatedAt
+			description
+			trashedAt
+		}
+		nextCursor
+	}
+}
+
+query MediaProgress($ids: [ID!]!) {
+	mediaProgress(ids: $ids) {
+		mediaId
+		status
+		processingStatus
+		completedSteps
+		totalSteps
+		updatedAt
+		version
+	}
+}
+
+mutation CreateUploadSession(
+	$title: String!
+	$mimeType: String!
+	$declaredSizeBytes: Int!
+	$idempotencyKey: String
+) {
+	createUploadSession(
+		title: $title
+		mimeType: $mimeType
+		declaredSizeBytes: $declaredSizeBytes
+		idempotencyKey: $idempotencyKey
+	) {
+		id
+		mediaId
+		uploadUrl
+		status
+		expiresAt
+	}
+}
+
+mutation ConfirmUpload(
+	$uploadSessionId: ID!
+	$options: [String!]!
+	$audioVoice: String
+	$idempotencyKey: String
+) {
+	confirmUpload(
+		uploadSessionId: $uploadSessionId
+		options: $options
+		audioVoice: $audioVoice
+		idempotencyKey: $idempotencyKey
+	) {
+		id
+		title
+		mediaType
+		mimeType
+		sizeBytes
+		durationMs
+		status
+		thumbnailUrl
+		playbackUrl
+		playbackUrlExpiresAt
+		createdAt
+		updatedAt
+	}
+}
+
+mutation RequestThumbnailUpload($mediaId: ID!, $mimeType: String!) {
+	requestThumbnailUpload(mediaId: $mediaId, mimeType: $mimeType) {
+		objectKey
+		uploadUrl
+		expiresAt
+	}
+}
+
+mutation SetThumbnail($mediaId: ID!, $objectKey: String!, $mimeType: String!) {
+	setThumbnail(mediaId: $mediaId, objectKey: $objectKey, mimeType: $mimeType) {
+		id
+		thumbnailUrl
+	}
+}
+
+mutation UpdateMedia($id: ID!, $title: String, $description: String) {
+	updateMedia(id: $id, title: $title, description: $description) {
+		id
+		title
+		mediaType
+		mimeType
+		sizeBytes
+		durationMs
+		status
+		thumbnailUrl
+		playbackUrl
+		playbackUrlExpiresAt
+		createdAt
+		updatedAt
+		description
+	}
+}
+
+mutation TrashMedia($id: ID!) {
+	trashMedia(id: $id) {
+		id
+		status
+		trashedAt
+	}
+}
+
+mutation RestoreMedia($id: ID!) {
+	restoreMedia(id: $id) {
+		id
+		status
+		trashedAt
+	}
+}
+
+mutation DeleteMediaPermanently($id: ID!) {
+	deleteMediaPermanently(id: $id)
+}
+
+mutation RequestProcessing(
+	$mediaId: ID!
+	$options: [String!]!
+	$audioVoice: String
+	$idempotencyKey: String
+) {
+	requestProcessing(
+		mediaId: $mediaId
+		options: $options
+		audioVoice: $audioVoice
+		idempotencyKey: $idempotencyKey
+	) {
+		id
+		title
+		mediaType
+		mimeType
+		sizeBytes
+		durationMs
+		status
+		thumbnailUrl
+		playbackUrl
+		playbackUrlExpiresAt
+		createdAt
+		updatedAt
+		description
+	}
+}

@@ -1,20 +1,25 @@
 # Media Notes 2 Service Boundaries
 
-Status: design specification.
-
-No Media Notes 2 service implementation or Go workspace is present yet. When
-implemented, each service below must be an independently buildable module and
-deployment unit. Local workspace tooling must not turn the modules into one
-shared application.
+Each service below must be an independently buildable module and deployment
+unit. Local workspace tooling must not turn the modules into one shared
+application.
 
 ## Services
 
-- `hermes`: public GraphQL gateway and response aggregation.
-- `identitysvc`: users, accounts, and sessions.
-- `billingsvc`: subscriptions, credit reservations, and ledger.
-- `mediasvc`: uploads, source-media metadata, and processing requests.
-- `contentsvc`: transcripts and generated content.
-- `conductorsvc`: workflow state, dependencies, joins, retries, and timeouts.
+- `hermes`: public GraphQL gateway and response aggregation. Not started.
+- `identity`: users, accounts, and sessions. Implemented: registration,
+  authentication, session issuance/validation/revocation, and the account
+  deletion workflow (outbox publish, inbox consumer, reconciler). See
+  [docs/services/identity.md](../docs/services/identity.md).
+- `billing`: subscriptions, credit reservations, and ledger. Implemented:
+  catalog-backed quotes, credit reservation/settlement/release (outbox,
+  Kafka command consumer, append-only ledger), and Polar purchase webhook
+  handling. See [docs/services/billing.md](../docs/services/billing.md).
+- `media`: uploads, source-media metadata, and processing requests. Not
+  started.
+- `content`: transcripts and generated content. Not started.
+- `conductor`: workflow state, dependencies, joins, retries, and timeouts.
+  Not started.
 
 Every service must expose operational liveness and readiness endpoints:
 
@@ -25,7 +30,7 @@ GET /health/ready
 
 Domain APIs, database connections, and messaging consumers belong inside their
 own service module. A service must not import another service's implementation
-or internal packages, and must not access another service's schema.
+or internal packages, and must not access another service's database.
 
 Synchronous cross-service calls use versioned gRPC contracts. Asynchronous
 communication uses versioned Kafka events. Media bytes and long-form generated
@@ -40,6 +45,7 @@ utilities.
 - Every service builds and tests independently.
 - Ownership, startup, shutdown, cancellation, timeouts, retries, and readiness
   behavior are explicit.
-- Stateful services use separate credentials, schemas, and migration histories.
+- Stateful services use separate credentials, databases, and migration
+  histories.
 - Contracts and events are backward compatible within a version.
 - No service imports another service's implementation or accesses its storage.

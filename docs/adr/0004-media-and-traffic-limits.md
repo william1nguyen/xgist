@@ -4,20 +4,20 @@
 - Date: 2026-07-25
 - Decision owners: Media Notes maintainers
 - Related Jira issue: KAN-17
-- Related design: `proposal/mn2_design.md`
+- Related design: [architecture.md](../architecture.md)
 
 ## Context
 
 Media Notes accepts user-controlled audio and video, stores source bytes in
 object storage, and schedules expensive transcription and generation work.
-Version 1 rejects files larger than 500 MiB in the Web client and API, but it
-does not define a duration limit, concurrent-upload policy, or traffic budget.
+The product rejects files larger than 500 MiB in the Web client and API, but
+duration limits, concurrent-upload policy, and traffic budget must be defined
+before upload sessions and worker capacity are implemented.
 
-Media Notes 2 needs explicit limits before upload sessions and worker capacity
-are implemented. The limits must protect storage, provider quota, and database
-connections without transporting media bytes through `hermes`, gRPC, or Kafka.
-Initial production traffic is not measured, so these values are launch
-guardrails rather than capacity claims.
+Limits must protect storage, provider quota, and database connections without
+transporting media bytes through `hermes`, gRPC, or Kafka. Initial production
+traffic is not measured, so these values are launch guardrails rather than
+capacity claims.
 
 ## Decision
 
@@ -50,15 +50,15 @@ metadata is untrusted.
 1. `web` performs MIME-type and size checks for immediate feedback.
 2. `hermes` rate-limits the authenticated request, but never receives media
    bytes.
-3. `mediasvc` checks the requested MIME type, declared size, active-session
+3. `media` checks the requested MIME type, declared size, active-session
    count, and account policy before creating a session.
 4. The presigned object-storage policy constrains the object key, maximum
    content length, and expiry.
-5. On confirmation, `mediasvc` reads authoritative object metadata and rejects
+5. On confirmation, `media` reads authoritative object metadata and rejects
    a missing, empty, oversized, or key-mismatched object before creating a
    processing request.
 6. `conductor-worker` probes the source before expensive work and reports the
-   actual MIME/container, duration, and media streams. `mediasvc` records the
+   actual MIME/container, duration, and media streams. `media` records the
    measured duration. A source over four hours fails permanently with
    `MEDIA_DURATION_EXCEEDED`.
 
@@ -81,7 +81,7 @@ authentication. Limits return `429 Too Many Requests` with `Retry-After`.
 | Other authenticated GraphQL operations | 120/minute | 20 |
 | Authentication attempts | 10/15 minutes per account and IP | 5 |
 
-The three-session concurrency limit is durable state in `mediasvc`, not only a
+The three-session concurrency limit is durable state in `media`, not only a
 rate-limit counter. Retries with the same idempotency key return the existing
 result and do not consume another logical mutation.
 
@@ -136,8 +136,8 @@ proposed maximum; it is not an emergency response to queue lag.
 
 - Duration is known only after probing, so some invalid objects are uploaded
   before rejection.
-- A 60-minute session keeps abandoned object keys valid longer than version 1's
-  15-minute URL.
+- A 60-minute upload-session lifetime keeps abandoned object keys valid for up
+  to an hour before cleanup.
 - Redis rate limiting requires a defined fail-open or fail-closed policy per
   operation during implementation.
 - Launch values may be too strict or too permissive until production
