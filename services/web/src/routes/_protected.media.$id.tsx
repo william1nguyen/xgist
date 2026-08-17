@@ -1,5 +1,5 @@
-import { ArrowLeft } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft, Locate } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { MediaActionsMenu } from "@/components/media/media-actions-menu";
@@ -9,7 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MediaDescription } from "@/components/video/media-description";
 import { MediaPlayer } from "@/components/video/media-player";
-import { TranscriptPanel } from "@/components/video/transcript-panel";
+import {
+	TranscriptPanel,
+	type TranscriptPanelHandle,
+} from "@/components/video/transcript-panel";
 import {
 	useContentDetailQuery,
 	useMediaDetailQuery,
@@ -26,6 +29,8 @@ export default function MediaDetailPage() {
 	const [currentTimeMs, setCurrentTimeMs] = useState(0);
 	const [seekToMs, setSeekToMs] = useState<number | null>(null);
 	const [citedIndices, setCitedIndices] = useState<Set<number>>(new Set());
+	const transcriptScrollRef = useRef<HTMLDivElement | null>(null);
+	const transcriptPanelRef = useRef<TranscriptPanelHandle | null>(null);
 
 	const { data: mediaData, loading: mediaLoading } = useMediaDetailQuery({
 		variables: { id },
@@ -54,6 +59,31 @@ export default function MediaDetailPage() {
 		const segment = segments.find((s) => s.segmentIndex === index);
 		if (segment) setSeekToMs(segment.startMs);
 	}
+
+	// Scrolls only the transcript's own scroll container — never
+	// scrollIntoView, which walks up and nudges every scrollable
+	// ancestor (the whole page) along with it.
+	function jumpToCurrentSegment() {
+		const container = transcriptScrollRef.current;
+		const active = transcriptPanelRef.current?.activeElement;
+		if (!container || !active) return;
+		const containerRect = container.getBoundingClientRect();
+		const activeRect = active.getBoundingClientRect();
+		const offset =
+			activeRect.top -
+			containerRect.top -
+			container.clientHeight / 2 +
+			activeRect.height / 2;
+		container.scrollTo({
+			top: container.scrollTop + offset,
+			behavior: "smooth",
+		});
+	}
+
+	const hasActiveSegment = segments.some(
+		(segment) =>
+			currentTimeMs >= segment.startMs && currentTimeMs < segment.endMs,
+	);
 
 	if (mediaLoading && !media) {
 		return (
@@ -159,12 +189,23 @@ export default function MediaDetailPage() {
 				</div>
 
 				<div className="flex flex-col self-stretch overflow-hidden rounded-xl border border-border bg-card xl:sticky xl:top-4 xl:max-h-[calc(100vh-6rem)]">
-					<div className="shrink-0 border-border border-b px-4 py-2.5">
+					<div className="flex shrink-0 items-center justify-between border-border border-b px-4 py-2.5">
 						<p className="font-medium text-sm">{t("mediaDetail.transcript")}</p>
+						{hasActiveSegment && (
+							<button
+								type="button"
+								onClick={jumpToCurrentSegment}
+								className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:bg-accent hover:text-foreground"
+							>
+								<Locate className="size-3" />
+								{t("video.jumpToCurrent")}
+							</button>
+						)}
 					</div>
-					<div className="flex-1 overflow-y-auto p-3">
+					<div ref={transcriptScrollRef} className="flex-1 overflow-y-auto p-3">
 						{segments.length > 0 ? (
 							<TranscriptPanel
+								ref={transcriptPanelRef}
 								segments={segments}
 								currentTimeMs={currentTimeMs}
 								citedIndices={citedIndices}

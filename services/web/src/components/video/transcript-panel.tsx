@@ -1,5 +1,4 @@
-import { Locate } from "lucide-react";
-import { useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { ContentDetailQuery } from "@/graphql/generated/graphql";
 import { formatDuration } from "@/lib/format";
@@ -16,14 +15,31 @@ type TranscriptPanelProps = {
 	onSeek: (ms: number) => void;
 };
 
-export function TranscriptPanel({
-	segments,
-	currentTimeMs,
-	citedIndices,
-	onSeek,
-}: TranscriptPanelProps) {
+// Exposes the active segment's DOM node so a caller (the "jump to
+// current" button, which lives in the panel's own header rather than
+// scrolling with the list) can scroll it into view within whichever
+// element it owns as the transcript's scroll container — never via
+// scrollIntoView, which walks up and can nudge ancestor scroll
+// containers (the whole page) along with it.
+export type TranscriptPanelHandle = {
+	activeElement: HTMLButtonElement | null;
+};
+
+export const TranscriptPanel = forwardRef<
+	TranscriptPanelHandle,
+	TranscriptPanelProps
+>(function TranscriptPanel(
+	{ segments, currentTimeMs, citedIndices, onSeek },
+	ref,
+) {
 	const { t } = useTranslation();
 	const activeRef = useRef<HTMLButtonElement | null>(null);
+
+	useImperativeHandle(ref, () => ({
+		get activeElement() {
+			return activeRef.current;
+		},
+	}));
 
 	if (segments.length === 0) {
 		return (
@@ -31,28 +47,8 @@ export function TranscriptPanel({
 		);
 	}
 
-	const hasActive = segments.some(
-		(segment) =>
-			currentTimeMs >= segment.startMs && currentTimeMs < segment.endMs,
-	);
-
 	return (
 		<div className="flex flex-col gap-1">
-			{hasActive && (
-				<button
-					type="button"
-					onClick={() =>
-						activeRef.current?.scrollIntoView({
-							behavior: "smooth",
-							block: "center",
-						})
-					}
-					className="sticky top-0 z-10 mb-1 flex w-fit items-center gap-1.5 self-center rounded-full border border-border bg-background/95 px-3 py-1 text-xs shadow-sm backdrop-blur transition-colors hover:bg-accent"
-				>
-					<Locate className="size-3" />
-					{t("video.jumpToCurrent")}
-				</button>
-			)}
 			{segments.map((segment) => {
 				const isActive =
 					currentTimeMs >= segment.startMs && currentTimeMs < segment.endMs;
@@ -86,4 +82,4 @@ export function TranscriptPanel({
 			})}
 		</div>
 	);
-}
+});
