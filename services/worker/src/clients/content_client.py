@@ -149,3 +149,21 @@ class ContentClient:
             summary_type=summary_type, object_key=object_key, mime_type=mime_type,
             duration_ms=duration_ms, voice=voice,
         ))
+
+    def complete_script_draft(self, *, job_id: str, script_text: str) -> None:
+        self._stub.CompleteScriptDraft(content_pb2.CompleteScriptDraftRequest(
+            job_id=job_id, script_text=script_text,
+        ))
+
+    def complete_standalone_audio(
+        self, *, job_id: str, object_key: str, mime_type: str, duration_ms: int, voice: str,
+    ) -> None:
+        self._stub.CompleteStandaloneAudio(content_pb2.CompleteStandaloneAudioRequest(
+            job_id=job_id, object_key=object_key, mime_type=mime_type,
+            duration_ms=duration_ms, voice=voice,
+        ))
+
+    def fail_standalone_audio_job(self, *, job_id: str, error_code: str) -> None:
+        self._stub.FailStandaloneAudioJob(content_pb2.FailStandaloneAudioJobRequest(
+            job_id=job_id, error_code=error_code,
+        ))

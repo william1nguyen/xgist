@@ -178,6 +178,22 @@ def extract_keypoints(
     return [(i, kp.text, kp.start_segment, kp.end_segment) for i, kp in enumerate(keypoints)]
 
 
+def draft_audio_script(description: str) -> str:
+    """Drafts narration text from a loose description, for the standalone
+    audio feature's "chat with AI" mode (docs/services/worker.md). Plain
+    prose in, plain prose out — no transcript, no JSON structure, unlike
+    every other Gemini call in this module.
+    """
+    prompt = (
+        "You are a scriptwriting assistant. Write a short narration script "
+        "(a few sentences to a short paragraph, suitable for text-to-speech) "
+        "based on the following description. Respond with the narration "
+        "text only — no markdown, no preamble, no quotation marks.\n\n"
+        f"Description:\n{description}"
+    )
+    return _call(prompt)
+
+
 class _Notes(BaseModel):
     notes: str
 

@@ -23,6 +23,7 @@ worker/
 ```text
 handle_transcribe, handle_summary, handle_keywords, handle_keypoints
 handle_notes, handle_summary_audio, handle_thumbnail
+handle_script, handle_audio  # standalone audio jobs — see below
 ```
 
 Each handler validates command IDs/attempt, acquires a bounded capability
@@ -42,32 +43,36 @@ completion before persistence, or transfer media/text via Kafka. Before commit,
 check authoritative deletion/media state. Test provider timeout, admission
 denial, duplicate command, owner unavailable, late result and cancellation.
 
-## Planned: standalone audio generation (not yet implemented)
+## Standalone audio generation
 
-Today `handle_summary_audio` only ever synthesizes a *derived* summary of an
-existing media item's transcript — there is no path that takes arbitrary
-user-supplied text and produces standalone audio unrelated to any media item.
-A future "Audio" feature is planned on top of the same TTS provider
-(`providers/tts.py`, the edge-tts adapter `handle_summary_audio` already
-uses), decoupled from the transcribe → summarize → summary-audio pipeline:
+Unlike `handle_summary_audio` (which only ever synthesizes a *derived*
+summary of an existing media item's transcript), the "Audio" feature lets a
+caller paste text directly, or describe what they want and have an LLM
+draft narration text first, then synthesize it — entirely independent of
+any media item, conductor workflow, or media_id.
 
-- Input: the caller either pastes text directly, or reaches it through an
-  AI-chat step that turns a loose description into a script (a new,
-  separate LLM interaction from summarize/keywords/keypoints/notes — it
-  drafts text to *speak*, not text that cites a transcript).
-- The generation itself is asynchronous, tracked through the same two
-  coarse states the rest of the app already exposes for jobs: `generating`
-  and `completed` (plus `failed`, matching every other step's error path).
-- Results are not nested under a source media item's content — they are
-  their own first-class, listable thing, with a dedicated top-level nav
-  entry ("Audio" or similar) to browse and replay past generations,
-  independent of the media library and its trash.
-
-Open questions this needs resolved before implementation: which service owns
-the durable rows (content already owns summary-audio metadata but has no
-`user_id`/media-independent model today; a new lightweight store may be
-simpler than stretching content's ownership), what the worker command/step
-shape looks like given there is no `media_id` to key off of, and what the
-hermes GraphQL surface (submit + poll/list) looks like. See also
-`docs/services/hermes.md`'s media-recommendations note for the same
-"planned, not scheduled" treatment.
+- `handle_script` drafts narration text from a loose description via
+  `providers.gemini.draft_audio_script` — a plain-prose prompt/response,
+  unlike every other Gemini call in this module (no transcript, no JSON
+  structure).
+- `handle_audio` synthesizes text directly to speech via the same
+  `providers/tts.py` edge-tts adapter `handle_summary_audio` uses, uploads
+  the object, and commits its metadata.
+- Both are dispatched from `mn.audio.job.requested.v1` (content's own
+  outbox topic — `content/internal/audiojob` — not conductor's), consumed
+  by the same worker pool on the same consumer group as
+  `mn.processing.step.requested.v1`. On success each calls content's
+  `CompleteScriptDraft`/`CompleteStandaloneAudio` RPC directly; on failure
+  each calls `FailStandaloneAudioJob` directly — there is no
+  `mn.processing.step.failed.v1` equivalent for a job with no workflow to
+  notify.
+- content owns the durable rows (`standalone_audio_jobs`, keyed by
+  `user_id`, not `media_id`) and the hermes GraphQL surface
+  (`draftAudioScript`, `generateStandaloneAudio` mutations;
+  `audioJob`/`audioJobs` queries). Jobs are tracked through the same
+  `generating`/`completed`/`failed` states every other job in this app
+  exposes. The web app's "Audio" nav entry lists them, independent of the
+  media library and its trash.
+- Not yet wired to billing: generating a script or audio job does not
+  reserve or settle credits today, unlike every media-bound processing
+  step.

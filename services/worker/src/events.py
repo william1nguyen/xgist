@@ -19,6 +19,13 @@ STEP_REQUESTED_TOPIC = "mn.processing.step.requested.v1"
 STEP_FAILED_TOPIC = "mn.processing.step.failed.v1"
 CONSUMER_GROUP = "conductor-worker-steps"
 
+# AUDIO_JOB_REQUESTED_TOPIC is content's standalone-audio-job topic
+# (content/internal/events.AudioJobRequestedTopic) — a media-independent
+# script-draft or audio-generation request, never routed through
+# conductor. Consumed by the same worker pool, on the same consumer
+# group, as mn.processing.step.requested.v1.
+AUDIO_JOB_REQUESTED_TOPIC = "mn.audio.job.requested.v1"
+
 
 @dataclass
 class StepCommand:
@@ -58,9 +65,36 @@ def parse_step_command(raw: bytes) -> StepCommand:
     )
 
 
+@dataclass
+class AudioJobCommand:
+    """Decoded mn.audio.job.requested.v1 payload —
+    content/internal/store.AudioJobRepository.create's outbox payload
+    shape. Has no media_id/workflow_id: standalone audio jobs never touch
+    conductor.
+    """
+
+    event_id: str
+    job_id: str
+    kind: str
+    input_text: str
+    voice: str | None = None
+
+
+def parse_audio_job_command(raw: bytes) -> AudioJobCommand:
+    data = json.loads(raw)
+    return AudioJobCommand(
+        event_id=data["event_id"],
+        job_id=data["job_id"],
+        kind=data["kind"],
+        input_text=data["input_text"],
+        voice=data.get("voice") or None,
+    )
+
+
 def new_consumer(brokers: list[str]) -> KafkaConsumer:
     return KafkaConsumer(
         STEP_REQUESTED_TOPIC,
+        AUDIO_JOB_REQUESTED_TOPIC,
         bootstrap_servers=brokers,
         group_id=CONSUMER_GROUP,
         enable_auto_commit=False,

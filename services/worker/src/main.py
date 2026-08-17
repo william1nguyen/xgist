@@ -20,6 +20,7 @@ from clients.media_client import MediaClient
 from clients.objectstore import ObjectStore
 from config import load_config
 from deps import Deps
+from handlers import audio_job
 from limits import build_limits
 from providers import gemini, whisper
 
@@ -69,6 +70,15 @@ def main() -> None:
     producer = events.new_producer(cfg.kafka_brokers)
 
     def handle(message) -> None:
+        if message.topic == events.AUDIO_JOB_REQUESTED_TOPIC:
+            try:
+                audio_cmd = events.parse_audio_job_command(message.value)
+            except (KeyError, ValueError, TypeError) as e:
+                logger.error("undecodable audio job command, skipping: %s", e)
+                return
+            audio_job.dispatch(audio_cmd, deps)
+            return
+
         try:
             cmd = events.parse_step_command(message.value)
         except (KeyError, ValueError, TypeError) as e:

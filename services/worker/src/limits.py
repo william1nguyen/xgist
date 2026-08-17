@@ -56,6 +56,11 @@ _STEP_TO_LIMITER = {
     "notes": lambda limits: limits.gemini,
     "summary_audio": lambda limits: limits.tts,
     "generate_thumbnail": lambda limits: limits.thumbnail,
+    # Standalone audio jobs (docs/services/worker.md) share the same
+    # Gemini/TTS capacity bounds as their media-bound counterparts —
+    # there is no separate provider quota to size for them.
+    "standalone_script": lambda limits: limits.gemini,
+    "standalone_audio": lambda limits: limits.tts,
 }
 
 
