@@ -17,7 +17,7 @@ def handle(cmd: StepCommand, deps: Deps) -> None:
     transcript = deps.content.get_transcript(cmd.media_id)
 
     with deps.limits.for_step(cmd.step).acquire():
-        text, sentences = gemini.summarize(transcript.segments)
+        text, sentences = gemini.summarize(transcript.segments, cmd.prompt_override)
 
     deps.content.store_summary(
         idempotency_key=cmd.idempotency_key,

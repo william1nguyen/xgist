@@ -44,6 +44,17 @@ def _transcript_prompt_text(segments: list[Segment]) -> str:
     return "\n".join(f"[{s.segment_index}] {s.text}" for s in segments)
 
 
+def _custom_instructions_block(custom_instructions: str | None) -> str:
+    """Formats the caller's saved system prompt (Settings > Prompts) as a
+    prompt section, or "" when none was saved. Placed ahead of the
+    transcript so it augments, rather than overrides, the structural/
+    format instructions already in each prompt.
+    """
+    if not custom_instructions:
+        return ""
+    return f"Additional instructions from the user:\n{custom_instructions}\n\n"
+
+
 def _call(prompt: str) -> str:
     if _make_client is None:
         raise RuntimeError("Gemini client not configured")
@@ -78,7 +89,9 @@ class _SummaryResponse(BaseModel):
     sentences: list[_SentenceRef]
 
 
-def summarize(segments: list[Segment]) -> tuple[str, list[_SentenceRef]]:
+def summarize(
+    segments: list[Segment], custom_instructions: str | None = None
+) -> tuple[str, list[_SentenceRef]]:
     """Returns (full_summary_text, sentences), each sentence citing the
     transcript segment indexes it draws from — content.proto's
     SummarySentence shape.
@@ -90,6 +103,7 @@ def summarize(segments: list[Segment]) -> tuple[str, list[_SentenceRef]]:
         "(0-based), \"text\" (one sentence of the summary), and "
         '"cited_segment_indexes" (the transcript segment indexes that '
         "sentence is drawn from).\n\n"
+        f"{_custom_instructions_block(custom_instructions)}"
         f"Transcript:\n{_transcript_prompt_text(segments)}\n\n"
         "Respond with valid JSON only, no markdown."
     )
@@ -107,7 +121,9 @@ class _Keyword(BaseModel):
     score: float
 
 
-def extract_keywords(segments: list[Segment]) -> list[tuple[str, float, int]]:
+def extract_keywords(
+    segments: list[Segment], custom_instructions: str | None = None
+) -> list[tuple[str, float, int]]:
     """Returns up to 10 (keyword, score, position) tuples, ranked by
     Gemini's own relevance score (content.proto's Keyword shape).
     """
@@ -116,6 +132,7 @@ def extract_keywords(segments: list[Segment]) -> list[tuple[str, float, int]]:
         "with a relevance score between 0 and 1. Return a JSON array of "
         'objects: [{"keyword": "...", "score": 0.0}, ...], most relevant '
         "first. No markdown.\n\n"
+        f"{_custom_instructions_block(custom_instructions)}"
         f"Transcript:\n{_transcript_prompt_text(segments)}"
     )
 
@@ -135,7 +152,9 @@ class _Keypoint(BaseModel):
     end_segment: int
 
 
-def extract_keypoints(segments: list[Segment]) -> list[tuple[int, str, int, int]]:
+def extract_keypoints(
+    segments: list[Segment], custom_instructions: str | None = None
+) -> list[tuple[int, str, int, int]]:
     """Returns 3-5 (point_index, text, start_segment, end_segment)
     tuples, each keypoint's segment range drawn from the numbered
     transcript (content.proto's Keypoint shape)."""
@@ -145,6 +164,7 @@ def extract_keypoints(segments: list[Segment]) -> list[tuple[int, str, int, int]
         '[{"text": "...", "start_segment": 0, "end_segment": 2}, ...], '
         "where start_segment/end_segment are the transcript segment "
         "indexes the keypoint summarizes. No markdown.\n\n"
+        f"{_custom_instructions_block(custom_instructions)}"
         f"Transcript:\n{_transcript_prompt_text(segments)}"
     )
 
@@ -162,12 +182,13 @@ class _Notes(BaseModel):
     notes: str
 
 
-def generate_notes(segments: list[Segment]) -> str:
+def generate_notes(segments: list[Segment], custom_instructions: str | None = None) -> str:
     """Returns Markdown notes body (content.proto's Note.body)."""
     prompt = (
         "Generate detailed notes from the following transcript in Markdown "
         'format. Return a JSON object {"notes": "..."} containing the '
         "markdown string. No markdown code fences around the JSON itself.\n\n"
+        f"{_custom_instructions_block(custom_instructions)}"
         f"Transcript:\n{_transcript_prompt_text(segments)}"
     )
 

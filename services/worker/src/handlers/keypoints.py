@@ -13,7 +13,7 @@ def handle(cmd: StepCommand, deps: Deps) -> None:
     transcript = deps.content.get_transcript(cmd.media_id)
 
     with deps.limits.for_step(cmd.step).acquire():
-        keypoints = gemini.extract_keypoints(transcript.segments)
+        keypoints = gemini.extract_keypoints(transcript.segments, cmd.prompt_override)
 
     deps.content.store_keypoints(
         idempotency_key=cmd.idempotency_key,

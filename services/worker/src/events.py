@@ -37,6 +37,10 @@ class StepCommand:
     # non-default voice (conductor's dispatchStep omits this field
     # otherwise) — see handlers/summary_audio.py.
     voice: str | None = None
+    # Only present when the caller saved a custom system prompt for this
+    # step's section (conductor's dispatchStep/promptOverrideForStep omits
+    # this field otherwise) — appended to the LLM prompt in providers/gemini.py.
+    prompt_override: str | None = None
 
 
 def parse_step_command(raw: bytes) -> StepCommand:
@@ -50,6 +54,7 @@ def parse_step_command(raw: bytes) -> StepCommand:
         attempt=int(data["attempt"]),
         idempotency_key=data["idempotency_key"],
         voice=data.get("voice"),
+        prompt_override=data.get("prompt_override"),
     )
 
 
