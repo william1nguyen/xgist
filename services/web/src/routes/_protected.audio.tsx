@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Music, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AudioJobCard } from "@/components/audio/audio-job-card";
 import { CreateAudioDialog } from "@/components/audio/create-audio-dialog";
@@ -25,14 +25,27 @@ export default function AudioPage() {
 	const pageIndex = cursorStack.length;
 	const currentCursor = cursorStack[cursorStack.length - 1];
 
-	const { data, loading } = useAudioJobsQuery({
+	const { data, loading, startPolling, stopPolling } = useAudioJobsQuery({
 		variables: { kind: "audio", cursor: currentCursor, pageSize: PAGE_SIZE },
 		fetchPolicy: "cache-and-network",
-		pollInterval: POLL_INTERVAL_MS,
 	});
 
 	const items = data?.audioJobs.items ?? [];
 	const nextCursor = data?.audioJobs.nextCursor ?? null;
+	const hasGenerating = items.some((item) => item.status === "generating");
+
+	// Poll only while something is actually generating: content presigns
+	// a fresh playback URL on every read, so polling a page that's fully
+	// settled would keep swapping a completed job's <audio src> out from
+	// under the listener every tick, cutting playback off mid-clip.
+	useEffect(() => {
+		if (hasGenerating) {
+			startPolling(POLL_INTERVAL_MS);
+		} else {
+			stopPolling();
+		}
+		return () => stopPolling();
+	}, [hasGenerating, startPolling, stopPolling]);
 
 	function goToNextPage() {
 		if (nextCursor) setCursorStack((prev) => [...prev, nextCursor]);

@@ -43,18 +43,32 @@ export function CreateAudioDialog({
 	const [generateStandaloneAudio, { loading: generating }] =
 		useGenerateStandaloneAudioMutation();
 
-	const { data: draftData } = useAudioJobQuery({
+	const {
+		data: draftData,
+		startPolling: startDraftPolling,
+		stopPolling: stopDraftPolling,
+	} = useAudioJobQuery({
 		variables: { id: draftJobId ?? "" },
 		skip: !draftJobId,
-		// A plain fixed-interval poll, not ADR 0005's offline/backoff-aware
-		// useMediaProgress machinery — this is a single ad hoc job in a
-		// dialog, not a batched per-item status feed.
-		pollInterval: draftJobId ? 2000 : 0,
 		fetchPolicy: "network-only",
 	});
 	const draftJob = draftData?.audioJob;
 	const draftReady = draftJob?.status === "completed" && !!draftJob.outputText;
 	const draftFailed = draftJob?.status === "failed";
+
+	// A plain fixed-interval poll, not ADR 0005's offline/backoff-aware
+	// useMediaProgress machinery — this is a single ad hoc job in a
+	// dialog, not a batched per-item status feed. Stops once the draft
+	// leaves "generating" so it doesn't keep hitting the network after
+	// the script (or the failure) has already landed.
+	useEffect(() => {
+		if (draftJobId && draftJob?.status === "generating") {
+			startDraftPolling(2000);
+		} else {
+			stopDraftPolling();
+		}
+		return () => stopDraftPolling();
+	}, [draftJobId, draftJob?.status, startDraftPolling, stopDraftPolling]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: seed scriptText once when the poll observes the draft finishing, not on every draftJob identity change (the user may go on to edit scriptText themselves).
 	useEffect(() => {
