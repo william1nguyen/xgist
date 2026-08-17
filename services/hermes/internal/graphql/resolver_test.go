@@ -108,6 +108,34 @@ func (f *fakeMedia) RequestProcessing(ctx context.Context, idempotencyKey string
 	f.byID[mediaID] = m
 	return m, nil
 }
+func (f *fakeMedia) TrashMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error) {
+	m, ok := f.byID[mediaID]
+	if !ok {
+		return clients.Media{}, graphqlpkg.ErrNotFound
+	}
+	if m.TrashedAt == nil {
+		now := time.Now()
+		m.TrashedAt = &now
+	}
+	f.byID[mediaID] = m
+	return m, nil
+}
+func (f *fakeMedia) RestoreMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error) {
+	m, ok := f.byID[mediaID]
+	if !ok {
+		return clients.Media{}, graphqlpkg.ErrNotFound
+	}
+	m.TrashedAt = nil
+	f.byID[mediaID] = m
+	return m, nil
+}
+func (f *fakeMedia) ListTrashedMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32) (clients.MediaPage, error) {
+	return clients.MediaPage{}, nil
+}
+func (f *fakeMedia) DeleteMediaPermanently(ctx context.Context, mediaID uuid.UUID) error {
+	delete(f.byID, mediaID)
+	return nil
+}
 
 type fakeContent struct{}
 

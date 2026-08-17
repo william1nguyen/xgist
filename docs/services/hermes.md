@@ -51,6 +51,21 @@ or `FAILED` (at most one processing request active per media item at a
 time) — surfaced automatically via the existing gRPC-code-to-GraphQL-error
 mapping, no hermes-specific handling needed.
 
+**Media recommendations (planned).** hermes has no ranking or
+recommendation query today. The web client's media-detail "Recommended"
+shelf is a placeholder that pages through the caller's own `mediaList` and
+shuffles it client-side. A real `recommendedMedia` query — likely backed by
+watch/generation history and, eventually, cross-user signals — is future
+work; it is not scheduled yet and has no owning service decided.
+
+**Standalone audio generation (planned).** There is also no
+submit/poll/list surface today for a media-independent "type or describe
+text, get back generated audio" feature — every current audio artifact
+(`summaryAudios`) is derived from a specific media item's summary. See
+`docs/services/worker.md`'s "Planned: standalone audio generation" section
+for the shape being considered (async `generating`/`completed`/`failed`
+states, its own top-level list, no owning service decided yet either).
+
 ## Control flow
 
 ```text

@@ -208,30 +208,6 @@ func (r *mutationResolver) RequestProcessing(ctx context.Context, mediaID string
 	return toModelMediaDetail(m, "", time.Time{}), nil
 }
 
-// buildPromptOverrides fetches the caller's saved prompt settings and
-// returns only the ones relevant to this request: non-empty prompts for
-// sections present in options.
-func (r *Resolver) buildPromptOverrides(ctx context.Context, userID uuid.UUID, options []string) (map[string]string, error) {
-	settings, err := r.identity.GetPromptSettings(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if len(settings) == 0 {
-		return nil, nil
-	}
-	selected := make(map[string]bool, len(options))
-	for _, o := range options {
-		selected[o] = true
-	}
-	overrides := make(map[string]string)
-	for _, s := range settings {
-		if s.PromptText != "" && selected[s.Section] {
-			overrides[s.Section] = s.PromptText
-		}
-	}
-	return overrides, nil
-}
-
 // UpdatePromptSetting is the resolver for the updatePromptSetting field.
 func (r *mutationResolver) UpdatePromptSetting(ctx context.Context, section string, promptText string) (*model.PromptSetting, error) {
 	principal, err := requirePrincipal(ctx)
@@ -247,6 +223,95 @@ func (r *mutationResolver) UpdatePromptSetting(ctx context.Context, section stri
 		return nil, err
 	}
 	return toModelPromptSetting(setting), nil
+}
+
+// TrashMedia is the resolver for the trashMedia field.
+func (r *mutationResolver) TrashMedia(ctx context.Context, id string) (*model.Media, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	mediaID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("id must be a UUID: %w", err)
+	}
+
+	existing, err := r.media.GetMedia(ctx, mediaID)
+	if err != nil {
+		return nil, err
+	}
+	if existing.OwnerID != principal.User.ID {
+		return nil, ErrNotFound
+	}
+
+	m, err := r.media.TrashMedia(ctx, mediaID)
+	if err != nil {
+		return nil, err
+	}
+	return toModelMedia(m), nil
+}
+
+// RestoreMedia is the resolver for the restoreMedia field.
+func (r *mutationResolver) RestoreMedia(ctx context.Context, id string) (*model.Media, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	mediaID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("id must be a UUID: %w", err)
+	}
+
+	existing, err := r.media.GetMedia(ctx, mediaID)
+	if err != nil {
+		return nil, err
+	}
+	if existing.OwnerID != principal.User.ID {
+		return nil, ErrNotFound
+	}
+
+	m, err := r.media.RestoreMedia(ctx, mediaID)
+	if err != nil {
+		return nil, err
+	}
+	return toModelMedia(m), nil
+}
+
+// DeleteMediaPermanently is the resolver for the deleteMediaPermanently field.
+func (r *mutationResolver) DeleteMediaPermanently(ctx context.Context, id string) (bool, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return false, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return false, err
+	}
+
+	mediaID, err := uuid.Parse(id)
+	if err != nil {
+		return false, fmt.Errorf("id must be a UUID: %w", err)
+	}
+
+	existing, err := r.media.GetMedia(ctx, mediaID)
+	if err != nil {
+		return false, err
+	}
+	if existing.OwnerID != principal.User.ID {
+		return false, ErrNotFound
+	}
+
+	if err := r.media.DeleteMediaPermanently(ctx, mediaID); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Me is the resolver for the me field.
@@ -487,11 +552,66 @@ func (r *queryResolver) PromptSettings(ctx context.Context) ([]model.PromptSetti
 	return out, nil
 }
 
+// TrashedMedia is the resolver for the trashedMedia field.
+func (r *queryResolver) TrashedMedia(ctx context.Context, cursor *string, pageSize *int) (*model.MediaPage, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassMediaRead, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	var cursorValue string
+	if cursor != nil {
+		cursorValue = *cursor
+	}
+	var pageSizeValue int32
+	if pageSize != nil {
+		pageSizeValue = int32(*pageSize)
+	}
+
+	page, err := r.media.ListTrashedMedia(ctx, principal.User.ID, cursorValue, pageSizeValue)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]model.Media, 0, len(page.Items))
+	for _, m := range page.Items {
+		items = append(items, *toModelMedia(m))
+	}
+	return &model.MediaPage{Items: items, NextCursor: optionalString(page.NextCursor)}, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+
+// buildPromptOverrides fetches the caller's saved prompt settings and
+// returns only the ones relevant to this request: non-empty prompts for
+// sections present in options.
+func (r *Resolver) buildPromptOverrides(ctx context.Context, userID uuid.UUID, options []string) (map[string]string, error) {
+	settings, err := r.identity.GetPromptSettings(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if len(settings) == 0 {
+		return nil, nil
+	}
+	selected := make(map[string]bool, len(options))
+	for _, o := range options {
+		selected[o] = true
+	}
+	overrides := make(map[string]string)
+	for _, s := range settings {
+		if s.PromptText != "" && selected[s.Section] {
+			overrides[s.Section] = s.PromptText
+		}
+	}
+	return overrides, nil
+}
 
 type (
 	mutationResolver struct{ *Resolver }

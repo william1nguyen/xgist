@@ -97,6 +97,10 @@ type Media {
   createdAt: String!
   updatedAt: String!
   description: String
+  # trashedAt is set when the owner moved this item to the trash. Only
+  # ever set on results from the trashedMedia query — mediaList never
+  # returns a trashed item.
+  trashedAt: String
 }
 
 type MediaPage {
@@ -269,6 +273,12 @@ type Query {
   # search is an optional case-insensitive substring match against title,
   # applied server-side alongside pagination — not a client-side filter
   # over an already-fetched page.
+  #
+  # There is no ranking/recommendation query yet: the media detail page's
+  # "Recommended" shelf currently shuffles a page of the caller's own
+  # mediaList results client-side as a placeholder. A real
+  # recommendedMedia query (ranked, cross-user where appropriate) is
+  # planned future work — see docs/services/hermes.md.
   mediaList(cursor: String, pageSize: Int, search: String): MediaPage!
   # mediaDetail returns one media item the caller owns, including a
   # short-lived playback URL.
@@ -290,6 +300,10 @@ type Query {
   # promptSettings returns every custom system prompt the caller has
   # saved, one per section they've customized.
   promptSettings: [PromptSetting!]!
+  # trashedMedia returns a cursor-paginated page of the caller's trashed
+  # media, newest-trashed first — backs the Trash screen. mediaList never
+  # includes these.
+  trashedMedia(cursor: String, pageSize: Int): MediaPage!
 }
 
 type Mutation {
@@ -325,4 +339,15 @@ type Mutation {
   # empty string clears it. Applied on every future generation for that
   # section until changed again.
   updatePromptSetting(section: String!, promptText: String!): PromptSetting!
+  # trashMedia moves a media item to the trash — a reversible soft
+  # delete. It disappears from mediaList/mediaDetail until restored or
+  # purged 30 days after trashing.
+  trashMedia(id: ID!): Media!
+  # restoreMedia moves a trashed item back out of the trash.
+  restoreMedia(id: ID!): Media!
+  # deleteMediaPermanently starts the irreversible hard-delete flow
+  # (ADR 0006) for a trashed item: media and every service that owns
+  # data for it (content, conductor) remove their rows and objects.
+  # Cannot be undone.
+  deleteMediaPermanently(id: ID!): Boolean!
 }

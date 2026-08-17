@@ -94,7 +94,7 @@ func toModelUploadSession(s clients.UploadSession) *model.UploadSession {
 }
 
 func toModelMedia(m clients.Media) *model.Media {
-	return &model.Media{
+	out := &model.Media{
 		ID:           m.ID.String(),
 		Title:        m.Title,
 		MediaType:    toModelMediaType(m.MediaType),
@@ -107,6 +107,11 @@ func toModelMedia(m clients.Media) *model.Media {
 		UpdatedAt:    formatTime(m.UpdatedAt),
 		Description:  optionalString(m.Description),
 	}
+	if m.TrashedAt != nil {
+		trashedAt := formatTime(*m.TrashedAt)
+		out.TrashedAt = &trashedAt
+	}
+	return out
 }
 
 func toModelMediaType(t string) model.MediaType {

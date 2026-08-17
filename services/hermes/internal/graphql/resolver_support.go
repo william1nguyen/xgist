@@ -59,6 +59,10 @@ type MediaClient interface {
 	GetMediaProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]clients.MediaProgress, error)
 	UpdateMedia(ctx context.Context, mediaID uuid.UUID, title, description *string) (clients.Media, error)
 	RequestProcessing(ctx context.Context, idempotencyKey string, mediaID uuid.UUID, options []string, audioVoice string, promptOverrides map[string]string) (clients.Media, error)
+	TrashMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error)
+	RestoreMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error)
+	ListTrashedMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32) (clients.MediaPage, error)
+	DeleteMediaPermanently(ctx context.Context, mediaID uuid.UUID) error
 }
 
 // ContentClient is the content boundary resolvers depend on.

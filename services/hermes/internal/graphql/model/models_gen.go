@@ -86,6 +86,7 @@ type Media struct {
 	CreatedAt    string      `json:"createdAt"`
 	UpdatedAt    string      `json:"updatedAt"`
 	Description  *string     `json:"description,omitempty"`
+	TrashedAt    *string     `json:"trashedAt,omitempty"`
 }
 
 type MediaDetail struct {

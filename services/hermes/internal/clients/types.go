@@ -79,6 +79,9 @@ type Media struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Description  string
+	// TrashedAt is set when the owner moved this item to the trash. nil
+	// means not trashed.
+	TrashedAt *time.Time
 }
 
 // MediaPage is one cursor-paginated page of media.

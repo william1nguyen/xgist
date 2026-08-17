@@ -162,6 +162,60 @@ func (c *MediaClient) RequestProcessing(ctx context.Context, idempotencyKey stri
 	return toMedia(resp.GetMedia())
 }
 
+// TrashMedia moves a media item to the trash — a reversible soft delete.
+func (c *MediaClient) TrashMedia(ctx context.Context, mediaID uuid.UUID) (Media, error) {
+	resp, err := c.client.TrashMedia(ctx, &mediav1.TrashMediaRequest{MediaId: mediaID.String()})
+	if err != nil {
+		return Media{}, fmt.Errorf("media.TrashMedia: %w", err)
+	}
+	return toMedia(resp.GetMedia())
+}
+
+// RestoreMedia clears a trashed item's trashed state.
+func (c *MediaClient) RestoreMedia(ctx context.Context, mediaID uuid.UUID) (Media, error) {
+	resp, err := c.client.RestoreMedia(ctx, &mediav1.RestoreMediaRequest{MediaId: mediaID.String()})
+	if err != nil {
+		return Media{}, fmt.Errorf("media.RestoreMedia: %w", err)
+	}
+	return toMedia(resp.GetMedia())
+}
+
+// ListTrashedMedia returns a cursor-paginated page of one owner's trashed
+// media, newest-trashed first.
+func (c *MediaClient) ListTrashedMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32) (MediaPage, error) {
+	resp, err := c.client.ListTrashedMedia(ctx, &mediav1.ListTrashedMediaRequest{
+		OwnerId:  ownerID.String(),
+		Cursor:   cursor,
+		PageSize: pageSize,
+	})
+	if err != nil {
+		return MediaPage{}, fmt.Errorf("media.ListTrashedMedia: %w", err)
+	}
+	items := make([]Media, 0, len(resp.GetItems()))
+	for _, item := range resp.GetItems() {
+		m, err := toMedia(item)
+		if err != nil {
+			return MediaPage{}, err
+		}
+		items = append(items, m)
+	}
+	return MediaPage{Items: items, NextCursor: resp.GetNextCursor()}, nil
+}
+
+// DeleteMediaPermanently starts media's irreversible hard-delete flow for
+// one item (ADR 0006). Fire-and-forget from hermes's perspective: once
+// this returns, the item is already excluded from GetMedia/ListMedia/
+// ListTrashedMedia, so there is nothing for the caller to poll.
+func (c *MediaClient) DeleteMediaPermanently(ctx context.Context, mediaID uuid.UUID) error {
+	_, err := c.client.RequestDeletion(ctx, &mediav1.RequestDeletionRequest{
+		IdempotencyKey: mediaID.String(),
+	})
+	if err != nil {
+		return fmt.Errorf("media.RequestDeletion: %w", err)
+	}
+	return nil
+}
+
 func toUploadSession(s *mediav1.UploadSession) (UploadSession, error) {
 	id, err := uuid.Parse(s.GetId())
 	if err != nil {
@@ -210,7 +264,7 @@ func toMedia(m *mediav1.Media) (Media, error) {
 	if err != nil {
 		return Media{}, fmt.Errorf("media returned an invalid owner id: %w", err)
 	}
-	return Media{
+	out := Media{
 		ID:           id,
 		OwnerID:      ownerID,
 		Title:        m.GetTitle(),
@@ -223,7 +277,12 @@ func toMedia(m *mediav1.Media) (Media, error) {
 		CreatedAt:    m.GetCreatedAt().AsTime(),
 		UpdatedAt:    m.GetUpdatedAt().AsTime(),
 		Description:  m.GetDescription(),
-	}, nil
+	}
+	if m.GetTrashedAt() != nil {
+		trashedAt := m.GetTrashedAt().AsTime()
+		out.TrashedAt = &trashedAt
+	}
+	return out, nil
 }
 
 func mediaTypeToString(t mediav1.MediaType) string {
