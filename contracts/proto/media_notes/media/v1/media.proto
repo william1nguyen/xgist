@@ -44,6 +44,13 @@ service MediaService {
   // cover, or waveform) after conductor-worker has written it to object
   // storage. Idempotent per (media_id, derivative_type, version).
   rpc RegisterDerivative(RegisterDerivativeRequest) returns (RegisterDerivativeResponse);
+  // RequestDerivativeUpload returns a short-lived presigned PUT URL for a
+  // caller-supplied derivative image (currently thumbnail only), mirroring
+  // CreateUploadSession's pattern for the source object. The caller PUTs
+  // the file directly to object storage, then calls RegisterDerivative
+  // with the returned object_key to finalize it — this RPC does not
+  // itself register anything.
+  rpc RequestDerivativeUpload(RequestDerivativeUploadRequest) returns (RequestDerivativeUploadResponse);
   // RequestDeletion starts the media deletion workflow: the media item is
   // immediately excluded from normal operations, media deletes its own
   // owned object keys and rows, and the operation completes once every
@@ -350,6 +357,19 @@ message RegisterDerivativeRequest {
 // RegisterDerivativeResponse returns the registered derivative.
 message RegisterDerivativeResponse {
   Derivative derivative = 1;
+}
+
+message RequestDerivativeUploadRequest {
+  string media_id = 1;
+  DerivativeType derivative_type = 2;
+  string mime_type = 3;
+}
+
+message RequestDerivativeUploadResponse {
+  string object_key = 1;
+  // upload_url is a short-lived presigned PUT URL, not stored.
+  string upload_url = 2;
+  google.protobuf.Timestamp expires_at = 3;
 }
 
 // DeletionOperation tracks one media deletion request.

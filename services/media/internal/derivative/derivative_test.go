@@ -2,6 +2,7 @@ package derivative_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -68,9 +69,13 @@ func (f *fakeSigner) PresignGetObject(ctx context.Context, objectKey string, exp
 	return f.url, nil
 }
 
+func (f *fakeSigner) PresignPutObject(ctx context.Context, objectKey string, expires time.Duration) (string, error) {
+	return f.url, nil
+}
+
 func TestRegisterDerivativeIsIdempotent(t *testing.T) {
 	repo := newFakeRepo()
-	svc := derivative.NewService(repo, &fakeSigner{}, 15*time.Minute)
+	svc := derivative.NewService(repo, &fakeSigner{}, 15*time.Minute, 15*time.Minute)
 	mediaID := uuid.New()
 
 	first, err := svc.RegisterDerivative(context.Background(), derivative.NewDerivative{
@@ -93,7 +98,7 @@ func TestRegisterDerivativeIsIdempotent(t *testing.T) {
 
 func TestSignThumbnailURL(t *testing.T) {
 	repo := newFakeRepo()
-	svc := derivative.NewService(repo, &fakeSigner{url: "https://minio.local/thumb"}, 15*time.Minute)
+	svc := derivative.NewService(repo, &fakeSigner{url: "https://minio.local/thumb"}, 15*time.Minute, 15*time.Minute)
 	mediaID := uuid.New()
 
 	t.Run("returns ok=false when no ready thumbnail exists", func(t *testing.T) {
@@ -119,6 +124,29 @@ func TestSignThumbnailURL(t *testing.T) {
 		}
 		if !ok || url == "" {
 			t.Errorf("got ok=%v url=%q, want ok=true and a non-empty url", ok, url)
+		}
+	})
+}
+
+func TestRequestUpload(t *testing.T) {
+	repo := newFakeRepo()
+	svc := derivative.NewService(repo, &fakeSigner{url: "https://minio.local/put"}, 15*time.Minute, 15*time.Minute)
+	mediaID := uuid.New()
+
+	t.Run("rejects an unsupported mime type", func(t *testing.T) {
+		_, _, _, err := svc.RequestUpload(context.Background(), mediaID, derivative.TypeThumbnail, "video/mp4")
+		if !errors.Is(err, derivative.ErrUnsupportedMime) {
+			t.Fatalf("got %v, want ErrUnsupportedMime", err)
+		}
+	})
+
+	t.Run("signs an upload URL for an accepted image type", func(t *testing.T) {
+		objectKey, uploadURL, expiresAt, err := svc.RequestUpload(context.Background(), mediaID, derivative.TypeThumbnail, "image/png")
+		if err != nil {
+			t.Fatalf("RequestUpload: %v", err)
+		}
+		if objectKey == "" || uploadURL == "" || expiresAt.IsZero() {
+			t.Errorf("got objectKey=%q uploadURL=%q expiresAt=%v, want all non-empty", objectKey, uploadURL, expiresAt)
 		}
 	})
 }

@@ -7,6 +7,7 @@ package derivative
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -58,9 +59,21 @@ type NewDerivative struct {
 }
 
 var (
-	ErrNotFound      = errors.New("derivative: not found")
-	ErrMediaNotFound = errors.New("derivative: media not found")
+	ErrNotFound        = errors.New("derivative: not found")
+	ErrMediaNotFound   = errors.New("derivative: media not found")
+	ErrUnsupportedMime = errors.New("derivative: unsupported mime type")
 )
+
+// allowedImageMimeTypes maps every accepted custom-derivative image MIME
+// type to its file extension. Only used by RequestUpload — worker's own
+// generated derivatives (thumbnail JPEGs, etc.) never go through this
+// path, so this is deliberately narrower than the video/audio source
+// allow-list in internal/upload.
+var allowedImageMimeTypes = map[string]string{
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
+	"image/webp": ".webp",
+}
 
 // Repository is the persistence boundary Service depends on. It is
 // implemented by internal/store.
@@ -75,28 +88,52 @@ type Repository interface {
 	FindLatestReady(ctx context.Context, mediaID uuid.UUID, derivativeType Type) (Derivative, error)
 }
 
-// ObjectSigner signs a short-lived URL for reading an object.
+// ObjectSigner signs short-lived URLs for reading and writing an object.
 // objectstore.Client implements it.
 type ObjectSigner interface {
 	PresignGetObject(ctx context.Context, objectKey string, expires time.Duration) (string, error)
+	PresignPutObject(ctx context.Context, objectKey string, expires time.Duration) (string, error)
 }
 
-// Service registers derivatives and signs thumbnail URLs.
+// Service registers derivatives and signs thumbnail read/upload URLs.
 type Service struct {
-	repo   Repository
-	signer ObjectSigner
-	urlTTL time.Duration
+	repo         Repository
+	signer       ObjectSigner
+	urlTTL       time.Duration
+	uploadURLTTL time.Duration
 }
 
 // NewService returns a Service. urlTTL is the lifetime applied to every
-// signed thumbnail URL.
-func NewService(repo Repository, signer ObjectSigner, urlTTL time.Duration) *Service {
-	return &Service{repo: repo, signer: signer, urlTTL: urlTTL}
+// signed read URL; uploadURLTTL to every signed upload (PUT) URL returned
+// by RequestUpload.
+func NewService(repo Repository, signer ObjectSigner, urlTTL, uploadURLTTL time.Duration) *Service {
+	return &Service{repo: repo, signer: signer, urlTTL: urlTTL, uploadURLTTL: uploadURLTTL}
 }
 
 // RegisterDerivative records a durable derivative object's metadata.
 func (s *Service) RegisterDerivative(ctx context.Context, in NewDerivative) (Derivative, error) {
 	return s.repo.Register(ctx, in)
+}
+
+// RequestUpload returns a fresh object key and a short-lived presigned PUT
+// URL for a caller-supplied derivative image. It does not touch the
+// database: the caller PUTs the file, then calls RegisterDerivative with
+// the returned object key (at a version high enough to outrank any
+// worker-generated derivative — worker's own thumbnail step always
+// registers at version 1) to finalize it.
+func (s *Service) RequestUpload(ctx context.Context, mediaID uuid.UUID, derivativeType Type, mimeType string) (objectKey, uploadURL string, expiresAt time.Time, err error) {
+	ext, ok := allowedImageMimeTypes[mimeType]
+	if !ok {
+		return "", "", time.Time{}, fmt.Errorf("%w: %s", ErrUnsupportedMime, mimeType)
+	}
+
+	objectKey = fmt.Sprintf("media/%s/%s/%s%s", mediaID, derivativeType, uuid.New(), ext)
+	expiresAt = time.Now().Add(s.uploadURLTTL)
+	uploadURL, err = s.signer.PresignPutObject(ctx, objectKey, s.uploadURLTTL)
+	if err != nil {
+		return "", "", time.Time{}, err
+	}
+	return objectKey, uploadURL, expiresAt, nil
 }
 
 // SignThumbnailURL returns a short-lived signed URL for mediaID's latest

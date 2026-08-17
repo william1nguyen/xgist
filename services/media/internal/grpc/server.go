@@ -48,6 +48,7 @@ type UploadService interface {
 type DerivativeService interface {
 	RegisterDerivative(ctx context.Context, in derivative.NewDerivative) (derivative.Derivative, error)
 	SignThumbnailURL(ctx context.Context, mediaID uuid.UUID) (url string, ok bool, err error)
+	RequestUpload(ctx context.Context, mediaID uuid.UUID, derivativeType derivative.Type, mimeType string) (objectKey, uploadURL string, expiresAt time.Time, err error)
 }
 
 // DeletionService is the deletion application-service boundary the server
@@ -221,6 +222,26 @@ func (s *Server) RegisterDerivative(ctx context.Context, req *mediav1.RegisterDe
 	return &mediav1.RegisterDerivativeResponse{Derivative: toProtoDerivative(d)}, nil
 }
 
+func (s *Server) RequestDerivativeUpload(ctx context.Context, req *mediav1.RequestDerivativeUploadRequest) (*mediav1.RequestDerivativeUploadResponse, error) {
+	mediaID, err := uuid.Parse(req.GetMediaId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "media_id must be a UUID")
+	}
+	if req.GetMimeType() == "" {
+		return nil, status.Error(codes.InvalidArgument, "mime_type is required")
+	}
+
+	objectKey, uploadURL, expiresAt, err := s.derivatives.RequestUpload(ctx, mediaID, toDerivativeType(req.GetDerivativeType()), req.GetMimeType())
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &mediav1.RequestDerivativeUploadResponse{
+		ObjectKey: objectKey,
+		UploadUrl: uploadURL,
+		ExpiresAt: timestamppb.New(expiresAt),
+	}, nil
+}
+
 func (s *Server) RequestDeletion(ctx context.Context, req *mediav1.RequestDeletionRequest) (*mediav1.RequestDeletionResponse, error) {
 	mediaID, err := uuid.Parse(req.GetMediaId())
 	if err != nil {
@@ -350,6 +371,7 @@ func mapError(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, upload.ErrUnsupportedMimeType),
 		errors.Is(err, upload.ErrDeclaredSizeExceeded),
+		errors.Is(err, derivative.ErrUnsupportedMime),
 		errors.Is(err, deletion.ErrUnknownParticipant):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, upload.ErrTooManyActiveSessions),

@@ -1993,6 +1993,127 @@ func (x *RegisterDerivativeResponse) GetDerivative() *Derivative {
 	return nil
 }
 
+type RequestDerivativeUploadRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	MediaId        string                 `protobuf:"bytes,1,opt,name=media_id,json=mediaId,proto3" json:"media_id,omitempty"`
+	DerivativeType DerivativeType         `protobuf:"varint,2,opt,name=derivative_type,json=derivativeType,proto3,enum=media_notes.media.v1.DerivativeType" json:"derivative_type,omitempty"`
+	MimeType       string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RequestDerivativeUploadRequest) Reset() {
+	*x = RequestDerivativeUploadRequest{}
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestDerivativeUploadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestDerivativeUploadRequest) ProtoMessage() {}
+
+func (x *RequestDerivativeUploadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestDerivativeUploadRequest.ProtoReflect.Descriptor instead.
+func (*RequestDerivativeUploadRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *RequestDerivativeUploadRequest) GetMediaId() string {
+	if x != nil {
+		return x.MediaId
+	}
+	return ""
+}
+
+func (x *RequestDerivativeUploadRequest) GetDerivativeType() DerivativeType {
+	if x != nil {
+		return x.DerivativeType
+	}
+	return DerivativeType_DERIVATIVE_TYPE_UNSPECIFIED
+}
+
+func (x *RequestDerivativeUploadRequest) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
+}
+
+type RequestDerivativeUploadResponse struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	ObjectKey string                 `protobuf:"bytes,1,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	// upload_url is a short-lived presigned PUT URL, not stored.
+	UploadUrl     string                 `protobuf:"bytes,2,opt,name=upload_url,json=uploadUrl,proto3" json:"upload_url,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestDerivativeUploadResponse) Reset() {
+	*x = RequestDerivativeUploadResponse{}
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestDerivativeUploadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestDerivativeUploadResponse) ProtoMessage() {}
+
+func (x *RequestDerivativeUploadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestDerivativeUploadResponse.ProtoReflect.Descriptor instead.
+func (*RequestDerivativeUploadResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *RequestDerivativeUploadResponse) GetObjectKey() string {
+	if x != nil {
+		return x.ObjectKey
+	}
+	return ""
+}
+
+func (x *RequestDerivativeUploadResponse) GetUploadUrl() string {
+	if x != nil {
+		return x.UploadUrl
+	}
+	return ""
+}
+
+func (x *RequestDerivativeUploadResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
 // DeletionOperation tracks one media deletion request.
 type DeletionOperation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -2007,7 +2128,7 @@ type DeletionOperation struct {
 
 func (x *DeletionOperation) Reset() {
 	*x = DeletionOperation{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[24]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2019,7 +2140,7 @@ func (x *DeletionOperation) String() string {
 func (*DeletionOperation) ProtoMessage() {}
 
 func (x *DeletionOperation) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[24]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2032,7 +2153,7 @@ func (x *DeletionOperation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletionOperation.ProtoReflect.Descriptor instead.
 func (*DeletionOperation) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{24}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeletionOperation) GetDeletionId() string {
@@ -2081,7 +2202,7 @@ type RequestDeletionRequest struct {
 
 func (x *RequestDeletionRequest) Reset() {
 	*x = RequestDeletionRequest{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[25]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2093,7 +2214,7 @@ func (x *RequestDeletionRequest) String() string {
 func (*RequestDeletionRequest) ProtoMessage() {}
 
 func (x *RequestDeletionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[25]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2106,7 +2227,7 @@ func (x *RequestDeletionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestDeletionRequest.ProtoReflect.Descriptor instead.
 func (*RequestDeletionRequest) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{25}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *RequestDeletionRequest) GetIdempotencyKey() string {
@@ -2133,7 +2254,7 @@ type RequestDeletionResponse struct {
 
 func (x *RequestDeletionResponse) Reset() {
 	*x = RequestDeletionResponse{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[26]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2145,7 +2266,7 @@ func (x *RequestDeletionResponse) String() string {
 func (*RequestDeletionResponse) ProtoMessage() {}
 
 func (x *RequestDeletionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[26]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2158,7 +2279,7 @@ func (x *RequestDeletionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestDeletionResponse.ProtoReflect.Descriptor instead.
 func (*RequestDeletionResponse) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{26}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *RequestDeletionResponse) GetOperation() *DeletionOperation {
@@ -2178,7 +2299,7 @@ type GetDeletionStatusRequest struct {
 
 func (x *GetDeletionStatusRequest) Reset() {
 	*x = GetDeletionStatusRequest{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[27]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2190,7 +2311,7 @@ func (x *GetDeletionStatusRequest) String() string {
 func (*GetDeletionStatusRequest) ProtoMessage() {}
 
 func (x *GetDeletionStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[27]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2203,7 +2324,7 @@ func (x *GetDeletionStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeletionStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetDeletionStatusRequest) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{27}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetDeletionStatusRequest) GetDeletionId() string {
@@ -2223,7 +2344,7 @@ type GetDeletionStatusResponse struct {
 
 func (x *GetDeletionStatusResponse) Reset() {
 	*x = GetDeletionStatusResponse{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[28]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2235,7 +2356,7 @@ func (x *GetDeletionStatusResponse) String() string {
 func (*GetDeletionStatusResponse) ProtoMessage() {}
 
 func (x *GetDeletionStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[28]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2248,7 +2369,7 @@ func (x *GetDeletionStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeletionStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetDeletionStatusResponse) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{28}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetDeletionStatusResponse) GetOperation() *DeletionOperation {
@@ -2271,7 +2392,7 @@ type UpdateMediaRequest struct {
 
 func (x *UpdateMediaRequest) Reset() {
 	*x = UpdateMediaRequest{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[29]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2283,7 +2404,7 @@ func (x *UpdateMediaRequest) String() string {
 func (*UpdateMediaRequest) ProtoMessage() {}
 
 func (x *UpdateMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[29]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2296,7 +2417,7 @@ func (x *UpdateMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMediaRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMediaRequest) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{29}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *UpdateMediaRequest) GetMediaId() string {
@@ -2330,7 +2451,7 @@ type UpdateMediaResponse struct {
 
 func (x *UpdateMediaResponse) Reset() {
 	*x = UpdateMediaResponse{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[30]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2342,7 +2463,7 @@ func (x *UpdateMediaResponse) String() string {
 func (*UpdateMediaResponse) ProtoMessage() {}
 
 func (x *UpdateMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[30]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2355,7 +2476,7 @@ func (x *UpdateMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMediaResponse.ProtoReflect.Descriptor instead.
 func (*UpdateMediaResponse) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{30}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *UpdateMediaResponse) GetMedia() *Media {
@@ -2386,7 +2507,7 @@ type RequestProcessingRequest struct {
 
 func (x *RequestProcessingRequest) Reset() {
 	*x = RequestProcessingRequest{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[31]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2398,7 +2519,7 @@ func (x *RequestProcessingRequest) String() string {
 func (*RequestProcessingRequest) ProtoMessage() {}
 
 func (x *RequestProcessingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[31]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2411,7 +2532,7 @@ func (x *RequestProcessingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestProcessingRequest.ProtoReflect.Descriptor instead.
 func (*RequestProcessingRequest) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{31}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *RequestProcessingRequest) GetIdempotencyKey() string {
@@ -2460,7 +2581,7 @@ type RequestProcessingResponse struct {
 
 func (x *RequestProcessingResponse) Reset() {
 	*x = RequestProcessingResponse{}
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[32]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2472,7 +2593,7 @@ func (x *RequestProcessingResponse) String() string {
 func (*RequestProcessingResponse) ProtoMessage() {}
 
 func (x *RequestProcessingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_media_notes_media_v1_media_proto_msgTypes[32]
+	mi := &file_media_notes_media_v1_media_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2485,7 +2606,7 @@ func (x *RequestProcessingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestProcessingResponse.ProtoReflect.Descriptor instead.
 func (*RequestProcessingResponse) Descriptor() ([]byte, []int) {
-	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{32}
+	return file_media_notes_media_v1_media_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *RequestProcessingResponse) GetMedia() *Media {
@@ -2631,7 +2752,18 @@ const file_media_notes_media_v1_media_proto_rawDesc = "" +
 	"\x1aRegisterDerivativeResponse\x12@\n" +
 	"\n" +
 	"derivative\x18\x01 \x01(\v2 .media_notes.media.v1.DerivativeR\n" +
-	"derivative\"\x84\x02\n" +
+	"derivative\"\xa7\x01\n" +
+	"\x1eRequestDerivativeUploadRequest\x12\x19\n" +
+	"\bmedia_id\x18\x01 \x01(\tR\amediaId\x12M\n" +
+	"\x0fderivative_type\x18\x02 \x01(\x0e2$.media_notes.media.v1.DerivativeTypeR\x0ederivativeType\x12\x1b\n" +
+	"\tmime_type\x18\x03 \x01(\tR\bmimeType\"\x9a\x01\n" +
+	"\x1fRequestDerivativeUploadResponse\x12\x1d\n" +
+	"\n" +
+	"object_key\x18\x01 \x01(\tR\tobjectKey\x12\x1d\n" +
+	"\n" +
+	"upload_url\x18\x02 \x01(\tR\tuploadUrl\x129\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x84\x02\n" +
 	"\x11DeletionOperation\x12\x1f\n" +
 	"\vdeletion_id\x18\x01 \x01(\tR\n" +
 	"deletionId\x12\x19\n" +
@@ -2707,7 +2839,7 @@ const file_media_notes_media_v1_media_proto_rawDesc = "" +
 	"\x1bPROCESSING_STATUS_REQUESTED\x10\x01\x12\x1e\n" +
 	"\x1aPROCESSING_STATUS_ACCEPTED\x10\x02\x12\x1f\n" +
 	"\x1bPROCESSING_STATUS_COMPLETED\x10\x03\x12\x1c\n" +
-	"\x18PROCESSING_STATUS_FAILED\x10\x042\x84\f\n" +
+	"\x18PROCESSING_STATUS_FAILED\x10\x042\x8d\r\n" +
 	"\fMediaService\x12z\n" +
 	"\x13CreateUploadSession\x120.media_notes.media.v1.CreateUploadSessionRequest\x1a1.media_notes.media.v1.CreateUploadSessionResponse\x12h\n" +
 	"\rConfirmUpload\x12*.media_notes.media.v1.ConfirmUploadRequest\x1a+.media_notes.media.v1.ConfirmUploadResponse\x12Y\n" +
@@ -2715,7 +2847,8 @@ const file_media_notes_media_v1_media_proto_rawDesc = "" +
 	"\tListMedia\x12&.media_notes.media.v1.ListMediaRequest\x1a'.media_notes.media.v1.ListMediaResponse\x12n\n" +
 	"\x0fSignPlaybackUrl\x12,.media_notes.media.v1.SignPlaybackUrlRequest\x1a-.media_notes.media.v1.SignPlaybackUrlResponse\x12q\n" +
 	"\x10GetMediaProgress\x12-.media_notes.media.v1.GetMediaProgressRequest\x1a..media_notes.media.v1.GetMediaProgressResponse\x12w\n" +
-	"\x12RegisterDerivative\x12/.media_notes.media.v1.RegisterDerivativeRequest\x1a0.media_notes.media.v1.RegisterDerivativeResponse\x12n\n" +
+	"\x12RegisterDerivative\x12/.media_notes.media.v1.RegisterDerivativeRequest\x1a0.media_notes.media.v1.RegisterDerivativeResponse\x12\x86\x01\n" +
+	"\x17RequestDerivativeUpload\x124.media_notes.media.v1.RequestDerivativeUploadRequest\x1a5.media_notes.media.v1.RequestDerivativeUploadResponse\x12n\n" +
 	"\x0fRequestDeletion\x12,.media_notes.media.v1.RequestDeletionRequest\x1a-.media_notes.media.v1.RequestDeletionResponse\x12t\n" +
 	"\x11GetDeletionStatus\x12..media_notes.media.v1.GetDeletionStatusRequest\x1a/.media_notes.media.v1.GetDeletionStatusResponse\x12b\n" +
 	"\vUpdateMedia\x12(.media_notes.media.v1.UpdateMediaRequest\x1a).media_notes.media.v1.UpdateMediaResponse\x12t\n" +
@@ -2740,119 +2873,125 @@ func file_media_notes_media_v1_media_proto_rawDescGZIP() []byte {
 }
 
 var file_media_notes_media_v1_media_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_media_notes_media_v1_media_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_media_notes_media_v1_media_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_media_notes_media_v1_media_proto_goTypes = []any{
-	(MediaType)(0),                      // 0: media_notes.media.v1.MediaType
-	(MediaStatus)(0),                    // 1: media_notes.media.v1.MediaStatus
-	(UploadSessionStatus)(0),            // 2: media_notes.media.v1.UploadSessionStatus
-	(DerivativeType)(0),                 // 3: media_notes.media.v1.DerivativeType
-	(DerivativeStatus)(0),               // 4: media_notes.media.v1.DerivativeStatus
-	(DeletionState)(0),                  // 5: media_notes.media.v1.DeletionState
-	(ProcessingStatus)(0),               // 6: media_notes.media.v1.ProcessingStatus
-	(*UploadSession)(nil),               // 7: media_notes.media.v1.UploadSession
-	(*CreateUploadSessionRequest)(nil),  // 8: media_notes.media.v1.CreateUploadSessionRequest
-	(*CreateUploadSessionResponse)(nil), // 9: media_notes.media.v1.CreateUploadSessionResponse
-	(*ConfirmUploadRequest)(nil),        // 10: media_notes.media.v1.ConfirmUploadRequest
-	(*ConfirmUploadResponse)(nil),       // 11: media_notes.media.v1.ConfirmUploadResponse
-	(*Media)(nil),                       // 12: media_notes.media.v1.Media
-	(*GetMediaRequest)(nil),             // 13: media_notes.media.v1.GetMediaRequest
-	(*GetMediaResponse)(nil),            // 14: media_notes.media.v1.GetMediaResponse
-	(*ListMediaRequest)(nil),            // 15: media_notes.media.v1.ListMediaRequest
-	(*ListMediaResponse)(nil),           // 16: media_notes.media.v1.ListMediaResponse
-	(*TrashMediaRequest)(nil),           // 17: media_notes.media.v1.TrashMediaRequest
-	(*TrashMediaResponse)(nil),          // 18: media_notes.media.v1.TrashMediaResponse
-	(*RestoreMediaRequest)(nil),         // 19: media_notes.media.v1.RestoreMediaRequest
-	(*RestoreMediaResponse)(nil),        // 20: media_notes.media.v1.RestoreMediaResponse
-	(*ListTrashedMediaRequest)(nil),     // 21: media_notes.media.v1.ListTrashedMediaRequest
-	(*ListTrashedMediaResponse)(nil),    // 22: media_notes.media.v1.ListTrashedMediaResponse
-	(*SignPlaybackUrlRequest)(nil),      // 23: media_notes.media.v1.SignPlaybackUrlRequest
-	(*SignPlaybackUrlResponse)(nil),     // 24: media_notes.media.v1.SignPlaybackUrlResponse
-	(*MediaProgress)(nil),               // 25: media_notes.media.v1.MediaProgress
-	(*GetMediaProgressRequest)(nil),     // 26: media_notes.media.v1.GetMediaProgressRequest
-	(*GetMediaProgressResponse)(nil),    // 27: media_notes.media.v1.GetMediaProgressResponse
-	(*Derivative)(nil),                  // 28: media_notes.media.v1.Derivative
-	(*RegisterDerivativeRequest)(nil),   // 29: media_notes.media.v1.RegisterDerivativeRequest
-	(*RegisterDerivativeResponse)(nil),  // 30: media_notes.media.v1.RegisterDerivativeResponse
-	(*DeletionOperation)(nil),           // 31: media_notes.media.v1.DeletionOperation
-	(*RequestDeletionRequest)(nil),      // 32: media_notes.media.v1.RequestDeletionRequest
-	(*RequestDeletionResponse)(nil),     // 33: media_notes.media.v1.RequestDeletionResponse
-	(*GetDeletionStatusRequest)(nil),    // 34: media_notes.media.v1.GetDeletionStatusRequest
-	(*GetDeletionStatusResponse)(nil),   // 35: media_notes.media.v1.GetDeletionStatusResponse
-	(*UpdateMediaRequest)(nil),          // 36: media_notes.media.v1.UpdateMediaRequest
-	(*UpdateMediaResponse)(nil),         // 37: media_notes.media.v1.UpdateMediaResponse
-	(*RequestProcessingRequest)(nil),    // 38: media_notes.media.v1.RequestProcessingRequest
-	(*RequestProcessingResponse)(nil),   // 39: media_notes.media.v1.RequestProcessingResponse
-	nil,                                 // 40: media_notes.media.v1.ConfirmUploadRequest.PromptOverridesEntry
-	nil,                                 // 41: media_notes.media.v1.RequestProcessingRequest.PromptOverridesEntry
-	(*timestamppb.Timestamp)(nil),       // 42: google.protobuf.Timestamp
+	(MediaType)(0),                          // 0: media_notes.media.v1.MediaType
+	(MediaStatus)(0),                        // 1: media_notes.media.v1.MediaStatus
+	(UploadSessionStatus)(0),                // 2: media_notes.media.v1.UploadSessionStatus
+	(DerivativeType)(0),                     // 3: media_notes.media.v1.DerivativeType
+	(DerivativeStatus)(0),                   // 4: media_notes.media.v1.DerivativeStatus
+	(DeletionState)(0),                      // 5: media_notes.media.v1.DeletionState
+	(ProcessingStatus)(0),                   // 6: media_notes.media.v1.ProcessingStatus
+	(*UploadSession)(nil),                   // 7: media_notes.media.v1.UploadSession
+	(*CreateUploadSessionRequest)(nil),      // 8: media_notes.media.v1.CreateUploadSessionRequest
+	(*CreateUploadSessionResponse)(nil),     // 9: media_notes.media.v1.CreateUploadSessionResponse
+	(*ConfirmUploadRequest)(nil),            // 10: media_notes.media.v1.ConfirmUploadRequest
+	(*ConfirmUploadResponse)(nil),           // 11: media_notes.media.v1.ConfirmUploadResponse
+	(*Media)(nil),                           // 12: media_notes.media.v1.Media
+	(*GetMediaRequest)(nil),                 // 13: media_notes.media.v1.GetMediaRequest
+	(*GetMediaResponse)(nil),                // 14: media_notes.media.v1.GetMediaResponse
+	(*ListMediaRequest)(nil),                // 15: media_notes.media.v1.ListMediaRequest
+	(*ListMediaResponse)(nil),               // 16: media_notes.media.v1.ListMediaResponse
+	(*TrashMediaRequest)(nil),               // 17: media_notes.media.v1.TrashMediaRequest
+	(*TrashMediaResponse)(nil),              // 18: media_notes.media.v1.TrashMediaResponse
+	(*RestoreMediaRequest)(nil),             // 19: media_notes.media.v1.RestoreMediaRequest
+	(*RestoreMediaResponse)(nil),            // 20: media_notes.media.v1.RestoreMediaResponse
+	(*ListTrashedMediaRequest)(nil),         // 21: media_notes.media.v1.ListTrashedMediaRequest
+	(*ListTrashedMediaResponse)(nil),        // 22: media_notes.media.v1.ListTrashedMediaResponse
+	(*SignPlaybackUrlRequest)(nil),          // 23: media_notes.media.v1.SignPlaybackUrlRequest
+	(*SignPlaybackUrlResponse)(nil),         // 24: media_notes.media.v1.SignPlaybackUrlResponse
+	(*MediaProgress)(nil),                   // 25: media_notes.media.v1.MediaProgress
+	(*GetMediaProgressRequest)(nil),         // 26: media_notes.media.v1.GetMediaProgressRequest
+	(*GetMediaProgressResponse)(nil),        // 27: media_notes.media.v1.GetMediaProgressResponse
+	(*Derivative)(nil),                      // 28: media_notes.media.v1.Derivative
+	(*RegisterDerivativeRequest)(nil),       // 29: media_notes.media.v1.RegisterDerivativeRequest
+	(*RegisterDerivativeResponse)(nil),      // 30: media_notes.media.v1.RegisterDerivativeResponse
+	(*RequestDerivativeUploadRequest)(nil),  // 31: media_notes.media.v1.RequestDerivativeUploadRequest
+	(*RequestDerivativeUploadResponse)(nil), // 32: media_notes.media.v1.RequestDerivativeUploadResponse
+	(*DeletionOperation)(nil),               // 33: media_notes.media.v1.DeletionOperation
+	(*RequestDeletionRequest)(nil),          // 34: media_notes.media.v1.RequestDeletionRequest
+	(*RequestDeletionResponse)(nil),         // 35: media_notes.media.v1.RequestDeletionResponse
+	(*GetDeletionStatusRequest)(nil),        // 36: media_notes.media.v1.GetDeletionStatusRequest
+	(*GetDeletionStatusResponse)(nil),       // 37: media_notes.media.v1.GetDeletionStatusResponse
+	(*UpdateMediaRequest)(nil),              // 38: media_notes.media.v1.UpdateMediaRequest
+	(*UpdateMediaResponse)(nil),             // 39: media_notes.media.v1.UpdateMediaResponse
+	(*RequestProcessingRequest)(nil),        // 40: media_notes.media.v1.RequestProcessingRequest
+	(*RequestProcessingResponse)(nil),       // 41: media_notes.media.v1.RequestProcessingResponse
+	nil,                                     // 42: media_notes.media.v1.ConfirmUploadRequest.PromptOverridesEntry
+	nil,                                     // 43: media_notes.media.v1.RequestProcessingRequest.PromptOverridesEntry
+	(*timestamppb.Timestamp)(nil),           // 44: google.protobuf.Timestamp
 }
 var file_media_notes_media_v1_media_proto_depIdxs = []int32{
 	2,  // 0: media_notes.media.v1.UploadSession.status:type_name -> media_notes.media.v1.UploadSessionStatus
-	42, // 1: media_notes.media.v1.UploadSession.expires_at:type_name -> google.protobuf.Timestamp
+	44, // 1: media_notes.media.v1.UploadSession.expires_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: media_notes.media.v1.CreateUploadSessionRequest.media_type:type_name -> media_notes.media.v1.MediaType
 	7,  // 3: media_notes.media.v1.CreateUploadSessionResponse.session:type_name -> media_notes.media.v1.UploadSession
-	40, // 4: media_notes.media.v1.ConfirmUploadRequest.prompt_overrides:type_name -> media_notes.media.v1.ConfirmUploadRequest.PromptOverridesEntry
+	42, // 4: media_notes.media.v1.ConfirmUploadRequest.prompt_overrides:type_name -> media_notes.media.v1.ConfirmUploadRequest.PromptOverridesEntry
 	12, // 5: media_notes.media.v1.ConfirmUploadResponse.media:type_name -> media_notes.media.v1.Media
 	0,  // 6: media_notes.media.v1.Media.media_type:type_name -> media_notes.media.v1.MediaType
 	1,  // 7: media_notes.media.v1.Media.status:type_name -> media_notes.media.v1.MediaStatus
-	42, // 8: media_notes.media.v1.Media.created_at:type_name -> google.protobuf.Timestamp
-	42, // 9: media_notes.media.v1.Media.updated_at:type_name -> google.protobuf.Timestamp
-	42, // 10: media_notes.media.v1.Media.trashed_at:type_name -> google.protobuf.Timestamp
+	44, // 8: media_notes.media.v1.Media.created_at:type_name -> google.protobuf.Timestamp
+	44, // 9: media_notes.media.v1.Media.updated_at:type_name -> google.protobuf.Timestamp
+	44, // 10: media_notes.media.v1.Media.trashed_at:type_name -> google.protobuf.Timestamp
 	12, // 11: media_notes.media.v1.GetMediaResponse.media:type_name -> media_notes.media.v1.Media
 	12, // 12: media_notes.media.v1.ListMediaResponse.items:type_name -> media_notes.media.v1.Media
 	12, // 13: media_notes.media.v1.TrashMediaResponse.media:type_name -> media_notes.media.v1.Media
 	12, // 14: media_notes.media.v1.RestoreMediaResponse.media:type_name -> media_notes.media.v1.Media
 	12, // 15: media_notes.media.v1.ListTrashedMediaResponse.items:type_name -> media_notes.media.v1.Media
-	42, // 16: media_notes.media.v1.SignPlaybackUrlResponse.expires_at:type_name -> google.protobuf.Timestamp
+	44, // 16: media_notes.media.v1.SignPlaybackUrlResponse.expires_at:type_name -> google.protobuf.Timestamp
 	1,  // 17: media_notes.media.v1.MediaProgress.status:type_name -> media_notes.media.v1.MediaStatus
 	6,  // 18: media_notes.media.v1.MediaProgress.processing_status:type_name -> media_notes.media.v1.ProcessingStatus
-	42, // 19: media_notes.media.v1.MediaProgress.updated_at:type_name -> google.protobuf.Timestamp
+	44, // 19: media_notes.media.v1.MediaProgress.updated_at:type_name -> google.protobuf.Timestamp
 	25, // 20: media_notes.media.v1.GetMediaProgressResponse.items:type_name -> media_notes.media.v1.MediaProgress
 	3,  // 21: media_notes.media.v1.Derivative.derivative_type:type_name -> media_notes.media.v1.DerivativeType
 	4,  // 22: media_notes.media.v1.Derivative.status:type_name -> media_notes.media.v1.DerivativeStatus
 	3,  // 23: media_notes.media.v1.RegisterDerivativeRequest.derivative_type:type_name -> media_notes.media.v1.DerivativeType
 	28, // 24: media_notes.media.v1.RegisterDerivativeResponse.derivative:type_name -> media_notes.media.v1.Derivative
-	5,  // 25: media_notes.media.v1.DeletionOperation.state:type_name -> media_notes.media.v1.DeletionState
-	42, // 26: media_notes.media.v1.DeletionOperation.created_at:type_name -> google.protobuf.Timestamp
-	42, // 27: media_notes.media.v1.DeletionOperation.completed_at:type_name -> google.protobuf.Timestamp
-	31, // 28: media_notes.media.v1.RequestDeletionResponse.operation:type_name -> media_notes.media.v1.DeletionOperation
-	31, // 29: media_notes.media.v1.GetDeletionStatusResponse.operation:type_name -> media_notes.media.v1.DeletionOperation
-	12, // 30: media_notes.media.v1.UpdateMediaResponse.media:type_name -> media_notes.media.v1.Media
-	41, // 31: media_notes.media.v1.RequestProcessingRequest.prompt_overrides:type_name -> media_notes.media.v1.RequestProcessingRequest.PromptOverridesEntry
-	12, // 32: media_notes.media.v1.RequestProcessingResponse.media:type_name -> media_notes.media.v1.Media
-	8,  // 33: media_notes.media.v1.MediaService.CreateUploadSession:input_type -> media_notes.media.v1.CreateUploadSessionRequest
-	10, // 34: media_notes.media.v1.MediaService.ConfirmUpload:input_type -> media_notes.media.v1.ConfirmUploadRequest
-	13, // 35: media_notes.media.v1.MediaService.GetMedia:input_type -> media_notes.media.v1.GetMediaRequest
-	15, // 36: media_notes.media.v1.MediaService.ListMedia:input_type -> media_notes.media.v1.ListMediaRequest
-	23, // 37: media_notes.media.v1.MediaService.SignPlaybackUrl:input_type -> media_notes.media.v1.SignPlaybackUrlRequest
-	26, // 38: media_notes.media.v1.MediaService.GetMediaProgress:input_type -> media_notes.media.v1.GetMediaProgressRequest
-	29, // 39: media_notes.media.v1.MediaService.RegisterDerivative:input_type -> media_notes.media.v1.RegisterDerivativeRequest
-	32, // 40: media_notes.media.v1.MediaService.RequestDeletion:input_type -> media_notes.media.v1.RequestDeletionRequest
-	34, // 41: media_notes.media.v1.MediaService.GetDeletionStatus:input_type -> media_notes.media.v1.GetDeletionStatusRequest
-	36, // 42: media_notes.media.v1.MediaService.UpdateMedia:input_type -> media_notes.media.v1.UpdateMediaRequest
-	38, // 43: media_notes.media.v1.MediaService.RequestProcessing:input_type -> media_notes.media.v1.RequestProcessingRequest
-	17, // 44: media_notes.media.v1.MediaService.TrashMedia:input_type -> media_notes.media.v1.TrashMediaRequest
-	19, // 45: media_notes.media.v1.MediaService.RestoreMedia:input_type -> media_notes.media.v1.RestoreMediaRequest
-	21, // 46: media_notes.media.v1.MediaService.ListTrashedMedia:input_type -> media_notes.media.v1.ListTrashedMediaRequest
-	9,  // 47: media_notes.media.v1.MediaService.CreateUploadSession:output_type -> media_notes.media.v1.CreateUploadSessionResponse
-	11, // 48: media_notes.media.v1.MediaService.ConfirmUpload:output_type -> media_notes.media.v1.ConfirmUploadResponse
-	14, // 49: media_notes.media.v1.MediaService.GetMedia:output_type -> media_notes.media.v1.GetMediaResponse
-	16, // 50: media_notes.media.v1.MediaService.ListMedia:output_type -> media_notes.media.v1.ListMediaResponse
-	24, // 51: media_notes.media.v1.MediaService.SignPlaybackUrl:output_type -> media_notes.media.v1.SignPlaybackUrlResponse
-	27, // 52: media_notes.media.v1.MediaService.GetMediaProgress:output_type -> media_notes.media.v1.GetMediaProgressResponse
-	30, // 53: media_notes.media.v1.MediaService.RegisterDerivative:output_type -> media_notes.media.v1.RegisterDerivativeResponse
-	33, // 54: media_notes.media.v1.MediaService.RequestDeletion:output_type -> media_notes.media.v1.RequestDeletionResponse
-	35, // 55: media_notes.media.v1.MediaService.GetDeletionStatus:output_type -> media_notes.media.v1.GetDeletionStatusResponse
-	37, // 56: media_notes.media.v1.MediaService.UpdateMedia:output_type -> media_notes.media.v1.UpdateMediaResponse
-	39, // 57: media_notes.media.v1.MediaService.RequestProcessing:output_type -> media_notes.media.v1.RequestProcessingResponse
-	18, // 58: media_notes.media.v1.MediaService.TrashMedia:output_type -> media_notes.media.v1.TrashMediaResponse
-	20, // 59: media_notes.media.v1.MediaService.RestoreMedia:output_type -> media_notes.media.v1.RestoreMediaResponse
-	22, // 60: media_notes.media.v1.MediaService.ListTrashedMedia:output_type -> media_notes.media.v1.ListTrashedMediaResponse
-	47, // [47:61] is the sub-list for method output_type
-	33, // [33:47] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	3,  // 25: media_notes.media.v1.RequestDerivativeUploadRequest.derivative_type:type_name -> media_notes.media.v1.DerivativeType
+	44, // 26: media_notes.media.v1.RequestDerivativeUploadResponse.expires_at:type_name -> google.protobuf.Timestamp
+	5,  // 27: media_notes.media.v1.DeletionOperation.state:type_name -> media_notes.media.v1.DeletionState
+	44, // 28: media_notes.media.v1.DeletionOperation.created_at:type_name -> google.protobuf.Timestamp
+	44, // 29: media_notes.media.v1.DeletionOperation.completed_at:type_name -> google.protobuf.Timestamp
+	33, // 30: media_notes.media.v1.RequestDeletionResponse.operation:type_name -> media_notes.media.v1.DeletionOperation
+	33, // 31: media_notes.media.v1.GetDeletionStatusResponse.operation:type_name -> media_notes.media.v1.DeletionOperation
+	12, // 32: media_notes.media.v1.UpdateMediaResponse.media:type_name -> media_notes.media.v1.Media
+	43, // 33: media_notes.media.v1.RequestProcessingRequest.prompt_overrides:type_name -> media_notes.media.v1.RequestProcessingRequest.PromptOverridesEntry
+	12, // 34: media_notes.media.v1.RequestProcessingResponse.media:type_name -> media_notes.media.v1.Media
+	8,  // 35: media_notes.media.v1.MediaService.CreateUploadSession:input_type -> media_notes.media.v1.CreateUploadSessionRequest
+	10, // 36: media_notes.media.v1.MediaService.ConfirmUpload:input_type -> media_notes.media.v1.ConfirmUploadRequest
+	13, // 37: media_notes.media.v1.MediaService.GetMedia:input_type -> media_notes.media.v1.GetMediaRequest
+	15, // 38: media_notes.media.v1.MediaService.ListMedia:input_type -> media_notes.media.v1.ListMediaRequest
+	23, // 39: media_notes.media.v1.MediaService.SignPlaybackUrl:input_type -> media_notes.media.v1.SignPlaybackUrlRequest
+	26, // 40: media_notes.media.v1.MediaService.GetMediaProgress:input_type -> media_notes.media.v1.GetMediaProgressRequest
+	29, // 41: media_notes.media.v1.MediaService.RegisterDerivative:input_type -> media_notes.media.v1.RegisterDerivativeRequest
+	31, // 42: media_notes.media.v1.MediaService.RequestDerivativeUpload:input_type -> media_notes.media.v1.RequestDerivativeUploadRequest
+	34, // 43: media_notes.media.v1.MediaService.RequestDeletion:input_type -> media_notes.media.v1.RequestDeletionRequest
+	36, // 44: media_notes.media.v1.MediaService.GetDeletionStatus:input_type -> media_notes.media.v1.GetDeletionStatusRequest
+	38, // 45: media_notes.media.v1.MediaService.UpdateMedia:input_type -> media_notes.media.v1.UpdateMediaRequest
+	40, // 46: media_notes.media.v1.MediaService.RequestProcessing:input_type -> media_notes.media.v1.RequestProcessingRequest
+	17, // 47: media_notes.media.v1.MediaService.TrashMedia:input_type -> media_notes.media.v1.TrashMediaRequest
+	19, // 48: media_notes.media.v1.MediaService.RestoreMedia:input_type -> media_notes.media.v1.RestoreMediaRequest
+	21, // 49: media_notes.media.v1.MediaService.ListTrashedMedia:input_type -> media_notes.media.v1.ListTrashedMediaRequest
+	9,  // 50: media_notes.media.v1.MediaService.CreateUploadSession:output_type -> media_notes.media.v1.CreateUploadSessionResponse
+	11, // 51: media_notes.media.v1.MediaService.ConfirmUpload:output_type -> media_notes.media.v1.ConfirmUploadResponse
+	14, // 52: media_notes.media.v1.MediaService.GetMedia:output_type -> media_notes.media.v1.GetMediaResponse
+	16, // 53: media_notes.media.v1.MediaService.ListMedia:output_type -> media_notes.media.v1.ListMediaResponse
+	24, // 54: media_notes.media.v1.MediaService.SignPlaybackUrl:output_type -> media_notes.media.v1.SignPlaybackUrlResponse
+	27, // 55: media_notes.media.v1.MediaService.GetMediaProgress:output_type -> media_notes.media.v1.GetMediaProgressResponse
+	30, // 56: media_notes.media.v1.MediaService.RegisterDerivative:output_type -> media_notes.media.v1.RegisterDerivativeResponse
+	32, // 57: media_notes.media.v1.MediaService.RequestDerivativeUpload:output_type -> media_notes.media.v1.RequestDerivativeUploadResponse
+	35, // 58: media_notes.media.v1.MediaService.RequestDeletion:output_type -> media_notes.media.v1.RequestDeletionResponse
+	37, // 59: media_notes.media.v1.MediaService.GetDeletionStatus:output_type -> media_notes.media.v1.GetDeletionStatusResponse
+	39, // 60: media_notes.media.v1.MediaService.UpdateMedia:output_type -> media_notes.media.v1.UpdateMediaResponse
+	41, // 61: media_notes.media.v1.MediaService.RequestProcessing:output_type -> media_notes.media.v1.RequestProcessingResponse
+	18, // 62: media_notes.media.v1.MediaService.TrashMedia:output_type -> media_notes.media.v1.TrashMediaResponse
+	20, // 63: media_notes.media.v1.MediaService.RestoreMedia:output_type -> media_notes.media.v1.RestoreMediaResponse
+	22, // 64: media_notes.media.v1.MediaService.ListTrashedMedia:output_type -> media_notes.media.v1.ListTrashedMediaResponse
+	50, // [50:65] is the sub-list for method output_type
+	35, // [35:50] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_media_notes_media_v1_media_proto_init() }
@@ -2860,14 +2999,14 @@ func file_media_notes_media_v1_media_proto_init() {
 	if File_media_notes_media_v1_media_proto != nil {
 		return
 	}
-	file_media_notes_media_v1_media_proto_msgTypes[29].OneofWrappers = []any{}
+	file_media_notes_media_v1_media_proto_msgTypes[31].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_notes_media_v1_media_proto_rawDesc), len(file_media_notes_media_v1_media_proto_rawDesc)),
 			NumEnums:      7,
-			NumMessages:   35,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

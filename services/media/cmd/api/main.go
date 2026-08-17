@@ -96,7 +96,7 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 
 	mediaSvc := media.NewService(mediaRepo, objectStore, cfg.PlaybackURLTTL)
 	uploadSvc := upload.NewService(uploadRepo, objectStore, cfg.MaxSourceSizeBytes, cfg.MaxActiveUploadSessions, cfg.UploadSessionTTL)
-	derivativeSvc := derivative.NewService(derivativeRepo, objectStore, cfg.PlaybackURLTTL)
+	derivativeSvc := derivative.NewService(derivativeRepo, objectStore, cfg.PlaybackURLTTL, cfg.UploadSessionTTL)
 	deletionSvc := deletion.NewService(deletionRepo, objectStore)
 
 	health.SetReady(true)

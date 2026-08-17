@@ -28,20 +28,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MediaService_CreateUploadSession_FullMethodName = "/media_notes.media.v1.MediaService/CreateUploadSession"
-	MediaService_ConfirmUpload_FullMethodName       = "/media_notes.media.v1.MediaService/ConfirmUpload"
-	MediaService_GetMedia_FullMethodName            = "/media_notes.media.v1.MediaService/GetMedia"
-	MediaService_ListMedia_FullMethodName           = "/media_notes.media.v1.MediaService/ListMedia"
-	MediaService_SignPlaybackUrl_FullMethodName     = "/media_notes.media.v1.MediaService/SignPlaybackUrl"
-	MediaService_GetMediaProgress_FullMethodName    = "/media_notes.media.v1.MediaService/GetMediaProgress"
-	MediaService_RegisterDerivative_FullMethodName  = "/media_notes.media.v1.MediaService/RegisterDerivative"
-	MediaService_RequestDeletion_FullMethodName     = "/media_notes.media.v1.MediaService/RequestDeletion"
-	MediaService_GetDeletionStatus_FullMethodName   = "/media_notes.media.v1.MediaService/GetDeletionStatus"
-	MediaService_UpdateMedia_FullMethodName         = "/media_notes.media.v1.MediaService/UpdateMedia"
-	MediaService_RequestProcessing_FullMethodName   = "/media_notes.media.v1.MediaService/RequestProcessing"
-	MediaService_TrashMedia_FullMethodName          = "/media_notes.media.v1.MediaService/TrashMedia"
-	MediaService_RestoreMedia_FullMethodName        = "/media_notes.media.v1.MediaService/RestoreMedia"
-	MediaService_ListTrashedMedia_FullMethodName    = "/media_notes.media.v1.MediaService/ListTrashedMedia"
+	MediaService_CreateUploadSession_FullMethodName     = "/media_notes.media.v1.MediaService/CreateUploadSession"
+	MediaService_ConfirmUpload_FullMethodName           = "/media_notes.media.v1.MediaService/ConfirmUpload"
+	MediaService_GetMedia_FullMethodName                = "/media_notes.media.v1.MediaService/GetMedia"
+	MediaService_ListMedia_FullMethodName               = "/media_notes.media.v1.MediaService/ListMedia"
+	MediaService_SignPlaybackUrl_FullMethodName         = "/media_notes.media.v1.MediaService/SignPlaybackUrl"
+	MediaService_GetMediaProgress_FullMethodName        = "/media_notes.media.v1.MediaService/GetMediaProgress"
+	MediaService_RegisterDerivative_FullMethodName      = "/media_notes.media.v1.MediaService/RegisterDerivative"
+	MediaService_RequestDerivativeUpload_FullMethodName = "/media_notes.media.v1.MediaService/RequestDerivativeUpload"
+	MediaService_RequestDeletion_FullMethodName         = "/media_notes.media.v1.MediaService/RequestDeletion"
+	MediaService_GetDeletionStatus_FullMethodName       = "/media_notes.media.v1.MediaService/GetDeletionStatus"
+	MediaService_UpdateMedia_FullMethodName             = "/media_notes.media.v1.MediaService/UpdateMedia"
+	MediaService_RequestProcessing_FullMethodName       = "/media_notes.media.v1.MediaService/RequestProcessing"
+	MediaService_TrashMedia_FullMethodName              = "/media_notes.media.v1.MediaService/TrashMedia"
+	MediaService_RestoreMedia_FullMethodName            = "/media_notes.media.v1.MediaService/RestoreMedia"
+	MediaService_ListTrashedMedia_FullMethodName        = "/media_notes.media.v1.MediaService/ListTrashedMedia"
 )
 
 // MediaServiceClient is the client API for MediaService service.
@@ -80,6 +81,13 @@ type MediaServiceClient interface {
 	// cover, or waveform) after conductor-worker has written it to object
 	// storage. Idempotent per (media_id, derivative_type, version).
 	RegisterDerivative(ctx context.Context, in *RegisterDerivativeRequest, opts ...grpc.CallOption) (*RegisterDerivativeResponse, error)
+	// RequestDerivativeUpload returns a short-lived presigned PUT URL for a
+	// caller-supplied derivative image (currently thumbnail only), mirroring
+	// CreateUploadSession's pattern for the source object. The caller PUTs
+	// the file directly to object storage, then calls RegisterDerivative
+	// with the returned object_key to finalize it — this RPC does not
+	// itself register anything.
+	RequestDerivativeUpload(ctx context.Context, in *RequestDerivativeUploadRequest, opts ...grpc.CallOption) (*RequestDerivativeUploadResponse, error)
 	// RequestDeletion starts the media deletion workflow: the media item is
 	// immediately excluded from normal operations, media deletes its own
 	// owned object keys and rows, and the operation completes once every
@@ -185,6 +193,16 @@ func (c *mediaServiceClient) RegisterDerivative(ctx context.Context, in *Registe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RegisterDerivativeResponse)
 	err := c.cc.Invoke(ctx, MediaService_RegisterDerivative_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediaServiceClient) RequestDerivativeUpload(ctx context.Context, in *RequestDerivativeUploadRequest, opts ...grpc.CallOption) (*RequestDerivativeUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RequestDerivativeUploadResponse)
+	err := c.cc.Invoke(ctx, MediaService_RequestDerivativeUpload_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -297,6 +315,13 @@ type MediaServiceServer interface {
 	// cover, or waveform) after conductor-worker has written it to object
 	// storage. Idempotent per (media_id, derivative_type, version).
 	RegisterDerivative(context.Context, *RegisterDerivativeRequest) (*RegisterDerivativeResponse, error)
+	// RequestDerivativeUpload returns a short-lived presigned PUT URL for a
+	// caller-supplied derivative image (currently thumbnail only), mirroring
+	// CreateUploadSession's pattern for the source object. The caller PUTs
+	// the file directly to object storage, then calls RegisterDerivative
+	// with the returned object_key to finalize it — this RPC does not
+	// itself register anything.
+	RequestDerivativeUpload(context.Context, *RequestDerivativeUploadRequest) (*RequestDerivativeUploadResponse, error)
 	// RequestDeletion starts the media deletion workflow: the media item is
 	// immediately excluded from normal operations, media deletes its own
 	// owned object keys and rows, and the operation completes once every
@@ -358,6 +383,9 @@ func (UnimplementedMediaServiceServer) GetMediaProgress(context.Context, *GetMed
 }
 func (UnimplementedMediaServiceServer) RegisterDerivative(context.Context, *RegisterDerivativeRequest) (*RegisterDerivativeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterDerivative not implemented")
+}
+func (UnimplementedMediaServiceServer) RequestDerivativeUpload(context.Context, *RequestDerivativeUploadRequest) (*RequestDerivativeUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RequestDerivativeUpload not implemented")
 }
 func (UnimplementedMediaServiceServer) RequestDeletion(context.Context, *RequestDeletionRequest) (*RequestDeletionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RequestDeletion not implemented")
@@ -527,6 +555,24 @@ func _MediaService_RegisterDerivative_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediaService_RequestDerivativeUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestDerivativeUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).RequestDerivativeUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_RequestDerivativeUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).RequestDerivativeUpload(ctx, req.(*RequestDerivativeUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediaService_RequestDeletion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RequestDeletionRequest)
 	if err := dec(in); err != nil {
@@ -687,6 +733,10 @@ var MediaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterDerivative",
 			Handler:    _MediaService_RegisterDerivative_Handler,
+		},
+		{
+			MethodName: "RequestDerivativeUpload",
+			Handler:    _MediaService_RequestDerivativeUpload_Handler,
 		},
 		{
 			MethodName: "RequestDeletion",
