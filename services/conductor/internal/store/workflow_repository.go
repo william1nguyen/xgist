@@ -29,7 +29,7 @@ func NewWorkflowRepository(pool *pgxpool.Pool) *WorkflowRepository {
 
 var _ workflow.Repository = (*WorkflowRepository)(nil)
 
-const workflowColumns = `id, media_id, request_id, user_id, state, quote_id, version, started_at, completed_at`
+const workflowColumns = `id, media_id, request_id, user_id, state, quote_id, version, started_at, completed_at, audio_voice`
 
 type stepRow struct {
 	ID             uuid.UUID
@@ -52,11 +52,11 @@ func (r *WorkflowRepository) CreateWorkflow(ctx context.Context, in workflow.New
 	var result workflow.Workflow
 	txErr := withTx(ctx, r.pool, func(ctx context.Context, tx pgx.Tx) error {
 		row := tx.QueryRow(ctx, `
-			INSERT INTO workflows (id, media_id, request_id, user_id, state, quote_id, version, started_at)
-			VALUES ($1, $2, $3, $4, $5, $6, 0, now())
+			INSERT INTO workflows (id, media_id, request_id, user_id, state, quote_id, version, started_at, audio_voice)
+			VALUES ($1, $2, $3, $4, $5, $6, 0, now(), $7)
 			ON CONFLICT (media_id) DO NOTHING
 			RETURNING `+workflowColumns,
-			uuid.New(), in.MediaID, in.RequestID, in.UserID, string(workflow.StateReservingCredit), in.QuoteID)
+			uuid.New(), in.MediaID, in.RequestID, in.UserID, string(workflow.StateReservingCredit), in.QuoteID, in.AudioVoice)
 		w, err := scanWorkflow(row)
 		if err != nil {
 			if errors.Is(err, workflow.ErrNotFound) {
@@ -105,7 +105,7 @@ func (r *WorkflowRepository) CreateWorkflow(ctx context.Context, in workflow.New
 		// generate_thumbnail has no dependency, no billing item, and
 		// does not wait on credit: dispatch it immediately.
 		if thumbID, ok := stepIDs[workflow.StepThumbnail]; ok {
-			if err := dispatchStep(ctx, tx, w.ID, thumbID, workflow.StepThumbnail, in.MediaID, 1); err != nil {
+			if err := dispatchStep(ctx, tx, w.ID, thumbID, workflow.StepThumbnail, in.MediaID, 1, ""); err != nil {
 				return err
 			}
 		}
@@ -146,7 +146,7 @@ func (r *WorkflowRepository) ApplyCreditDecision(ctx context.Context, eventID, w
 		if err != nil {
 			return err
 		}
-		return dispatchStep(ctx, tx, w.ID, transcribe.ID, workflow.StepTranscribe, w.MediaID, 1)
+		return dispatchStep(ctx, tx, w.ID, transcribe.ID, workflow.StepTranscribe, w.MediaID, 1, "")
 	})
 }
 
@@ -207,7 +207,7 @@ func (r *WorkflowRepository) CompleteStep(ctx context.Context, in workflow.StepC
 			if !ready {
 				continue
 			}
-			if err := dispatchStep(ctx, tx, w.ID, dep.ID, dep.StepType, w.MediaID, 1); err != nil {
+			if err := dispatchStep(ctx, tx, w.ID, dep.ID, dep.StepType, w.MediaID, 1, w.AudioVoice); err != nil {
 				return err
 			}
 		}
@@ -367,7 +367,18 @@ func (r *WorkflowRepository) DispatchRetry(ctx context.Context, due workflow.Due
 			return failWorkflowStep(ctx, tx, w, step, "retries_exhausted", nil)
 		}
 
-		return dispatchStep(ctx, tx, due.WorkflowID, due.StepID, due.StepType, due.MediaID, due.NextAttempt)
+		voice := ""
+		if due.StepType == workflow.StepSummaryAudio {
+			w, err := findWorkflowByIDForUpdate(ctx, tx, due.WorkflowID)
+			if err != nil {
+				if errors.Is(err, workflow.ErrNotFound) {
+					return nil
+				}
+				return err
+			}
+			voice = w.AudioVoice
+		}
+		return dispatchStep(ctx, tx, due.WorkflowID, due.StepID, due.StepType, due.MediaID, due.NextAttempt, voice)
 	})
 }
 
@@ -473,7 +484,12 @@ func (r *WorkflowRepository) CancelForDeletion(ctx context.Context, deletionID, 
 // ("<step_id>:<attempt>"), so a crash between commit and the outbox relay
 // publishing it is safe: the same key is used if this path is ever
 // re-entered for the same (step, attempt).
-func dispatchStep(ctx context.Context, tx pgx.Tx, workflowID, stepID uuid.UUID, stepType string, mediaID uuid.UUID, attempt int) error {
+// dispatchStep's voice parameter is only meaningful for
+// workflow.StepSummaryAudio; every other caller passes the workflow's
+// AudioVoice through unconditionally since it's harmless — it's simply
+// omitted from the payload below unless both the step type matches and a
+// voice was actually selected.
+func dispatchStep(ctx context.Context, tx pgx.Tx, workflowID, stepID uuid.UUID, stepType string, mediaID uuid.UUID, attempt int, voice string) error {
 	deadline := time.Now().Add(timeout.DeadlineFor(stepType))
 	if _, err := tx.Exec(ctx, `
 		UPDATE workflow_steps SET state = $2, current_attempt = $3, deadline_at = $4 WHERE id = $1
@@ -489,7 +505,7 @@ func dispatchStep(ctx context.Context, tx pgx.Tx, workflowID, stepID uuid.UUID, 
 		return err
 	}
 
-	payload, err := json.Marshal(map[string]any{
+	fields := map[string]any{
 		"event_id":        uuid.New(),
 		"media_id":        mediaID,
 		"workflow_id":     workflowID,
@@ -497,7 +513,11 @@ func dispatchStep(ctx context.Context, tx pgx.Tx, workflowID, stepID uuid.UUID, 
 		"step":            stepType,
 		"attempt":         attempt,
 		"idempotency_key": idempotencyKey,
-	})
+	}
+	if stepType == workflow.StepSummaryAudio && voice != "" {
+		fields["voice"] = voice
+	}
+	payload, err := json.Marshal(fields)
 	if err != nil {
 		return err
 	}
@@ -624,7 +644,7 @@ func publishSettleCommand(ctx context.Context, tx pgx.Tx, w workflow.Workflow, a
 func scanWorkflow(row rowScanner) (workflow.Workflow, error) {
 	var w workflow.Workflow
 	var state string
-	err := row.Scan(&w.ID, &w.MediaID, &w.RequestID, &w.UserID, &state, &w.QuoteID, &w.Version, &w.StartedAt, &w.CompletedAt)
+	err := row.Scan(&w.ID, &w.MediaID, &w.RequestID, &w.UserID, &state, &w.QuoteID, &w.Version, &w.StartedAt, &w.CompletedAt, &w.AudioVoice)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return workflow.Workflow{}, workflow.ErrNotFound

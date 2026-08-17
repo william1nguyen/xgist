@@ -1,5 +1,5 @@
-query MediaList($cursor: String, $pageSize: Int) {
-	mediaList(cursor: $cursor, pageSize: $pageSize) {
+query MediaList($cursor: String, $pageSize: Int, $search: String) {
+	mediaList(cursor: $cursor, pageSize: $pageSize, search: $search) {
 		items {
 			id
 			title
@@ -68,11 +68,13 @@ mutation CreateUploadSession(
 mutation ConfirmUpload(
 	$uploadSessionId: ID!
 	$options: [String!]!
+	$audioVoice: String
 	$idempotencyKey: String
 ) {
 	confirmUpload(
 		uploadSessionId: $uploadSessionId
 		options: $options
+		audioVoice: $audioVoice
 		idempotencyKey: $idempotencyKey
 	) {
 		id

@@ -26,7 +26,7 @@ import (
 // depends on. *media.Service implements it.
 type MediaService interface {
 	GetMedia(ctx context.Context, id uuid.UUID) (media.Media, error)
-	ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (media.Page, error)
+	ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int, search string) (media.Page, error)
 	SignPlaybackURL(ctx context.Context, id uuid.UUID) (string, time.Time, error)
 	GetProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]media.Progress, error)
 }
@@ -103,6 +103,7 @@ func (s *Server) ConfirmUpload(ctx context.Context, req *mediav1.ConfirmUploadRe
 	m, err := s.uploads.ConfirmUpload(ctx, upload.ConfirmUploadCommand{
 		SessionID:      sessionID,
 		Options:        req.GetOptions(),
+		AudioVoice:     req.GetAudioVoice(),
 		IdempotencyKey: req.GetIdempotencyKey(),
 	})
 	if err != nil {
@@ -130,7 +131,7 @@ func (s *Server) ListMedia(ctx context.Context, req *mediav1.ListMediaRequest) (
 		return nil, status.Error(codes.InvalidArgument, "owner_id must be a UUID")
 	}
 
-	page, err := s.media.ListMedia(ctx, ownerID, req.GetCursor(), int(req.GetPageSize()))
+	page, err := s.media.ListMedia(ctx, ownerID, req.GetCursor(), int(req.GetPageSize()), req.GetSearch())
 	if err != nil {
 		return nil, mapError(err)
 	}

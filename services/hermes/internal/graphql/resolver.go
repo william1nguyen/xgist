@@ -107,7 +107,7 @@ func (r *mutationResolver) CreateUploadSession(ctx context.Context, title string
 }
 
 // ConfirmUpload is the resolver for the confirmUpload field.
-func (r *mutationResolver) ConfirmUpload(ctx context.Context, uploadSessionID string, options []string, idempotencyKey *string) (*model.MediaDetail, error) {
+func (r *mutationResolver) ConfirmUpload(ctx context.Context, uploadSessionID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,12 @@ func (r *mutationResolver) ConfirmUpload(ctx context.Context, uploadSessionID st
 		return nil, fmt.Errorf("uploadSessionId must be a UUID: %w", err)
 	}
 
-	m, err := r.media.ConfirmUpload(ctx, idempotencyKeyOrNew(idempotencyKey), sessionID, options)
+	var voice string
+	if audioVoice != nil {
+		voice = *audioVoice
+	}
+
+	m, err := r.media.ConfirmUpload(ctx, idempotencyKeyOrNew(idempotencyKey), sessionID, options, voice)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +151,7 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 }
 
 // MediaList is the resolver for the mediaList field.
-func (r *queryResolver) MediaList(ctx context.Context, cursor *string, pageSize *int) (*model.MediaPage, error) {
+func (r *queryResolver) MediaList(ctx context.Context, cursor *string, pageSize *int, search *string) (*model.MediaPage, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -164,7 +169,12 @@ func (r *queryResolver) MediaList(ctx context.Context, cursor *string, pageSize 
 		pageSizeValue = int32(*pageSize)
 	}
 
-	page, err := r.media.ListMedia(ctx, principal.User.ID, cursorValue, pageSizeValue)
+	var searchValue string
+	if search != nil {
+		searchValue = *search
+	}
+
+	page, err := r.media.ListMedia(ctx, principal.User.ID, cursorValue, pageSizeValue, searchValue)
 	if err != nil {
 		return nil, err
 	}

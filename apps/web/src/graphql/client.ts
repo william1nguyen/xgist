@@ -55,7 +55,10 @@ export const apolloClient = new ApolloClient({
 			Query: {
 				fields: {
 					mediaList: {
-						keyArgs: false,
+						// Keyed by search so switching search terms starts a fresh
+						// cached page instead of merging into the unfiltered list;
+						// cursor pagination within one search term still merges below.
+						keyArgs: ["search"],
 						merge(existing, incoming, { args }) {
 							if (!args?.cursor || !existing) return incoming;
 							return {

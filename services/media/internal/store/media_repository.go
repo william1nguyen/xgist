@@ -38,7 +38,7 @@ type cursorPayload struct {
 	ID        uuid.UUID `json:"id"`
 }
 
-func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (media.Page, error) {
+func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int, search string) (media.Page, error) {
 	var (
 		rows pgx.Rows
 		err  error
@@ -48,9 +48,10 @@ func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor st
 			SELECT `+mediaColumns+`
 			FROM media
 			WHERE owner_id = $1 AND status != 'deletion_pending'
+			  AND ($3 = '' OR title ILIKE '%' || $3 || '%')
 			ORDER BY created_at DESC, id DESC
 			LIMIT $2
-		`, ownerID, pageSize+1)
+		`, ownerID, pageSize+1, search)
 	} else {
 		c, decodeErr := decodeCursor(cursor)
 		if decodeErr != nil {
@@ -61,9 +62,10 @@ func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor st
 			FROM media
 			WHERE owner_id = $1 AND status != 'deletion_pending'
 			  AND (created_at, id) < ($2, $3)
+			  AND ($5 = '' OR title ILIKE '%' || $5 || '%')
 			ORDER BY created_at DESC, id DESC
 			LIMIT $4
-		`, ownerID, c.CreatedAt, c.ID, pageSize+1)
+		`, ownerID, c.CreatedAt, c.ID, pageSize+1, search)
 	}
 	if err != nil {
 		return media.Page{}, err

@@ -3,6 +3,7 @@ package media_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,10 +24,11 @@ func (f *fakeRepo) FindByID(ctx context.Context, id uuid.UUID) (media.Media, err
 	return m, nil
 }
 
-func (f *fakeRepo) List(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (media.Page, error) {
+func (f *fakeRepo) List(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int, search string) (media.Page, error) {
 	var items []media.Media
 	for _, m := range f.byID {
-		if m.OwnerID == ownerID && m.Status != media.StatusDeletionPending {
+		if m.OwnerID == ownerID && m.Status != media.StatusDeletionPending &&
+			(search == "" || strings.Contains(strings.ToLower(m.Title), strings.ToLower(search))) {
 			items = append(items, m)
 		}
 	}
@@ -103,7 +105,7 @@ func TestListMediaClampsPageSize(t *testing.T) {
 	}
 	svc := media.NewService(repo, &fakeSigner{}, 15*time.Minute)
 
-	page, err := svc.ListMedia(context.Background(), owner, "", 1000)
+	page, err := svc.ListMedia(context.Background(), owner, "", 1000, "")
 	if err != nil {
 		t.Fatalf("ListMedia: %v", err)
 	}

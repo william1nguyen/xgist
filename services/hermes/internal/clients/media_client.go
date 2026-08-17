@@ -53,11 +53,12 @@ func (c *MediaClient) CreateUploadSession(ctx context.Context, idempotencyKey st
 
 // ConfirmUpload reads authoritative object metadata and, on success,
 // atomically creates the processing request.
-func (c *MediaClient) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string) (Media, error) {
+func (c *MediaClient) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string) (Media, error) {
 	resp, err := c.client.ConfirmUpload(ctx, &mediav1.ConfirmUploadRequest{
 		IdempotencyKey:  idempotencyKey,
 		UploadSessionId: uploadSessionID.String(),
 		Options:         options,
+		AudioVoice:      audioVoice,
 	})
 	if err != nil {
 		return Media{}, fmt.Errorf("media.ConfirmUpload: %w", err)
@@ -75,11 +76,12 @@ func (c *MediaClient) GetMedia(ctx context.Context, mediaID uuid.UUID) (Media, e
 }
 
 // ListMedia returns a cursor-paginated page for one owner.
-func (c *MediaClient) ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32) (MediaPage, error) {
+func (c *MediaClient) ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32, search string) (MediaPage, error) {
 	resp, err := c.client.ListMedia(ctx, &mediav1.ListMediaRequest{
 		OwnerId:  ownerID.String(),
 		Cursor:   cursor,
 		PageSize: pageSize,
+		Search:   search,
 	})
 	if err != nil {
 		return MediaPage{}, fmt.Errorf("media.ListMedia: %w", err)

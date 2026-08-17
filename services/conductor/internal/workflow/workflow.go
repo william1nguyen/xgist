@@ -164,8 +164,12 @@ func BillableOptions(plans []StepPlan) []string {
 // workflow-level deadline: only individual steps have a deadline
 // (Step.DeadlineAt), which ExpireTimedOutSteps sweeps.
 type Workflow struct {
-	ID          uuid.UUID
-	MediaID     uuid.UUID
+	ID      uuid.UUID
+	MediaID uuid.UUID
+	// AudioVoice overrides the worker's default TTS voice for this
+	// workflow's generate_audio_summary step, if selected. Empty means
+	// "use the worker's default".
+	AudioVoice  string
 	RequestID   uuid.UUID
 	UserID      uuid.UUID
 	State       State
@@ -191,18 +195,20 @@ type Step struct {
 // separate processing_request id on this event, and event_id is already
 // the field this and every other consumer dedups on.
 type ProcessingRequested struct {
-	EventID uuid.UUID
-	MediaID uuid.UUID
-	Options []string
+	EventID    uuid.UUID
+	MediaID    uuid.UUID
+	Options    []string
+	AudioVoice string
 }
 
 // NewWorkflow is the input to Repository.CreateWorkflow.
 type NewWorkflow struct {
-	RequestID uuid.UUID
-	MediaID   uuid.UUID
-	UserID    uuid.UUID
-	QuoteID   uuid.UUID
-	Steps     []StepPlan
+	RequestID  uuid.UUID
+	MediaID    uuid.UUID
+	UserID     uuid.UUID
+	QuoteID    uuid.UUID
+	AudioVoice string
+	Steps      []StepPlan
 }
 
 // StepCompletion is the input to Repository.CompleteStep, decoded from
@@ -380,11 +386,12 @@ func (s *Service) StartWorkflow(ctx context.Context, req ProcessingRequested) er
 	}
 
 	_, err = s.repo.CreateWorkflow(ctx, NewWorkflow{
-		RequestID: req.EventID,
-		MediaID:   req.MediaID,
-		UserID:    media.OwnerID,
-		QuoteID:   quoteID,
-		Steps:     steps,
+		RequestID:  req.EventID,
+		MediaID:    req.MediaID,
+		UserID:     media.OwnerID,
+		QuoteID:    quoteID,
+		AudioVoice: req.AudioVoice,
+		Steps:      steps,
 	})
 	return err
 }

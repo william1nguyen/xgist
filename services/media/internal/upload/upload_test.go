@@ -57,7 +57,7 @@ func (f *fakeRepo) FindByID(ctx context.Context, id uuid.UUID) (upload.UploadSes
 	return s, nil
 }
 
-func (f *fakeRepo) Confirm(ctx context.Context, sessionID uuid.UUID, sizeBytes int64, mimeType string, options []string, idempotencyKey string) (media.Media, error) {
+func (f *fakeRepo) Confirm(ctx context.Context, sessionID uuid.UUID, sizeBytes int64, mimeType string, options []string, audioVoice string, idempotencyKey string) (media.Media, error) {
 	s := f.byID[sessionID]
 	s.Status = upload.StatusCompleted
 	f.byID[sessionID] = s

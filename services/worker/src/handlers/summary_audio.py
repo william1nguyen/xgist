@@ -44,8 +44,10 @@ def handle(cmd: StepCommand, deps: Deps) -> None:
         # transient one.
         raise TerminalStepError("summary_not_found", str(e)) from e
 
+    voice = cmd.voice or deps.tts_voice
+
     with deps.limits.for_step(cmd.step).acquire():
-        audio_bytes = tts.generate_audio_summary(summary_text, deps.tts_voice)
+        audio_bytes = tts.generate_audio_summary(summary_text, voice)
         duration_ms = _probe_duration_ms(audio_bytes)
 
     object_key = f"media/{cmd.media_id}/summary-audio/{uuid.uuid4()}.mp3"
@@ -60,5 +62,5 @@ def handle(cmd: StepCommand, deps: Deps) -> None:
         object_key=object_key,
         mime_type="audio/mpeg",
         duration_ms=duration_ms,
-        voice=deps.tts_voice,
+        voice=voice,
     )

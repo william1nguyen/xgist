@@ -154,6 +154,10 @@ message ConfirmUploadRequest {
   string idempotency_key = 1;
   string upload_session_id = 2;
   repeated string options = 3;
+  // audio_voice overrides conductor-worker's default TTS voice for this
+  // workflow's generate_audio_summary step, if selected. Empty means "use
+  // the worker's default".
+  string audio_voice = 4;
 }
 
 // ConfirmUploadResponse returns the confirmed media item.
@@ -194,6 +198,9 @@ message ListMediaRequest {
   string owner_id = 1;
   string cursor = 2;
   int32 page_size = 3;
+  // search is an optional case-insensitive substring match against title.
+  // Empty returns every item, same as omitting it.
+  string search = 4;
 }
 
 // ListMediaResponse returns one page of lightweight media fields.

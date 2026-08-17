@@ -49,9 +49,9 @@ type BillingClient interface {
 // *clients.MediaClient implements it.
 type MediaClient interface {
 	CreateUploadSession(ctx context.Context, idempotencyKey string, ownerID uuid.UUID, title, mimeType string, declaredSizeBytes int64) (clients.UploadSession, error)
-	ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string) (clients.Media, error)
+	ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string) (clients.Media, error)
 	GetMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error)
-	ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32) (clients.MediaPage, error)
+	ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32, search string) (clients.MediaPage, error)
 	SignPlaybackURL(ctx context.Context, mediaID uuid.UUID) (string, time.Time, error)
 	GetMediaProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]clients.MediaProgress, error)
 }

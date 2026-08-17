@@ -104,7 +104,7 @@ func (r *UploadRepository) FindByID(ctx context.Context, id uuid.UUID) (upload.U
 	return scanUploadSession(row)
 }
 
-func (r *UploadRepository) Confirm(ctx context.Context, sessionID uuid.UUID, sizeBytes int64, mimeType string, options []string, idempotencyKey string) (media.Media, error) {
+func (r *UploadRepository) Confirm(ctx context.Context, sessionID uuid.UUID, sizeBytes int64, mimeType string, options []string, audioVoice string, idempotencyKey string) (media.Media, error) {
 	var result media.Media
 	txErr := withTx(ctx, r.pool, func(ctx context.Context, tx pgx.Tx) error {
 		row := tx.QueryRow(ctx, `SELECT `+uploadSessionColumns+` FROM upload_sessions WHERE id = $1 FOR UPDATE`, sessionID)
@@ -154,9 +154,10 @@ func (r *UploadRepository) Confirm(ctx context.Context, sessionID uuid.UUID, siz
 		}
 
 		payload, err := json.Marshal(map[string]any{
-			"event_id": uuid.New(),
-			"media_id": session.MediaID,
-			"options":  options,
+			"event_id":    uuid.New(),
+			"media_id":    session.MediaID,
+			"options":     options,
+			"audio_voice": audioVoice,
 		})
 		if err != nil {
 			return err

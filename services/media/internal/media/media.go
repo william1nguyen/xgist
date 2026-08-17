@@ -96,7 +96,7 @@ var ErrNotFound = errors.New("media: not found")
 // implemented by internal/store.
 type Repository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (Media, error)
-	List(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (Page, error)
+	List(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int, search string) (Page, error)
 	// ApplyWorkflowStatus projects a workflow-status transition from
 	// conductor into the owning media row. A status for a media item that
 	// no longer exists, or that is already deletion_pending, is a no-op:
@@ -144,14 +144,14 @@ func (s *Service) GetMedia(ctx context.Context, id uuid.UUID) (Media, error) {
 
 // ListMedia returns a cursor-paginated page for one owner. pageSize
 // defaults to 20 and is capped at 100, per ADR 0004.
-func (s *Service) ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (Page, error) {
+func (s *Service) ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int, search string) (Page, error) {
 	if pageSize <= 0 {
 		pageSize = 20
 	}
 	if pageSize > 100 {
 		pageSize = 100
 	}
-	return s.repo.List(ctx, ownerID, cursor, pageSize)
+	return s.repo.List(ctx, ownerID, cursor, pageSize, search)
 }
 
 // SignPlaybackURL returns a short-lived signed URL for a media item's

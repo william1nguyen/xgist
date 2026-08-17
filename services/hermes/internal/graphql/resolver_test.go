@@ -57,7 +57,7 @@ type fakeMedia struct {
 func (f *fakeMedia) CreateUploadSession(ctx context.Context, idempotencyKey string, ownerID uuid.UUID, title, mimeType string, declaredSizeBytes int64) (clients.UploadSession, error) {
 	return clients.UploadSession{ID: uuid.New(), OwnerID: ownerID}, nil
 }
-func (f *fakeMedia) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string) (clients.Media, error) {
+func (f *fakeMedia) ConfirmUpload(ctx context.Context, idempotencyKey string, uploadSessionID uuid.UUID, options []string, audioVoice string) (clients.Media, error) {
 	return clients.Media{ID: uuid.New()}, nil
 }
 func (f *fakeMedia) GetMedia(ctx context.Context, mediaID uuid.UUID) (clients.Media, error) {
@@ -67,7 +67,7 @@ func (f *fakeMedia) GetMedia(ctx context.Context, mediaID uuid.UUID) (clients.Me
 	}
 	return m, nil
 }
-func (f *fakeMedia) ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32) (clients.MediaPage, error) {
+func (f *fakeMedia) ListMedia(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int32, search string) (clients.MediaPage, error) {
 	return clients.MediaPage{}, nil
 }
 func (f *fakeMedia) SignPlaybackURL(ctx context.Context, mediaID uuid.UUID) (string, time.Time, error) {

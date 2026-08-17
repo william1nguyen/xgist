@@ -58,9 +58,10 @@ func NewConsumer(inbox InboxRepository, dlq DLQRepository, wf WorkflowHandler, l
 }
 
 type processingRequestedEnvelope struct {
-	EventID uuid.UUID `json:"event_id"`
-	MediaID uuid.UUID `json:"media_id"`
-	Options []string  `json:"options"`
+	EventID    uuid.UUID `json:"event_id"`
+	MediaID    uuid.UUID `json:"media_id"`
+	Options    []string  `json:"options"`
+	AudioVoice string    `json:"audio_voice"`
 }
 
 // deletionRequestedEnvelope matches media's outbox payload shape for
@@ -196,9 +197,10 @@ func (c *Consumer) handleProcessingRequested(ctx context.Context, payload []byte
 		return fmt.Errorf("decode processing requested: %w", err)
 	}
 	return c.workflow.StartWorkflow(ctx, workflow.ProcessingRequested{
-		EventID: env.EventID,
-		MediaID: env.MediaID,
-		Options: env.Options,
+		EventID:    env.EventID,
+		MediaID:    env.MediaID,
+		Options:    env.Options,
+		AudioVoice: env.AudioVoice,
 	})
 }
 

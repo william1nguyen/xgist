@@ -164,7 +164,7 @@ func TestStoreIntegration(t *testing.T) {
 			t.Fatalf("create: %v", err)
 		}
 
-		m, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe"}, "confirm-1")
+		m, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe"}, "", "confirm-1")
 		if err != nil {
 			t.Fatalf("confirm: %v", err)
 		}
@@ -189,7 +189,7 @@ func TestStoreIntegration(t *testing.T) {
 			t.Fatal("Confirm did not write a processing.requested outbox event")
 		}
 
-		again, err := uploads.Confirm(ctx, session.ID, 999, "audio/mpeg", nil, "confirm-2")
+		again, err := uploads.Confirm(ctx, session.ID, 999, "audio/mpeg", nil, "", "confirm-2")
 		if err != nil {
 			t.Fatalf("confirm (replay): %v", err)
 		}
@@ -322,7 +322,7 @@ func TestStoreIntegration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("create: %v", err)
 		}
-		if _, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe", "summarize"}, uuid.NewString()); err != nil {
+		if _, err := uploads.Confirm(ctx, session.ID, 12345, "video/mp4", []string{"transcribe", "summarize"}, "", uuid.NewString()); err != nil {
 			t.Fatalf("confirm: %v", err)
 		}
 
@@ -333,7 +333,7 @@ func TestStoreIntegration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("create (other owner): %v", err)
 		}
-		if _, err := uploads.Confirm(ctx, otherSession.ID, 100, "video/mp4", nil, uuid.NewString()); err != nil {
+		if _, err := uploads.Confirm(ctx, otherSession.ID, 100, "video/mp4", nil, "", uuid.NewString()); err != nil {
 			t.Fatalf("confirm (other owner): %v", err)
 		}
 

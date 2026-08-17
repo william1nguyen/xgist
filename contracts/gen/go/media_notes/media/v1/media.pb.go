@@ -650,8 +650,12 @@ type ConfirmUploadRequest struct {
 	IdempotencyKey  string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	UploadSessionId string                 `protobuf:"bytes,2,opt,name=upload_session_id,json=uploadSessionId,proto3" json:"upload_session_id,omitempty"`
 	Options         []string               `protobuf:"bytes,3,rep,name=options,proto3" json:"options,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// audio_voice overrides conductor-worker's default TTS voice for this
+	// workflow's generate_audio_summary step, if selected. Empty means "use
+	// the worker's default".
+	AudioVoice    string `protobuf:"bytes,4,opt,name=audio_voice,json=audioVoice,proto3" json:"audio_voice,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConfirmUploadRequest) Reset() {
@@ -703,6 +707,13 @@ func (x *ConfirmUploadRequest) GetOptions() []string {
 		return x.Options
 	}
 	return nil
+}
+
+func (x *ConfirmUploadRequest) GetAudioVoice() string {
+	if x != nil {
+		return x.AudioVoice
+	}
+	return ""
 }
 
 // ConfirmUploadResponse returns the confirmed media item.
@@ -970,10 +981,13 @@ func (x *GetMediaResponse) GetMedia() *Media {
 // ListMediaRequest pages through one owner's media, newest first.
 // page_size defaults to 20 and is capped at 100, per ADR 0004.
 type ListMediaRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OwnerId       string                 `protobuf:"bytes,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	Cursor        string                 `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	OwnerId  string                 `protobuf:"bytes,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	Cursor   string                 `protobuf:"bytes,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	PageSize int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// search is an optional case-insensitive substring match against title.
+	// Empty returns every item, same as omitting it.
+	Search        string `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1027,6 +1041,13 @@ func (x *ListMediaRequest) GetPageSize() int32 {
 		return x.PageSize
 	}
 	return 0
+}
+
+func (x *ListMediaRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
 }
 
 // ListMediaResponse returns one page of lightweight media fields.
@@ -1935,11 +1956,13 @@ const file_media_notes_media_v1_media_proto_rawDesc = "" +
 	"\tmime_type\x18\x05 \x01(\tR\bmimeType\x12.\n" +
 	"\x13declared_size_bytes\x18\x06 \x01(\x03R\x11declaredSizeBytes\"\\\n" +
 	"\x1bCreateUploadSessionResponse\x12=\n" +
-	"\asession\x18\x01 \x01(\v2#.media_notes.media.v1.UploadSessionR\asession\"\x85\x01\n" +
+	"\asession\x18\x01 \x01(\v2#.media_notes.media.v1.UploadSessionR\asession\"\xa6\x01\n" +
 	"\x14ConfirmUploadRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12*\n" +
 	"\x11upload_session_id\x18\x02 \x01(\tR\x0fuploadSessionId\x12\x18\n" +
-	"\aoptions\x18\x03 \x03(\tR\aoptions\"J\n" +
+	"\aoptions\x18\x03 \x03(\tR\aoptions\x12\x1f\n" +
+	"\vaudio_voice\x18\x04 \x01(\tR\n" +
+	"audioVoice\"J\n" +
 	"\x15ConfirmUploadResponse\x121\n" +
 	"\x05media\x18\x01 \x01(\v2\x1b.media_notes.media.v1.MediaR\x05media\"\xbb\x03\n" +
 	"\x05Media\x12\x0e\n" +
@@ -1963,11 +1986,12 @@ const file_media_notes_media_v1_media_proto_rawDesc = "" +
 	"\x0fGetMediaRequest\x12\x19\n" +
 	"\bmedia_id\x18\x01 \x01(\tR\amediaId\"E\n" +
 	"\x10GetMediaResponse\x121\n" +
-	"\x05media\x18\x01 \x01(\v2\x1b.media_notes.media.v1.MediaR\x05media\"b\n" +
+	"\x05media\x18\x01 \x01(\v2\x1b.media_notes.media.v1.MediaR\x05media\"z\n" +
 	"\x10ListMediaRequest\x12\x19\n" +
 	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12\x16\n" +
 	"\x06cursor\x18\x02 \x01(\tR\x06cursor\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"g\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x04 \x01(\tR\x06search\"g\n" +
 	"\x11ListMediaResponse\x121\n" +
 	"\x05items\x18\x01 \x03(\v2\x1b.media_notes.media.v1.MediaR\x05items\x12\x1f\n" +
 	"\vnext_cursor\x18\x02 \x01(\tR\n" +

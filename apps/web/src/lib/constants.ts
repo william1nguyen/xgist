@@ -85,3 +85,30 @@ export const PROCESSING_OPTIONS: readonly ProcessingOption[] = [
 ];
 
 export const TERMINAL_MEDIA_STATUSES = new Set(["COMPLETED", "FAILED"]);
+
+// edge-tts neural voices (services/worker/src/providers/tts.py) — a
+// curated subset, not the full provider catalog. "en-US-AriaNeural"
+// matches WORKER_TTS_VOICE's default, so it's what an unselected voice
+// falls back to server-side.
+export const TTS_VOICES = [
+	{ id: "en-US-AriaNeural", label: "Aria", description: "US English · female" },
+	{ id: "en-US-GuyNeural", label: "Guy", description: "US English · male" },
+	{
+		id: "en-US-JennyNeural",
+		label: "Jenny",
+		description: "US English · female",
+	},
+	{ id: "en-US-DavisNeural", label: "Davis", description: "US English · male" },
+	{
+		id: "en-GB-SoniaNeural",
+		label: "Sonia",
+		description: "British English · female",
+	},
+	{
+		id: "en-GB-RyanNeural",
+		label: "Ryan",
+		description: "British English · male",
+	},
+] as const;
+
+export const DEFAULT_TTS_VOICE = "en-US-AriaNeural";

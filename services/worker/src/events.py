@@ -33,6 +33,10 @@ class StepCommand:
     step: str
     attempt: int
     idempotency_key: str
+    # Only present for a summary_audio command whose workflow selected a
+    # non-default voice (conductor's dispatchStep omits this field
+    # otherwise) — see handlers/summary_audio.py.
+    voice: str | None = None
 
 
 def parse_step_command(raw: bytes) -> StepCommand:
@@ -45,6 +49,7 @@ def parse_step_command(raw: bytes) -> StepCommand:
         step=data["step"],
         attempt=int(data["attempt"]),
         idempotency_key=data["idempotency_key"],
+        voice=data.get("voice"),
     )
 
 

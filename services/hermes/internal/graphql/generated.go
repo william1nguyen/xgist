@@ -133,7 +133,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ConfirmUpload          func(childComplexity int, uploadSessionID string, options []string, idempotencyKey *string) int
+		ConfirmUpload          func(childComplexity int, uploadSessionID string, options []string, audioVoice *string, idempotencyKey *string) int
 		CreateUploadSession    func(childComplexity int, title string, mimeType string, declaredSizeBytes int, idempotencyKey *string) int
 		Login                  func(childComplexity int, email string, password string, idempotencyKey *string) int
 		Logout                 func(childComplexity int) int
@@ -152,7 +152,7 @@ type ComplexityRoot struct {
 		ContentDetail  func(childComplexity int, mediaID string) int
 		Me             func(childComplexity int) int
 		MediaDetail    func(childComplexity int, id string) int
-		MediaList      func(childComplexity int, cursor *string, pageSize *int) int
+		MediaList      func(childComplexity int, cursor *string, pageSize *int, search *string) int
 		MediaProgress  func(childComplexity int, ids []string) int
 		Quote          func(childComplexity int, options []string) int
 	}
@@ -236,11 +236,11 @@ type MutationResolver interface {
 	Logout(ctx context.Context) (bool, error)
 	RequestAccountDeletion(ctx context.Context, idempotencyKey *string) (*model.DeletionOperation, error)
 	CreateUploadSession(ctx context.Context, title string, mimeType string, declaredSizeBytes int, idempotencyKey *string) (*model.UploadSession, error)
-	ConfirmUpload(ctx context.Context, uploadSessionID string, options []string, idempotencyKey *string) (*model.MediaDetail, error)
+	ConfirmUpload(ctx context.Context, uploadSessionID string, options []string, audioVoice *string, idempotencyKey *string) (*model.MediaDetail, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
-	MediaList(ctx context.Context, cursor *string, pageSize *int) (*model.MediaPage, error)
+	MediaList(ctx context.Context, cursor *string, pageSize *int, search *string) (*model.MediaPage, error)
 	MediaDetail(ctx context.Context, id string) (*model.MediaDetail, error)
 	ContentDetail(ctx context.Context, mediaID string) (*model.Content, error)
 	MediaProgress(ctx context.Context, ids []string) ([]model.MediaProgress, error)
@@ -659,7 +659,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Mutation.ConfirmUpload(childComplexity, args["uploadSessionId"].(string), args["options"].([]string), args["idempotencyKey"].(*string)), true
+		return e.ComplexityRoot.Mutation.ConfirmUpload(childComplexity, args["uploadSessionId"].(string), args["options"].([]string), args["audioVoice"].(*string), args["idempotencyKey"].(*string)), true
 	case "Mutation.createUploadSession":
 		if e.ComplexityRoot.Mutation.CreateUploadSession == nil {
 			break
@@ -775,7 +775,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Query.MediaList(childComplexity, args["cursor"].(*string), args["pageSize"].(*int)), true
+		return e.ComplexityRoot.Query.MediaList(childComplexity, args["cursor"].(*string), args["pageSize"].(*int), args["search"].(*string)), true
 	case "Query.mediaProgress":
 		if e.ComplexityRoot.Query.MediaProgress == nil {
 			break
@@ -1630,14 +1630,22 @@ func (ec *executionContext) field_Mutation_confirmUpload_args(ctx context.Contex
 		return nil, err
 	}
 	args["options"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "idempotencyKey",
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "audioVoice",
 		func(ctx context.Context, v any) (*string, error) {
 			return ec.unmarshalOString2ᚖstring(ctx, v)
 		})
 	if err != nil {
 		return nil, err
 	}
-	args["idempotencyKey"] = arg2
+	args["audioVoice"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "idempotencyKey",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["idempotencyKey"] = arg3
 	return args, nil
 }
 
@@ -1822,6 +1830,14 @@ func (ec *executionContext) field_Query_mediaList_args(ctx context.Context, rawA
 		return nil, err
 	}
 	args["pageSize"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "search",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["search"] = arg2
 	return args, nil
 }
 
@@ -3629,7 +3645,7 @@ func (ec *executionContext) _Mutation_confirmUpload(ctx context.Context, field g
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Mutation().ConfirmUpload(ctx, fc.Args["uploadSessionId"].(string), fc.Args["options"].([]string), fc.Args["idempotencyKey"].(*string))
+			return ec.Resolvers.Mutation().ConfirmUpload(ctx, fc.Args["uploadSessionId"].(string), fc.Args["options"].([]string), fc.Args["audioVoice"].(*string), fc.Args["idempotencyKey"].(*string))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.MediaDetail) graphql.Marshaler {
@@ -3774,7 +3790,7 @@ func (ec *executionContext) _Query_mediaList(ctx context.Context, field graphql.
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Query().MediaList(ctx, fc.Args["cursor"].(*string), fc.Args["pageSize"].(*int))
+			return ec.Resolvers.Query().MediaList(ctx, fc.Args["cursor"].(*string), fc.Args["pageSize"].(*int), fc.Args["search"].(*string))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.MediaPage) graphql.Marshaler {
