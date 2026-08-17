@@ -16,7 +16,7 @@ import (
 	"github.com/nolannguyen1212/media-notes/services/media/internal/processing"
 )
 
-const mediaColumns = `id, owner_id, title, media_type, object_key, mime_type, COALESCE(size_bytes, 0), COALESCE(duration_ms, 0), COALESCE(checksum, ''), status, created_at, updated_at, COALESCE(description, '')`
+const mediaColumns = `id, owner_id, title, media_type, object_key, mime_type, COALESCE(size_bytes, 0), COALESCE(duration_ms, 0), COALESCE(checksum, ''), status, created_at, updated_at, COALESCE(description, ''), trashed_at`
 
 // MediaRepository implements media.Repository over PostgreSQL.
 type MediaRepository struct {
@@ -49,7 +49,7 @@ func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor st
 		rows, err = r.pool.Query(ctx, `
 			SELECT `+mediaColumns+`
 			FROM media
-			WHERE owner_id = $1 AND status != 'deletion_pending'
+			WHERE owner_id = $1 AND status != 'deletion_pending' AND trashed_at IS NULL
 			  AND ($3 = '' OR title ILIKE '%' || $3 || '%')
 			ORDER BY created_at DESC, id DESC
 			LIMIT $2
@@ -62,7 +62,7 @@ func (r *MediaRepository) List(ctx context.Context, ownerID uuid.UUID, cursor st
 		rows, err = r.pool.Query(ctx, `
 			SELECT `+mediaColumns+`
 			FROM media
-			WHERE owner_id = $1 AND status != 'deletion_pending'
+			WHERE owner_id = $1 AND status != 'deletion_pending' AND trashed_at IS NULL
 			  AND (created_at, id) < ($2, $3)
 			  AND ($5 = '' OR title ILIKE '%' || $5 || '%')
 			ORDER BY created_at DESC, id DESC
@@ -100,10 +100,112 @@ func (r *MediaRepository) Update(ctx context.Context, id uuid.UUID, title, descr
 		SET title = COALESCE($2, title),
 		    description = CASE WHEN $3::boolean THEN $4 ELSE description END,
 		    updated_at = now()
-		WHERE id = $1 AND status != 'deletion_pending'
+		WHERE id = $1 AND status != 'deletion_pending' AND trashed_at IS NULL
 		RETURNING `+mediaColumns,
 		id, title, description != nil, description)
 	return scanMedia(row)
+}
+
+// Trash sets trashed_at to now() unless already set, so a repeat call
+// does not push the 30-day purge clock back out.
+func (r *MediaRepository) Trash(ctx context.Context, id uuid.UUID) (media.Media, error) {
+	row := r.pool.QueryRow(ctx, `
+		UPDATE media SET trashed_at = COALESCE(trashed_at, now()), updated_at = now()
+		WHERE id = $1 AND status != 'deletion_pending'
+		RETURNING `+mediaColumns, id)
+	return scanMedia(row)
+}
+
+// Restore clears trashed_at.
+func (r *MediaRepository) Restore(ctx context.Context, id uuid.UUID) (media.Media, error) {
+	row := r.pool.QueryRow(ctx, `
+		UPDATE media SET trashed_at = NULL, updated_at = now()
+		WHERE id = $1 AND status != 'deletion_pending'
+		RETURNING `+mediaColumns, id)
+	return scanMedia(row)
+}
+
+func (r *MediaRepository) ListTrashed(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (media.Page, error) {
+	var (
+		rows pgx.Rows
+		err  error
+	)
+	if cursor == "" {
+		rows, err = r.pool.Query(ctx, `
+			SELECT `+mediaColumns+`
+			FROM media
+			WHERE owner_id = $1 AND status != 'deletion_pending' AND trashed_at IS NOT NULL
+			ORDER BY trashed_at DESC, id DESC
+			LIMIT $2
+		`, ownerID, pageSize+1)
+	} else {
+		c, decodeErr := decodeCursor(cursor)
+		if decodeErr != nil {
+			return media.Page{}, decodeErr
+		}
+		rows, err = r.pool.Query(ctx, `
+			SELECT `+mediaColumns+`
+			FROM media
+			WHERE owner_id = $1 AND status != 'deletion_pending' AND trashed_at IS NOT NULL
+			  AND (trashed_at, id) < ($2, $3)
+			ORDER BY trashed_at DESC, id DESC
+			LIMIT $4
+		`, ownerID, c.CreatedAt, c.ID, pageSize+1)
+	}
+	if err != nil {
+		return media.Page{}, err
+	}
+	defer rows.Close()
+
+	var items []media.Media
+	for rows.Next() {
+		m, err := scanMedia(rows)
+		if err != nil {
+			return media.Page{}, err
+		}
+		items = append(items, m)
+	}
+	if err := rows.Err(); err != nil {
+		return media.Page{}, err
+	}
+
+	page := media.Page{Items: items}
+	if len(items) > pageSize {
+		page.Items = items[:pageSize]
+		last := items[pageSize-1]
+		// Reuses cursorPayload/encodeCursor's (timestamp, id) shape with
+		// TrashedAt standing in for CreatedAt — ListTrashed orders by
+		// trashed_at, not created_at, so the cursor must match.
+		b, _ := json.Marshal(cursorPayload{CreatedAt: *last.TrashedAt, ID: last.ID})
+		page.NextCursor = base64.URLEncoding.EncodeToString(b)
+	}
+	return page, nil
+}
+
+// ListTrashedOlderThan returns trashed items (any owner) whose trashed_at
+// predates olderThan, for the purge sweep.
+func (r *MediaRepository) ListTrashedOlderThan(ctx context.Context, olderThan time.Duration, limit int) ([]media.Media, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT `+mediaColumns+`
+		FROM media
+		WHERE trashed_at IS NOT NULL AND trashed_at < $1
+		ORDER BY trashed_at ASC
+		LIMIT $2
+	`, time.Now().Add(-olderThan), limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []media.Media
+	for rows.Next() {
+		m, err := scanMedia(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, m)
+	}
+	return items, rows.Err()
 }
 
 // RequestProcessing atomically re-checks the media item's status under
@@ -247,7 +349,7 @@ func scanMedia(row rowScanner) (media.Media, error) {
 	var m media.Media
 	var mediaType, status string
 	err := row.Scan(&m.ID, &m.OwnerID, &m.Title, &mediaType, &m.ObjectKey, &m.MimeType,
-		&m.SizeBytes, &m.DurationMs, &m.Checksum, &status, &m.CreatedAt, &m.UpdatedAt, &m.Description)
+		&m.SizeBytes, &m.DurationMs, &m.Checksum, &status, &m.CreatedAt, &m.UpdatedAt, &m.Description, &m.TrashedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return media.Media{}, media.ErrNotFound

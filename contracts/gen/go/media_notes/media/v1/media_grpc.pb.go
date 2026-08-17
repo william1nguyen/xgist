@@ -39,6 +39,9 @@ const (
 	MediaService_GetDeletionStatus_FullMethodName   = "/media_notes.media.v1.MediaService/GetDeletionStatus"
 	MediaService_UpdateMedia_FullMethodName         = "/media_notes.media.v1.MediaService/UpdateMedia"
 	MediaService_RequestProcessing_FullMethodName   = "/media_notes.media.v1.MediaService/RequestProcessing"
+	MediaService_TrashMedia_FullMethodName          = "/media_notes.media.v1.MediaService/TrashMedia"
+	MediaService_RestoreMedia_FullMethodName        = "/media_notes.media.v1.MediaService/RestoreMedia"
+	MediaService_ListTrashedMedia_FullMethodName    = "/media_notes.media.v1.MediaService/ListTrashedMedia"
 )
 
 // MediaServiceClient is the client API for MediaService service.
@@ -95,6 +98,19 @@ type MediaServiceClient interface {
 	// failed: at most one processing request may be active per media item at
 	// a time. Idempotent per caller idempotency key.
 	RequestProcessing(ctx context.Context, in *RequestProcessingRequest, opts ...grpc.CallOption) (*RequestProcessingResponse, error)
+	// TrashMedia moves a media item to the trash: a reversible, user-visible
+	// soft delete distinct from RequestDeletion's irreversible hard-delete
+	// flow. A trashed item is excluded from GetMedia/ListMedia until
+	// restored or purged (30 days after trashing, via RequestDeletion).
+	// Idempotent: trashing an already-trashed item leaves its original
+	// trashed_at unchanged.
+	TrashMedia(ctx context.Context, in *TrashMediaRequest, opts ...grpc.CallOption) (*TrashMediaResponse, error)
+	// RestoreMedia clears a trashed item's trashed_at. A no-op if the item
+	// isn't trashed.
+	RestoreMedia(ctx context.Context, in *RestoreMediaRequest, opts ...grpc.CallOption) (*RestoreMediaResponse, error)
+	// ListTrashedMedia returns a cursor-paginated page of one owner's
+	// trashed media, newest-trashed first.
+	ListTrashedMedia(ctx context.Context, in *ListTrashedMediaRequest, opts ...grpc.CallOption) (*ListTrashedMediaResponse, error)
 }
 
 type mediaServiceClient struct {
@@ -215,6 +231,36 @@ func (c *mediaServiceClient) RequestProcessing(ctx context.Context, in *RequestP
 	return out, nil
 }
 
+func (c *mediaServiceClient) TrashMedia(ctx context.Context, in *TrashMediaRequest, opts ...grpc.CallOption) (*TrashMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TrashMediaResponse)
+	err := c.cc.Invoke(ctx, MediaService_TrashMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediaServiceClient) RestoreMedia(ctx context.Context, in *RestoreMediaRequest, opts ...grpc.CallOption) (*RestoreMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestoreMediaResponse)
+	err := c.cc.Invoke(ctx, MediaService_RestoreMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediaServiceClient) ListTrashedMedia(ctx context.Context, in *ListTrashedMediaRequest, opts ...grpc.CallOption) (*ListTrashedMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTrashedMediaResponse)
+	err := c.cc.Invoke(ctx, MediaService_ListTrashedMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MediaServiceServer is the server API for MediaService service.
 // All implementations must embed UnimplementedMediaServiceServer
 // for forward compatibility.
@@ -269,6 +315,19 @@ type MediaServiceServer interface {
 	// failed: at most one processing request may be active per media item at
 	// a time. Idempotent per caller idempotency key.
 	RequestProcessing(context.Context, *RequestProcessingRequest) (*RequestProcessingResponse, error)
+	// TrashMedia moves a media item to the trash: a reversible, user-visible
+	// soft delete distinct from RequestDeletion's irreversible hard-delete
+	// flow. A trashed item is excluded from GetMedia/ListMedia until
+	// restored or purged (30 days after trashing, via RequestDeletion).
+	// Idempotent: trashing an already-trashed item leaves its original
+	// trashed_at unchanged.
+	TrashMedia(context.Context, *TrashMediaRequest) (*TrashMediaResponse, error)
+	// RestoreMedia clears a trashed item's trashed_at. A no-op if the item
+	// isn't trashed.
+	RestoreMedia(context.Context, *RestoreMediaRequest) (*RestoreMediaResponse, error)
+	// ListTrashedMedia returns a cursor-paginated page of one owner's
+	// trashed media, newest-trashed first.
+	ListTrashedMedia(context.Context, *ListTrashedMediaRequest) (*ListTrashedMediaResponse, error)
 	mustEmbedUnimplementedMediaServiceServer()
 }
 
@@ -311,6 +370,15 @@ func (UnimplementedMediaServiceServer) UpdateMedia(context.Context, *UpdateMedia
 }
 func (UnimplementedMediaServiceServer) RequestProcessing(context.Context, *RequestProcessingRequest) (*RequestProcessingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RequestProcessing not implemented")
+}
+func (UnimplementedMediaServiceServer) TrashMedia(context.Context, *TrashMediaRequest) (*TrashMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TrashMedia not implemented")
+}
+func (UnimplementedMediaServiceServer) RestoreMedia(context.Context, *RestoreMediaRequest) (*RestoreMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RestoreMedia not implemented")
+}
+func (UnimplementedMediaServiceServer) ListTrashedMedia(context.Context, *ListTrashedMediaRequest) (*ListTrashedMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTrashedMedia not implemented")
 }
 func (UnimplementedMediaServiceServer) mustEmbedUnimplementedMediaServiceServer() {}
 func (UnimplementedMediaServiceServer) testEmbeddedByValue()                      {}
@@ -531,6 +599,60 @@ func _MediaService_RequestProcessing_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediaService_TrashMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TrashMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).TrashMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_TrashMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).TrashMedia(ctx, req.(*TrashMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediaService_RestoreMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).RestoreMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_RestoreMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).RestoreMedia(ctx, req.(*RestoreMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MediaService_ListTrashedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTrashedMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).ListTrashedMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_ListTrashedMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).ListTrashedMedia(ctx, req.(*ListTrashedMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MediaService_ServiceDesc is the grpc.ServiceDesc for MediaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -581,6 +703,18 @@ var MediaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RequestProcessing",
 			Handler:    _MediaService_RequestProcessing_Handler,
+		},
+		{
+			MethodName: "TrashMedia",
+			Handler:    _MediaService_TrashMedia_Handler,
+		},
+		{
+			MethodName: "RestoreMedia",
+			Handler:    _MediaService_RestoreMedia_Handler,
+		},
+		{
+			MethodName: "ListTrashedMedia",
+			Handler:    _MediaService_ListTrashedMedia_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

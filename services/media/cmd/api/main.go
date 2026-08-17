@@ -39,6 +39,10 @@ const (
 	reconcileInterval     = 5 * time.Minute
 	reconcileOverdueAfter = 15 * time.Minute
 	reconcileBatchSize    = 100
+
+	trashPurgeInterval  = 1 * time.Hour
+	trashRetentionDays  = 30 * 24 * time.Hour
+	trashPurgeBatchSize = 100
 )
 
 func main() {
@@ -157,6 +161,12 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 	reconciler := events.NewReconciler(deletionSvc, logger, reconcileOverdueAfter, reconcileBatchSize)
 	group.Go(func() error {
 		reconciler.Run(gctx, reconcileInterval)
+		return nil
+	})
+
+	trashPurge := events.NewTrashPurgeSweep(mediaSvc, deletionSvc, logger, trashRetentionDays, trashPurgeBatchSize)
+	group.Go(func() error {
+		trashPurge.Run(gctx, trashPurgeInterval)
 		return nil
 	})
 

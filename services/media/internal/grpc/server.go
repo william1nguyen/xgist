@@ -31,6 +31,9 @@ type MediaService interface {
 	GetProgress(ctx context.Context, ownerID uuid.UUID, ids []uuid.UUID) ([]media.Progress, error)
 	UpdateMedia(ctx context.Context, id uuid.UUID, title, description *string) (media.Media, error)
 	RequestProcessing(ctx context.Context, cmd media.RequestProcessingCommand) (media.Media, error)
+	TrashMedia(ctx context.Context, id uuid.UUID) (media.Media, error)
+	RestoreMedia(ctx context.Context, id uuid.UUID) (media.Media, error)
+	ListTrashed(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (media.Page, error)
 }
 
 // UploadService is the upload application-service boundary the server
@@ -279,6 +282,50 @@ func (s *Server) GetDeletionStatus(ctx context.Context, req *mediav1.GetDeletion
 	return &mediav1.GetDeletionStatusResponse{Operation: toProtoDeletionOperation(op)}, nil
 }
 
+func (s *Server) TrashMedia(ctx context.Context, req *mediav1.TrashMediaRequest) (*mediav1.TrashMediaResponse, error) {
+	id, err := uuid.Parse(req.GetMediaId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "media_id must be a UUID")
+	}
+
+	m, err := s.media.TrashMedia(ctx, id)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &mediav1.TrashMediaResponse{Media: s.toProtoMediaWithThumbnail(ctx, m)}, nil
+}
+
+func (s *Server) RestoreMedia(ctx context.Context, req *mediav1.RestoreMediaRequest) (*mediav1.RestoreMediaResponse, error) {
+	id, err := uuid.Parse(req.GetMediaId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "media_id must be a UUID")
+	}
+
+	m, err := s.media.RestoreMedia(ctx, id)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &mediav1.RestoreMediaResponse{Media: s.toProtoMediaWithThumbnail(ctx, m)}, nil
+}
+
+func (s *Server) ListTrashedMedia(ctx context.Context, req *mediav1.ListTrashedMediaRequest) (*mediav1.ListTrashedMediaResponse, error) {
+	ownerID, err := uuid.Parse(req.GetOwnerId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "owner_id must be a UUID")
+	}
+
+	page, err := s.media.ListTrashed(ctx, ownerID, req.GetCursor(), int(req.GetPageSize()))
+	if err != nil {
+		return nil, mapError(err)
+	}
+
+	items := make([]*mediav1.Media, 0, len(page.Items))
+	for _, m := range page.Items {
+		items = append(items, s.toProtoMediaWithThumbnail(ctx, m))
+	}
+	return &mediav1.ListTrashedMediaResponse{Items: items, NextCursor: page.NextCursor}, nil
+}
+
 // toProtoMediaWithThumbnail attaches a signed thumbnail URL when a ready
 // thumbnail derivative exists. A signing failure is not fatal to the
 // surrounding GetMedia/ListMedia/ConfirmUpload call: the item is still
@@ -321,7 +368,7 @@ func mapError(err error) error {
 }
 
 func toProtoMedia(m media.Media) *mediav1.Media {
-	return &mediav1.Media{
+	out := &mediav1.Media{
 		Id:          m.ID.String(),
 		OwnerId:     m.OwnerID.String(),
 		Title:       m.Title,
@@ -334,6 +381,10 @@ func toProtoMedia(m media.Media) *mediav1.Media {
 		UpdatedAt:   timestamppb.New(m.UpdatedAt),
 		Description: m.Description,
 	}
+	if m.TrashedAt != nil {
+		out.TrashedAt = timestamppb.New(*m.TrashedAt)
+	}
+	return out
 }
 
 func toProtoMediaType(t media.Type) mediav1.MediaType {

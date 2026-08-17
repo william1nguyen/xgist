@@ -63,6 +63,56 @@ func (f *fakeRepo) Update(ctx context.Context, id uuid.UUID, title, description 
 	return m, nil
 }
 
+func (f *fakeRepo) Trash(ctx context.Context, id uuid.UUID) (media.Media, error) {
+	m, ok := f.byID[id]
+	if !ok {
+		return media.Media{}, media.ErrNotFound
+	}
+	if m.TrashedAt == nil {
+		now := time.Now()
+		m.TrashedAt = &now
+	}
+	f.byID[id] = m
+	return m, nil
+}
+
+func (f *fakeRepo) Restore(ctx context.Context, id uuid.UUID) (media.Media, error) {
+	m, ok := f.byID[id]
+	if !ok {
+		return media.Media{}, media.ErrNotFound
+	}
+	m.TrashedAt = nil
+	f.byID[id] = m
+	return m, nil
+}
+
+func (f *fakeRepo) ListTrashed(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (media.Page, error) {
+	var items []media.Media
+	for _, m := range f.byID {
+		if m.OwnerID == ownerID && m.TrashedAt != nil {
+			items = append(items, m)
+		}
+	}
+	if len(items) > pageSize {
+		items = items[:pageSize]
+	}
+	return media.Page{Items: items}, nil
+}
+
+func (f *fakeRepo) ListTrashedOlderThan(ctx context.Context, olderThan time.Duration, limit int) ([]media.Media, error) {
+	var items []media.Media
+	cutoff := time.Now().Add(-olderThan)
+	for _, m := range f.byID {
+		if m.TrashedAt != nil && m.TrashedAt.Before(cutoff) {
+			items = append(items, m)
+		}
+	}
+	if len(items) > limit {
+		items = items[:limit]
+	}
+	return items, nil
+}
+
 func (f *fakeRepo) RequestProcessing(ctx context.Context, id uuid.UUID, idempotencyKey string, options []string, audioVoice string, promptOverrides map[string]string) (media.Media, error) {
 	m, ok := f.byID[id]
 	if !ok {

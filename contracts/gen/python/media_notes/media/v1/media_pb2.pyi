@@ -161,7 +161,7 @@ class ConfirmUploadResponse(_message.Message):
     def __init__(self, media: _Optional[_Union[Media, _Mapping]] = ...) -> None: ...
 
 class Media(_message.Message):
-    __slots__ = ("id", "owner_id", "title", "media_type", "mime_type", "size_bytes", "duration_ms", "status", "thumbnail_url", "created_at", "updated_at", "description")
+    __slots__ = ("id", "owner_id", "title", "media_type", "mime_type", "size_bytes", "duration_ms", "status", "thumbnail_url", "created_at", "updated_at", "description", "trashed_at")
     ID_FIELD_NUMBER: _ClassVar[int]
     OWNER_ID_FIELD_NUMBER: _ClassVar[int]
     TITLE_FIELD_NUMBER: _ClassVar[int]
@@ -174,6 +174,7 @@ class Media(_message.Message):
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    TRASHED_AT_FIELD_NUMBER: _ClassVar[int]
     id: str
     owner_id: str
     title: str
@@ -186,7 +187,8 @@ class Media(_message.Message):
     created_at: _timestamp_pb2.Timestamp
     updated_at: _timestamp_pb2.Timestamp
     description: str
-    def __init__(self, id: _Optional[str] = ..., owner_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[_Union[MediaType, str]] = ..., mime_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., duration_ms: _Optional[int] = ..., status: _Optional[_Union[MediaStatus, str]] = ..., thumbnail_url: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., description: _Optional[str] = ...) -> None: ...
+    trashed_at: _timestamp_pb2.Timestamp
+    def __init__(self, id: _Optional[str] = ..., owner_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[_Union[MediaType, str]] = ..., mime_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., duration_ms: _Optional[int] = ..., status: _Optional[_Union[MediaStatus, str]] = ..., thumbnail_url: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., description: _Optional[str] = ..., trashed_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class GetMediaRequest(_message.Message):
     __slots__ = ("media_id",)
@@ -213,6 +215,48 @@ class ListMediaRequest(_message.Message):
     def __init__(self, owner_id: _Optional[str] = ..., cursor: _Optional[str] = ..., page_size: _Optional[int] = ..., search: _Optional[str] = ...) -> None: ...
 
 class ListMediaResponse(_message.Message):
+    __slots__ = ("items", "next_cursor")
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    NEXT_CURSOR_FIELD_NUMBER: _ClassVar[int]
+    items: _containers.RepeatedCompositeFieldContainer[Media]
+    next_cursor: str
+    def __init__(self, items: _Optional[_Iterable[_Union[Media, _Mapping]]] = ..., next_cursor: _Optional[str] = ...) -> None: ...
+
+class TrashMediaRequest(_message.Message):
+    __slots__ = ("media_id",)
+    MEDIA_ID_FIELD_NUMBER: _ClassVar[int]
+    media_id: str
+    def __init__(self, media_id: _Optional[str] = ...) -> None: ...
+
+class TrashMediaResponse(_message.Message):
+    __slots__ = ("media",)
+    MEDIA_FIELD_NUMBER: _ClassVar[int]
+    media: Media
+    def __init__(self, media: _Optional[_Union[Media, _Mapping]] = ...) -> None: ...
+
+class RestoreMediaRequest(_message.Message):
+    __slots__ = ("media_id",)
+    MEDIA_ID_FIELD_NUMBER: _ClassVar[int]
+    media_id: str
+    def __init__(self, media_id: _Optional[str] = ...) -> None: ...
+
+class RestoreMediaResponse(_message.Message):
+    __slots__ = ("media",)
+    MEDIA_FIELD_NUMBER: _ClassVar[int]
+    media: Media
+    def __init__(self, media: _Optional[_Union[Media, _Mapping]] = ...) -> None: ...
+
+class ListTrashedMediaRequest(_message.Message):
+    __slots__ = ("owner_id", "cursor", "page_size")
+    OWNER_ID_FIELD_NUMBER: _ClassVar[int]
+    CURSOR_FIELD_NUMBER: _ClassVar[int]
+    PAGE_SIZE_FIELD_NUMBER: _ClassVar[int]
+    owner_id: str
+    cursor: str
+    page_size: int
+    def __init__(self, owner_id: _Optional[str] = ..., cursor: _Optional[str] = ..., page_size: _Optional[int] = ...) -> None: ...
+
+class ListTrashedMediaResponse(_message.Message):
     __slots__ = ("items", "next_cursor")
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     NEXT_CURSOR_FIELD_NUMBER: _ClassVar[int]

@@ -55,6 +55,11 @@ type Media struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Description string
+	// TrashedAt is set when the owner moved this item to the trash (a
+	// reversible, user-visible soft delete distinct from Status ==
+	// StatusDeletionPending, which is the irreversible hard-delete
+	// coordinator flow in internal/deletion). nil means not trashed.
+	TrashedAt *time.Time
 }
 
 // Page is one cursor-paginated page of media, ordered by creation time,
@@ -131,6 +136,19 @@ type Repository interface {
 	// idempotencyKey returns the existing request's media without
 	// recreating anything.
 	RequestProcessing(ctx context.Context, id uuid.UUID, idempotencyKey string, options []string, audioVoice string, promptOverrides map[string]string) (Media, error)
+
+	// Trash sets trashed_at (if not already set — a repeat call does not
+	// push the 30-day purge clock back out).
+	Trash(ctx context.Context, id uuid.UUID) (Media, error)
+	// Restore clears trashed_at. A no-op if the item isn't trashed.
+	Restore(ctx context.Context, id uuid.UUID) (Media, error)
+	// ListTrashed returns a cursor-paginated page of ownerID's trashed
+	// media, newest-trashed first.
+	ListTrashed(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (Page, error)
+	// ListTrashedOlderThan returns every trashed item (any owner) whose
+	// trashed_at is older than olderThan, up to limit — the purge
+	// sweep's source of what to hard-delete next.
+	ListTrashedOlderThan(ctx context.Context, olderThan time.Duration, limit int) ([]Media, error)
 }
 
 // ObjectSigner signs a short-lived URL for reading an object.
@@ -153,7 +171,13 @@ func NewService(repo Repository, signer ObjectSigner, playbackURLTTL time.Durati
 	return &Service{repo: repo, signer: signer, playbackURLTTL: playbackURLTTL}
 }
 
-// GetMedia returns one media item.
+// GetMedia returns one media item by id, trashed or not — hermes uses
+// this for ownership checks ahead of TrashMedia/RestoreMedia/
+// RequestDeletion too, which must work on an already-trashed item. Only
+// deletion_pending (the irreversible hard-delete flow) is excluded here;
+// ListMedia and SignPlaybackURL/RequestProcessing exclude trashed items
+// on top of that, since those are "normal use" operations a trashed item
+// has been deliberately taken out of until restored.
 func (s *Service) GetMedia(ctx context.Context, id uuid.UUID) (Media, error) {
 	m, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -184,7 +208,7 @@ func (s *Service) SignPlaybackURL(ctx context.Context, id uuid.UUID) (string, ti
 	if err != nil {
 		return "", time.Time{}, err
 	}
-	if m.Status == StatusDeletionPending {
+	if m.Status == StatusDeletionPending || m.TrashedAt != nil {
 		return "", time.Time{}, ErrNotFound
 	}
 	url, err := s.signer.PresignGetObject(ctx, m.ObjectKey, s.playbackURLTTL)
@@ -237,7 +261,7 @@ func (s *Service) RequestProcessing(ctx context.Context, cmd RequestProcessingCo
 	if err != nil {
 		return Media{}, err
 	}
-	if m.Status == StatusDeletionPending {
+	if m.Status == StatusDeletionPending || m.TrashedAt != nil {
 		return Media{}, ErrNotFound
 	}
 	if !m.Status.IsTerminal() {
@@ -249,4 +273,49 @@ func (s *Service) RequestProcessing(ctx context.Context, cmd RequestProcessingCo
 		idempotencyKey = uuid.NewString()
 	}
 	return s.repo.RequestProcessing(ctx, cmd.MediaID, idempotencyKey, cmd.Options, cmd.AudioVoice, cmd.PromptOverrides)
+}
+
+// TrashMedia moves a media item to the trash: excluded from ListMedia and
+// GetMedia (so it disappears from the normal dashboard/detail views) but
+// otherwise untouched, so RestoreMedia can bring it back at any point
+// before the purge sweep hard-deletes it (TrashRetention after
+// TrashedAt — see cmd/api/main.go's purge loop).
+func (s *Service) TrashMedia(ctx context.Context, id uuid.UUID) (Media, error) {
+	m, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return Media{}, err
+	}
+	if m.Status == StatusDeletionPending {
+		return Media{}, ErrNotFound
+	}
+	return s.repo.Trash(ctx, id)
+}
+
+// RestoreMedia clears a trashed item's TrashedAt, per RestoreMedia's
+// contract that this is a no-op if the item isn't trashed.
+func (s *Service) RestoreMedia(ctx context.Context, id uuid.UUID) (Media, error) {
+	m, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return Media{}, err
+	}
+	if m.Status == StatusDeletionPending {
+		return Media{}, ErrNotFound
+	}
+	return s.repo.Restore(ctx, id)
+}
+
+// ListTrashed returns a cursor-paginated page of ownerID's trashed media.
+func (s *Service) ListTrashed(ctx context.Context, ownerID uuid.UUID, cursor string, pageSize int) (Page, error) {
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	return s.repo.ListTrashed(ctx, ownerID, cursor, pageSize)
+}
+
+// ListTrashedOlderThan returns trashed items due for the purge sweep.
+func (s *Service) ListTrashedOlderThan(ctx context.Context, olderThan time.Duration, limit int) ([]Media, error) {
+	return s.repo.ListTrashedOlderThan(ctx, olderThan, limit)
 }

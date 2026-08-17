@@ -92,6 +92,21 @@ class MediaServiceStub:
                 request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingRequest.SerializeToString,
                 response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingResponse.FromString,
                 _registered_method=True)
+        self.TrashMedia = channel.unary_unary(
+                '/media_notes.media.v1.MediaService/TrashMedia',
+                request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.TrashMediaRequest.SerializeToString,
+                response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.TrashMediaResponse.FromString,
+                _registered_method=True)
+        self.RestoreMedia = channel.unary_unary(
+                '/media_notes.media.v1.MediaService/RestoreMedia',
+                request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RestoreMediaRequest.SerializeToString,
+                response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RestoreMediaResponse.FromString,
+                _registered_method=True)
+        self.ListTrashedMedia = channel.unary_unary(
+                '/media_notes.media.v1.MediaService/ListTrashedMedia',
+                request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.ListTrashedMediaRequest.SerializeToString,
+                response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.ListTrashedMediaResponse.FromString,
+                _registered_method=True)
 
 
 class MediaServiceServicer:
@@ -201,6 +216,34 @@ class MediaServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def TrashMedia(self, request, context):
+        """TrashMedia moves a media item to the trash: a reversible, user-visible
+        soft delete distinct from RequestDeletion's irreversible hard-delete
+        flow. A trashed item is excluded from GetMedia/ListMedia until
+        restored or purged (30 days after trashing, via RequestDeletion).
+        Idempotent: trashing an already-trashed item leaves its original
+        trashed_at unchanged.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RestoreMedia(self, request, context):
+        """RestoreMedia clears a trashed item's trashed_at. A no-op if the item
+        isn't trashed.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListTrashedMedia(self, request, context):
+        """ListTrashedMedia returns a cursor-paginated page of one owner's
+        trashed media, newest-trashed first.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_MediaServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -258,6 +301,21 @@ def add_MediaServiceServicer_to_server(servicer, server):
                     servicer.RequestProcessing,
                     request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingRequest.FromString,
                     response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingResponse.SerializeToString,
+            ),
+            'TrashMedia': grpc.unary_unary_rpc_method_handler(
+                    servicer.TrashMedia,
+                    request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.TrashMediaRequest.FromString,
+                    response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.TrashMediaResponse.SerializeToString,
+            ),
+            'RestoreMedia': grpc.unary_unary_rpc_method_handler(
+                    servicer.RestoreMedia,
+                    request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RestoreMediaRequest.FromString,
+                    response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RestoreMediaResponse.SerializeToString,
+            ),
+            'ListTrashedMedia': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListTrashedMedia,
+                    request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.ListTrashedMediaRequest.FromString,
+                    response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.ListTrashedMediaResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -560,6 +618,87 @@ class MediaService:
             '/media_notes.media.v1.MediaService/RequestProcessing',
             media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingRequest.SerializeToString,
             media__notes_dot_media_dot_v1_dot_media__pb2.RequestProcessingResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def TrashMedia(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.media.v1.MediaService/TrashMedia',
+            media__notes_dot_media_dot_v1_dot_media__pb2.TrashMediaRequest.SerializeToString,
+            media__notes_dot_media_dot_v1_dot_media__pb2.TrashMediaResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RestoreMedia(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.media.v1.MediaService/RestoreMedia',
+            media__notes_dot_media_dot_v1_dot_media__pb2.RestoreMediaRequest.SerializeToString,
+            media__notes_dot_media_dot_v1_dot_media__pb2.RestoreMediaResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListTrashedMedia(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.media.v1.MediaService/ListTrashedMedia',
+            media__notes_dot_media_dot_v1_dot_media__pb2.ListTrashedMediaRequest.SerializeToString,
+            media__notes_dot_media_dot_v1_dot_media__pb2.ListTrashedMediaResponse.FromString,
             options,
             channel_credentials,
             insecure,

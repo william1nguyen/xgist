@@ -62,6 +62,19 @@ service MediaService {
   // failed: at most one processing request may be active per media item at
   // a time. Idempotent per caller idempotency key.
   rpc RequestProcessing(RequestProcessingRequest) returns (RequestProcessingResponse);
+  // TrashMedia moves a media item to the trash: a reversible, user-visible
+  // soft delete distinct from RequestDeletion's irreversible hard-delete
+  // flow. A trashed item is excluded from GetMedia/ListMedia until
+  // restored or purged (30 days after trashing, via RequestDeletion).
+  // Idempotent: trashing an already-trashed item leaves its original
+  // trashed_at unchanged.
+  rpc TrashMedia(TrashMediaRequest) returns (TrashMediaResponse);
+  // RestoreMedia clears a trashed item's trashed_at. A no-op if the item
+  // isn't trashed.
+  rpc RestoreMedia(RestoreMediaRequest) returns (RestoreMediaResponse);
+  // ListTrashedMedia returns a cursor-paginated page of one owner's
+  // trashed media, newest-trashed first.
+  rpc ListTrashedMedia(ListTrashedMediaRequest) returns (ListTrashedMediaResponse);
 }
 
 // MediaType is the coarse kind of source media.
@@ -197,6 +210,10 @@ message Media {
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
   string description = 12;
+  // trashed_at is set when the owner moved this item to the trash. Unset
+  // means not trashed. GetMedia/ListMedia never return a trashed item, so
+  // this is only ever set on results from ListTrashedMedia.
+  google.protobuf.Timestamp trashed_at = 13;
 }
 
 // GetMediaRequest identifies the media item to read.
@@ -223,6 +240,40 @@ message ListMediaRequest {
 // ListMediaResponse returns one page of lightweight media fields.
 // next_cursor is empty on the last page.
 message ListMediaResponse {
+  repeated Media items = 1;
+  string next_cursor = 2;
+}
+
+// TrashMediaRequest identifies the media item to trash.
+message TrashMediaRequest {
+  string media_id = 1;
+}
+
+// TrashMediaResponse returns the trashed media item.
+message TrashMediaResponse {
+  Media media = 1;
+}
+
+// RestoreMediaRequest identifies the media item to restore.
+message RestoreMediaRequest {
+  string media_id = 1;
+}
+
+// RestoreMediaResponse returns the restored media item.
+message RestoreMediaResponse {
+  Media media = 1;
+}
+
+// ListTrashedMediaRequest carries the owner to list and cursor pagination.
+message ListTrashedMediaRequest {
+  string owner_id = 1;
+  string cursor = 2;
+  int32 page_size = 3;
+}
+
+// ListTrashedMediaResponse returns one page of trashed media, newest-
+// trashed first. next_cursor is empty on the last page.
+message ListTrashedMediaResponse {
   repeated Media items = 1;
   string next_cursor = 2;
 }
