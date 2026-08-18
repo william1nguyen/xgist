@@ -47,6 +47,10 @@ type BillingSummary struct {
 	Subscription     *BillingSubscription `json:"subscription,omitempty"`
 }
 
+type CheckoutSession struct {
+	CheckoutURL string `json:"checkoutUrl"`
+}
+
 type Content struct {
 	MediaID       string         `json:"mediaId"`
 	Transcript    *Transcript    `json:"transcript,omitempty"`
@@ -69,6 +73,15 @@ type CreditLedgerEntry struct {
 type CreditLedgerPage struct {
 	Items      []CreditLedgerEntry `json:"items"`
 	NextCursor *string             `json:"nextCursor,omitempty"`
+}
+
+type CreditPack struct {
+	ID            string  `json:"id"`
+	Name          string  `json:"name"`
+	Description   *string `json:"description,omitempty"`
+	Credits       int     `json:"credits"`
+	PriceAmount   int     `json:"priceAmount"`
+	PriceCurrency *string `json:"priceCurrency,omitempty"`
 }
 
 type DeletionOperation struct {
@@ -145,6 +158,16 @@ type Note struct {
 	Format    string `json:"format"`
 	Body      string `json:"body"`
 	CreatedAt string `json:"createdAt"`
+}
+
+type Plan struct {
+	ID                string   `json:"id"`
+	Name              string   `json:"name"`
+	Description       *string  `json:"description,omitempty"`
+	PriceAmount       int      `json:"priceAmount"`
+	PriceCurrency     *string  `json:"priceCurrency,omitempty"`
+	RecurringInterval string   `json:"recurringInterval"`
+	Benefits          []string `json:"benefits"`
 }
 
 type PriceCatalog struct {

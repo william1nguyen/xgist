@@ -319,6 +319,39 @@ func toModelBillingSummary(s clients.BillingSummary) *model.BillingSummary {
 	return out
 }
 
+func toModelPlan(p clients.Plan) model.Plan {
+	out := model.Plan{
+		ID:                p.ID,
+		Name:              p.Name,
+		PriceAmount:       int(p.PriceAmount),
+		RecurringInterval: p.RecurringInterval,
+		Benefits:          p.Benefits,
+	}
+	if p.Description != "" {
+		out.Description = &p.Description
+	}
+	if p.PriceCurrency != "" {
+		out.PriceCurrency = &p.PriceCurrency
+	}
+	return out
+}
+
+func toModelCreditPack(p clients.CreditPack) model.CreditPack {
+	out := model.CreditPack{
+		ID:          p.ID,
+		Name:        p.Name,
+		Credits:     int(p.Credits),
+		PriceAmount: int(p.PriceAmount),
+	}
+	if p.Description != "" {
+		out.Description = &p.Description
+	}
+	if p.PriceCurrency != "" {
+		out.PriceCurrency = &p.PriceCurrency
+	}
+	return out
+}
+
 func toModelPromptSetting(s clients.PromptSetting) *model.PromptSetting {
 	return &model.PromptSetting{
 		Section:    s.Section,

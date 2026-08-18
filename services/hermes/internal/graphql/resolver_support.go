@@ -47,6 +47,10 @@ type BillingClient interface {
 	GetPriceCatalog(ctx context.Context) (clients.Catalog, error)
 	GetBillingSummary(ctx context.Context, userID uuid.UUID) (clients.BillingSummary, error)
 	ListCreditLedger(ctx context.Context, userID uuid.UUID, cursor string, pageSize int32) (clients.LedgerPage, error)
+	ListPlans(ctx context.Context) ([]clients.Plan, error)
+	ListCreditPacks(ctx context.Context) ([]clients.CreditPack, error)
+	CreateCheckoutSession(ctx context.Context, userID uuid.UUID, userEmail, planID string) (string, error)
+	CancelSubscription(ctx context.Context, userID uuid.UUID) (clients.Subscription, error)
 }
 
 // MediaClient is the media boundary resolvers depend on.

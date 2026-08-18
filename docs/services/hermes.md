@@ -27,7 +27,8 @@ register, login, logout, me, requestAccountDeletion
 createUploadSession, confirmUpload, updateMedia, requestProcessing
 mediaList, mediaDetail
 contentDetail, processingStatus
-quote, priceCatalog, billingSummary, subscriptionCheckout
+quote, priceCatalog, billingSummary, plans, creditLedgerHistory
+createCheckoutSession, cancelSubscription
 draftAudioScript, generateStandaloneAudio, audioJob, audioJobs
 ```
 

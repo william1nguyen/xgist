@@ -236,6 +236,29 @@ type LedgerPage struct {
 	NextCursor string
 }
 
+// Plan is one subscribable plan, read live from Polar's product catalog —
+// never a locally configured list, per billing.proto's ListPlans comment.
+type Plan struct {
+	ID                string
+	Name              string
+	Description       string
+	PriceAmount       int64
+	PriceCurrency     string
+	RecurringInterval string
+	Benefits          []string
+}
+
+// CreditPack is one one-time credit top-up, read live from Polar's
+// product catalog — never a locally configured list.
+type CreditPack struct {
+	ID            string
+	Name          string
+	Description   string
+	Credits       int64
+	PriceAmount   int64
+	PriceCurrency string
+}
+
 // AudioJob is one standalone script-draft or audio-generation job,
 // belonging directly to a user rather than to any media item.
 type AudioJob struct {

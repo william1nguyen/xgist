@@ -97,6 +97,80 @@ func (c *BillingClient) ListCreditLedger(ctx context.Context, userID uuid.UUID, 
 	return LedgerPage{Entries: entries, NextCursor: resp.GetNextCursor()}, nil
 }
 
+// ListPlans returns every subscribable plan, read live from Polar's
+// product catalog by billing — hermes never hardcodes a plan list.
+func (c *BillingClient) ListPlans(ctx context.Context) ([]Plan, error) {
+	resp, err := c.client.ListPlans(ctx, &billingv1.ListPlansRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("billing.ListPlans: %w", err)
+	}
+	plans := make([]Plan, 0, len(resp.GetPlans()))
+	for _, p := range resp.GetPlans() {
+		plans = append(plans, Plan{
+			ID:                p.GetId(),
+			Name:              p.GetName(),
+			Description:       p.GetDescription(),
+			PriceAmount:       p.GetPriceAmount(),
+			PriceCurrency:     p.GetPriceCurrency(),
+			RecurringInterval: p.GetRecurringInterval(),
+			Benefits:          p.GetBenefits(),
+		})
+	}
+	return plans, nil
+}
+
+// ListCreditPacks returns every one-time credit top-up, read live from
+// Polar's product catalog by billing.
+func (c *BillingClient) ListCreditPacks(ctx context.Context) ([]CreditPack, error) {
+	resp, err := c.client.ListCreditPacks(ctx, &billingv1.ListCreditPacksRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("billing.ListCreditPacks: %w", err)
+	}
+	packs := make([]CreditPack, 0, len(resp.GetPacks()))
+	for _, p := range resp.GetPacks() {
+		packs = append(packs, CreditPack{
+			ID:            p.GetId(),
+			Name:          p.GetName(),
+			Description:   p.GetDescription(),
+			Credits:       p.GetCredits(),
+			PriceAmount:   p.GetPriceAmount(),
+			PriceCurrency: p.GetPriceCurrency(),
+		})
+	}
+	return packs, nil
+}
+
+// CreateCheckoutSession starts a Polar-hosted checkout for planID and
+// returns the URL to redirect the caller to.
+func (c *BillingClient) CreateCheckoutSession(ctx context.Context, userID uuid.UUID, userEmail, planID string) (string, error) {
+	resp, err := c.client.CreateCheckoutSession(ctx, &billingv1.CreateCheckoutSessionRequest{
+		UserId:    userID.String(),
+		UserEmail: userEmail,
+		PlanId:    planID,
+	})
+	if err != nil {
+		return "", fmt.Errorf("billing.CreateCheckoutSession: %w", err)
+	}
+	return resp.GetCheckoutUrl(), nil
+}
+
+// CancelSubscription schedules the user's active subscription to end at
+// the current billing period's close.
+func (c *BillingClient) CancelSubscription(ctx context.Context, userID uuid.UUID) (Subscription, error) {
+	resp, err := c.client.CancelSubscription(ctx, &billingv1.CancelSubscriptionRequest{UserId: userID.String()})
+	if err != nil {
+		return Subscription{}, fmt.Errorf("billing.CancelSubscription: %w", err)
+	}
+	sub := resp.GetSubscription()
+	return Subscription{
+		ID:          sub.GetId(),
+		Plan:        sub.GetPlan(),
+		Status:      billingSubscriptionStatusToString(sub.GetStatus()),
+		PeriodStart: sub.GetPeriodStart().AsTime(),
+		PeriodEnd:   sub.GetPeriodEnd().AsTime(),
+	}, nil
+}
+
 func toQuote(q *billingv1.Quote) (Quote, error) {
 	id, err := uuid.Parse(q.GetId())
 	if err != nil {

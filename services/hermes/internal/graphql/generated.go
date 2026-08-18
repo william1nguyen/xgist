@@ -75,6 +75,10 @@ type ComplexityRoot struct {
 		Subscription     func(childComplexity int) int
 	}
 
+	CheckoutSession struct {
+		CheckoutURL func(childComplexity int) int
+	}
+
 	Content struct {
 		Keypoints     func(childComplexity int) int
 		Keywords      func(childComplexity int) int
@@ -97,6 +101,15 @@ type ComplexityRoot struct {
 	CreditLedgerPage struct {
 		Items      func(childComplexity int) int
 		NextCursor func(childComplexity int) int
+	}
+
+	CreditPack struct {
+		Credits       func(childComplexity int) int
+		Description   func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		PriceAmount   func(childComplexity int) int
+		PriceCurrency func(childComplexity int) int
 	}
 
 	DeletionOperation struct {
@@ -167,7 +180,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CancelSubscription      func(childComplexity int) int
 		ConfirmUpload           func(childComplexity int, uploadSessionID string, options []string, audioVoice *string, idempotencyKey *string) int
+		CreateCheckoutSession   func(childComplexity int, planID string) int
 		CreateUploadSession     func(childComplexity int, title string, mimeType string, declaredSizeBytes int, idempotencyKey *string) int
 		DeleteMediaPermanently  func(childComplexity int, id string) int
 		DraftAudioScript        func(childComplexity int, description string, idempotencyKey *string) int
@@ -191,6 +206,16 @@ type ComplexityRoot struct {
 		Format    func(childComplexity int) int
 	}
 
+	Plan struct {
+		Benefits          func(childComplexity int) int
+		Description       func(childComplexity int) int
+		ID                func(childComplexity int) int
+		Name              func(childComplexity int) int
+		PriceAmount       func(childComplexity int) int
+		PriceCurrency     func(childComplexity int) int
+		RecurringInterval func(childComplexity int) int
+	}
+
 	PriceCatalog struct {
 		CatalogVersion func(childComplexity int) int
 		Items          func(childComplexity int) int
@@ -208,10 +233,12 @@ type ComplexityRoot struct {
 		BillingSummary      func(childComplexity int) int
 		ContentDetail       func(childComplexity int, mediaID string) int
 		CreditLedgerHistory func(childComplexity int, cursor *string, pageSize *int) int
+		CreditPacks         func(childComplexity int) int
 		Me                  func(childComplexity int) int
 		MediaDetail         func(childComplexity int, id string) int
 		MediaList           func(childComplexity int, cursor *string, pageSize *int, search *string) int
 		MediaProgress       func(childComplexity int, ids []string) int
+		Plans               func(childComplexity int) int
 		PriceCatalog        func(childComplexity int) int
 		PromptSettings      func(childComplexity int) int
 		Quote               func(childComplexity int, options []string) int
@@ -315,6 +342,8 @@ type MutationResolver interface {
 	DeleteMediaPermanently(ctx context.Context, id string) (bool, error)
 	DraftAudioScript(ctx context.Context, description string, idempotencyKey *string) (*model.AudioJob, error)
 	GenerateStandaloneAudio(ctx context.Context, text string, voice *string, idempotencyKey *string) (*model.AudioJob, error)
+	CreateCheckoutSession(ctx context.Context, planID string) (*model.CheckoutSession, error)
+	CancelSubscription(ctx context.Context) (*model.BillingSubscription, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
@@ -325,6 +354,8 @@ type QueryResolver interface {
 	Quote(ctx context.Context, options []string) (*model.Quote, error)
 	PriceCatalog(ctx context.Context) (*model.PriceCatalog, error)
 	BillingSummary(ctx context.Context) (*model.BillingSummary, error)
+	Plans(ctx context.Context) ([]model.Plan, error)
+	CreditPacks(ctx context.Context) ([]model.CreditPack, error)
 	CreditLedgerHistory(ctx context.Context, cursor *string, pageSize *int) (*model.CreditLedgerPage, error)
 	PromptSettings(ctx context.Context) ([]model.PromptSetting, error)
 	TrashedMedia(ctx context.Context, cursor *string, pageSize *int) (*model.MediaPage, error)
@@ -493,6 +524,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.BillingSummary.Subscription(childComplexity), true
 
+	case "CheckoutSession.checkoutUrl":
+		if e.ComplexityRoot.CheckoutSession.CheckoutURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CheckoutSession.CheckoutURL(childComplexity), true
+
 	case "Content.keypoints":
 		if e.ComplexityRoot.Content.Keypoints == nil {
 			break
@@ -585,6 +623,43 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CreditLedgerPage.NextCursor(childComplexity), true
+
+	case "CreditPack.credits":
+		if e.ComplexityRoot.CreditPack.Credits == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditPack.Credits(childComplexity), true
+	case "CreditPack.description":
+		if e.ComplexityRoot.CreditPack.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditPack.Description(childComplexity), true
+	case "CreditPack.id":
+		if e.ComplexityRoot.CreditPack.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditPack.ID(childComplexity), true
+	case "CreditPack.name":
+		if e.ComplexityRoot.CreditPack.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditPack.Name(childComplexity), true
+	case "CreditPack.priceAmount":
+		if e.ComplexityRoot.CreditPack.PriceAmount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditPack.PriceAmount(childComplexity), true
+	case "CreditPack.priceCurrency":
+		if e.ComplexityRoot.CreditPack.PriceCurrency == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreditPack.PriceCurrency(childComplexity), true
 
 	case "DeletionOperation.completedAt":
 		if e.ComplexityRoot.DeletionOperation.CompletedAt == nil {
@@ -869,6 +944,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.MediaProgress.Version(childComplexity), true
 
+	case "Mutation.cancelSubscription":
+		if e.ComplexityRoot.Mutation.CancelSubscription == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Mutation.CancelSubscription(childComplexity), true
 	case "Mutation.confirmUpload":
 		if e.ComplexityRoot.Mutation.ConfirmUpload == nil {
 			break
@@ -880,6 +961,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.ConfirmUpload(childComplexity, args["uploadSessionId"].(string), args["options"].([]string), args["audioVoice"].(*string), args["idempotencyKey"].(*string)), true
+	case "Mutation.createCheckoutSession":
+		if e.ComplexityRoot.Mutation.CreateCheckoutSession == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCheckoutSession_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreateCheckoutSession(childComplexity, args["planId"].(string)), true
 	case "Mutation.createUploadSession":
 		if e.ComplexityRoot.Mutation.CreateUploadSession == nil {
 			break
@@ -1060,6 +1152,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Note.Format(childComplexity), true
 
+	case "Plan.benefits":
+		if e.ComplexityRoot.Plan.Benefits == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Plan.Benefits(childComplexity), true
+	case "Plan.description":
+		if e.ComplexityRoot.Plan.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Plan.Description(childComplexity), true
+	case "Plan.id":
+		if e.ComplexityRoot.Plan.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Plan.ID(childComplexity), true
+	case "Plan.name":
+		if e.ComplexityRoot.Plan.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Plan.Name(childComplexity), true
+	case "Plan.priceAmount":
+		if e.ComplexityRoot.Plan.PriceAmount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Plan.PriceAmount(childComplexity), true
+	case "Plan.priceCurrency":
+		if e.ComplexityRoot.Plan.PriceCurrency == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Plan.PriceCurrency(childComplexity), true
+	case "Plan.recurringInterval":
+		if e.ComplexityRoot.Plan.RecurringInterval == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Plan.RecurringInterval(childComplexity), true
+
 	case "PriceCatalog.catalogVersion":
 		if e.ComplexityRoot.PriceCatalog.CatalogVersion == nil {
 			break
@@ -1142,6 +1277,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.CreditLedgerHistory(childComplexity, args["cursor"].(*string), args["pageSize"].(*int)), true
+	case "Query.creditPacks":
+		if e.ComplexityRoot.Query.CreditPacks == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.CreditPacks(childComplexity), true
 
 	case "Query.me":
 		if e.ComplexityRoot.Query.Me == nil {
@@ -1182,6 +1323,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.MediaProgress(childComplexity, args["ids"].([]string)), true
+	case "Query.plans":
+		if e.ComplexityRoot.Query.Plans == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.Plans(childComplexity), true
 	case "Query.priceCatalog":
 		if e.ComplexityRoot.Query.PriceCatalog == nil {
 			break
@@ -1674,6 +1821,14 @@ func (ec *executionContext) childFields_BillingSummary(ctx context.Context, fiel
 	return nil, fmt.Errorf("no field named %q was found under type BillingSummary", field.Name)
 }
 
+func (ec *executionContext) childFields_CheckoutSession(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "checkoutUrl":
+		return ec.fieldContext_CheckoutSession_checkoutUrl(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CheckoutSession", field.Name)
+}
+
 func (ec *executionContext) childFields_Content(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "mediaId":
@@ -1720,6 +1875,24 @@ func (ec *executionContext) childFields_CreditLedgerPage(ctx context.Context, fi
 		return ec.fieldContext_CreditLedgerPage_nextCursor(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type CreditLedgerPage", field.Name)
+}
+
+func (ec *executionContext) childFields_CreditPack(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_CreditPack_id(ctx, field)
+	case "name":
+		return ec.fieldContext_CreditPack_name(ctx, field)
+	case "description":
+		return ec.fieldContext_CreditPack_description(ctx, field)
+	case "credits":
+		return ec.fieldContext_CreditPack_credits(ctx, field)
+	case "priceAmount":
+		return ec.fieldContext_CreditPack_priceAmount(ctx, field)
+	case "priceCurrency":
+		return ec.fieldContext_CreditPack_priceCurrency(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CreditPack", field.Name)
 }
 
 func (ec *executionContext) childFields_DeletionOperation(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -1866,6 +2039,26 @@ func (ec *executionContext) childFields_Note(ctx context.Context, field graphql.
 		return ec.fieldContext_Note_createdAt(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Note", field.Name)
+}
+
+func (ec *executionContext) childFields_Plan(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_Plan_id(ctx, field)
+	case "name":
+		return ec.fieldContext_Plan_name(ctx, field)
+	case "description":
+		return ec.fieldContext_Plan_description(ctx, field)
+	case "priceAmount":
+		return ec.fieldContext_Plan_priceAmount(ctx, field)
+	case "priceCurrency":
+		return ec.fieldContext_Plan_priceCurrency(ctx, field)
+	case "recurringInterval":
+		return ec.fieldContext_Plan_recurringInterval(ctx, field)
+	case "benefits":
+		return ec.fieldContext_Plan_benefits(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 }
 
 func (ec *executionContext) childFields_PriceCatalog(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -2191,6 +2384,20 @@ func (ec *executionContext) field_Mutation_confirmUpload_args(ctx context.Contex
 		return nil, err
 	}
 	args["idempotencyKey"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCheckoutSession_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "planId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["planId"] = arg0
 	return args, nil
 }
 
@@ -3354,6 +3561,29 @@ func (ec *executionContext) fieldContext_BillingSummary_subscription(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _CheckoutSession_checkoutUrl(ctx context.Context, field graphql.CollectedField, obj *model.CheckoutSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CheckoutSession_checkoutUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CheckoutURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CheckoutSession_checkoutUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CheckoutSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) _Content_mediaId(ctx context.Context, field graphql.CollectedField, obj *model.Content) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3760,6 +3990,144 @@ func (ec *executionContext) _CreditLedgerPage_nextCursor(ctx context.Context, fi
 }
 func (ec *executionContext) fieldContext_CreditLedgerPage_nextCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("CreditLedgerPage", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CreditPack_id(ctx context.Context, field graphql.CollectedField, obj *model.CreditPack) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditPack_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditPack_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditPack", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CreditPack_name(ctx context.Context, field graphql.CollectedField, obj *model.CreditPack) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditPack_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditPack_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditPack", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CreditPack_description(ctx context.Context, field graphql.CollectedField, obj *model.CreditPack) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditPack_description(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CreditPack_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditPack", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CreditPack_credits(ctx context.Context, field graphql.CollectedField, obj *model.CreditPack) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditPack_credits(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Credits, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditPack_credits(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditPack", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _CreditPack_priceAmount(ctx context.Context, field graphql.CollectedField, obj *model.CreditPack) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditPack_priceAmount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PriceAmount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreditPack_priceAmount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditPack", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _CreditPack_priceCurrency(ctx context.Context, field graphql.CollectedField, obj *model.CreditPack) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreditPack_priceCurrency(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PriceCurrency, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CreditPack_priceCurrency(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreditPack", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _DeletionOperation_deletionId(ctx context.Context, field graphql.CollectedField, obj *model.DeletionOperation) (ret graphql.Marshaler) {
@@ -5512,6 +5880,82 @@ func (ec *executionContext) fieldContext_Mutation_generateStandaloneAudio(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createCheckoutSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_createCheckoutSession(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreateCheckoutSession(ctx, fc.Args["planId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.CheckoutSession) graphql.Marshaler {
+			return ec.marshalNCheckoutSession2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCheckoutSession(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_createCheckoutSession(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CheckoutSession(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCheckoutSession_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_cancelSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_cancelSubscription(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Mutation().CancelSubscription(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.BillingSubscription) graphql.Marshaler {
+			return ec.marshalNBillingSubscription2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐBillingSubscription(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_cancelSubscription(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_BillingSubscription(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Note_format(ctx context.Context, field graphql.CollectedField, obj *model.Note) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -5579,6 +6023,167 @@ func (ec *executionContext) _Note_createdAt(ctx context.Context, field graphql.C
 }
 func (ec *executionContext) fieldContext_Note_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Note", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Plan_id(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Plan_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Plan_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Plan", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _Plan_name(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Plan_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Plan_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Plan", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Plan_description(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Plan_description(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Plan_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Plan", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Plan_priceAmount(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Plan_priceAmount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PriceAmount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Plan_priceAmount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Plan", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _Plan_priceCurrency(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Plan_priceCurrency(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PriceCurrency, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Plan_priceCurrency(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Plan", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Plan_recurringInterval(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Plan_recurringInterval(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.RecurringInterval, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Plan_recurringInterval(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Plan", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Plan_benefits(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Plan_benefits(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Benefits, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Plan_benefits(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Plan", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _PriceCatalog_catalogVersion(ctx context.Context, field graphql.CollectedField, obj *model.PriceCatalog) (ret graphql.Marshaler) {
@@ -6016,6 +6621,70 @@ func (ec *executionContext) fieldContext_Query_billingSummary(_ context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_BillingSummary(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_plans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_plans(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().Plans(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.Plan) graphql.Marshaler {
+			return ec.marshalNPlan2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPlanᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_plans(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Plan(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_creditPacks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_creditPacks(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().CreditPacks(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.CreditPack) graphql.Marshaler {
+			return ec.marshalNCreditPack2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditPackᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_creditPacks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CreditPack(ctx, field)
 		},
 	}
 	return fc, nil
@@ -8714,6 +9383,44 @@ func (ec *executionContext) _BillingSummary(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var checkoutSessionImplementors = []string{"CheckoutSession"}
+
+func (ec *executionContext) _CheckoutSession(ctx context.Context, sel ast.SelectionSet, obj *model.CheckoutSession) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkoutSessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckoutSession")
+		case "checkoutUrl":
+			out.Values[i] = ec._CheckoutSession_checkoutUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
 var contentImplementors = []string{"Content"}
 
 func (ec *executionContext) _Content(ctx context.Context, sel ast.SelectionSet, obj *model.Content) graphql.Marshaler {
@@ -8864,6 +9571,69 @@ func (ec *executionContext) _CreditLedgerPage(ctx context.Context, sel ast.Selec
 			}
 		case "nextCursor":
 			out.Values[i] = ec._CreditLedgerPage_nextCursor(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
+var creditPackImplementors = []string{"CreditPack"}
+
+func (ec *executionContext) _CreditPack(ctx context.Context, sel ast.SelectionSet, obj *model.CreditPack) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, creditPackImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreditPack")
+		case "id":
+			out.Values[i] = ec._CreditPack_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._CreditPack_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._CreditPack_description(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "credits":
+			out.Values[i] = ec._CreditPack_credits(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "priceAmount":
+			out.Values[i] = ec._CreditPack_priceAmount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "priceCurrency":
+			out.Values[i] = ec._CreditPack_priceCurrency(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
@@ -9481,6 +10251,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createCheckoutSession":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCheckoutSession(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cancelSubscription":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_cancelSubscription(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9526,6 +10310,74 @@ func (ec *executionContext) _Note(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "createdAt":
 			out.Values[i] = ec._Note_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
+var planImplementors = []string{"Plan"}
+
+func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj *model.Plan) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, planImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Plan")
+		case "id":
+			out.Values[i] = ec._Plan_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Plan_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Plan_description(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "priceAmount":
+			out.Values[i] = ec._Plan_priceAmount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "priceCurrency":
+			out.Values[i] = ec._Plan_priceCurrency(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "recurringInterval":
+			out.Values[i] = ec._Plan_recurringInterval(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "benefits":
+			out.Values[i] = ec._Plan_benefits(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -9825,6 +10677,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_billingSummary(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "plans":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_plans(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "creditPacks":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_creditPacks(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -10997,6 +11893,20 @@ func (ec *executionContext) marshalNAuthPayload2ᚖgithubᚗcomᚋnolannguyen121
 	return ec._AuthPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNBillingSubscription2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐBillingSubscription(ctx context.Context, sel ast.SelectionSet, v model.BillingSubscription) graphql.Marshaler {
+	return ec._BillingSubscription(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBillingSubscription2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐBillingSubscription(ctx context.Context, sel ast.SelectionSet, v *model.BillingSubscription) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BillingSubscription(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNBillingSummary2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐBillingSummary(ctx context.Context, sel ast.SelectionSet, v model.BillingSummary) graphql.Marshaler {
 	return ec._BillingSummary(ctx, sel, &v)
 }
@@ -11025,6 +11935,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCheckoutSession2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCheckoutSession(ctx context.Context, sel ast.SelectionSet, v model.CheckoutSession) graphql.Marshaler {
+	return ec._CheckoutSession(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCheckoutSession2ᚖgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCheckoutSession(ctx context.Context, sel ast.SelectionSet, v *model.CheckoutSession) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CheckoutSession(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNContent2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐContent(ctx context.Context, sel ast.SelectionSet, v model.Content) graphql.Marshaler {
@@ -11073,6 +11997,26 @@ func (ec *executionContext) marshalNCreditLedgerPage2ᚖgithubᚗcomᚋnolannguy
 		return graphql.Null
 	}
 	return ec._CreditLedgerPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCreditPack2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditPack(ctx context.Context, sel ast.SelectionSet, v model.CreditPack) graphql.Marshaler {
+	return ec._CreditPack(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreditPack2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditPackᚄ(ctx context.Context, sel ast.SelectionSet, v []model.CreditPack) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCreditPack2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐCreditPack(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNDeletionOperation2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐDeletionOperation(ctx context.Context, sel ast.SelectionSet, v model.DeletionOperation) graphql.Marshaler {
@@ -11352,6 +12296,26 @@ func (ec *executionContext) marshalNNote2ᚕgithubᚗcomᚋnolannguyen1212ᚋmed
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
 		return ec.marshalNNote2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐNote(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPlan2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v model.Plan) graphql.Marshaler {
+	return ec._Plan(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPlan2ᚕgithubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Plan) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPlan2githubᚗcomᚋnolannguyen1212ᚋmediaᚑnotesᚋservicesᚋhermesᚋinternalᚋgraphqlᚋmodelᚐPlan(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
