@@ -1,11 +1,14 @@
 # hermes service: public GraphQL gateway, no database of its own.
 # See services/hermes/ and docs/services/hermes.md.
 
-.PHONY: hermes\:build hermes\:test hermes\:run \
+.PHONY: hermes\:build hermes\:vet hermes\:test hermes\:run \
 	hermes\:docker-build hermes\:docker-up hermes\:docker-down hermes\:docker-logs
 
 hermes\:build: ## Build hermes
 	cd services/hermes && go build ./...
+
+hermes\:vet: ## Vet hermes
+	cd services/hermes && go vet ./...
 
 hermes\:test: ## Run hermes's unit tests
 	cd services/hermes && go test ./...

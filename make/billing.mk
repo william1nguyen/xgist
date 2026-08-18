@@ -1,12 +1,15 @@
 # billing service: subscriptions, credit reservation, settlement, ledger.
 # See services/billing/ and docs/services/billing.md.
 
-.PHONY: billing\:build billing\:test billing\:test-integration billing\:run \
+.PHONY: billing\:build billing\:vet billing\:test billing\:test-integration billing\:run \
 	billing\:migrate billing\:grpcui billing\:docker-build billing\:docker-up \
 	billing\:docker-down billing\:docker-logs
 
 billing\:build: ## Build billing
 	cd services/billing && go build ./...
+
+billing\:vet: ## Vet billing
+	cd services/billing && go vet ./...
 
 billing\:test: ## Run billing's unit tests
 	cd services/billing && go test ./...

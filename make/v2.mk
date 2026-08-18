@@ -1,11 +1,16 @@
 # Aggregate targets across every v2 Go service. Per-service targets live in
 # make/<service>.mk.
 
-.PHONY: build\:v2 test\:v2 test\:v2-integration
+.PHONY: build\:v2 vet\:v2 test\:v2 test\:v2-integration
 
 build\:v2: ## Build every v2 Go service
 	@for d in services/*/; do \
 		[ -f "$$d/go.mod" ] && (echo "==> $$d" && cd "$$d" && go build ./...) || true; \
+	done
+
+vet\:v2: ## Vet every v2 Go service
+	@for d in services/*/; do \
+		[ -f "$$d/go.mod" ] && (echo "==> $$d" && cd "$$d" && go vet ./...) || true; \
 	done
 
 test\:v2: ## Test every v2 Go service (unit tests only)

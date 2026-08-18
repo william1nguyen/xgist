@@ -2,12 +2,15 @@
 # joins, retry, timeout. See services/conductor/ and
 # docs/services/conductor.md.
 
-.PHONY: conductor\:build conductor\:test conductor\:test-integration conductor\:run \
+.PHONY: conductor\:build conductor\:vet conductor\:test conductor\:test-integration conductor\:run \
 	conductor\:migrate conductor\:docker-build conductor\:docker-up \
 	conductor\:docker-down conductor\:docker-logs
 
 conductor\:build: ## Build conductor
 	cd services/conductor && go build ./...
+
+conductor\:vet: ## Vet conductor
+	cd services/conductor && go vet ./...
 
 conductor\:test: ## Run conductor's unit tests
 	cd services/conductor && go test ./...

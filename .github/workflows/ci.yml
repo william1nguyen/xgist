@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [dev, master]
   pull_request:
-    branches: [master]
+    branches: [dev, master]
   workflow_dispatch:
 
 permissions:
@@ -47,7 +47,11 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-  services:
+  go-services:
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [billing, conductor, content, hermes, identity, media]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -56,10 +60,34 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: services/hermes/go.mod
+          go-version-file: services/${{ matrix.service }}/go.mod
+          cache-dependency-path: services/${{ matrix.service }}/go.sum
 
-      - name: Build every v2 service
-        run: make build:v2
+      - name: Build
+        run: make ${{ matrix.service }}:build
 
-      - name: Test every v2 service
-        run: make test:v2
+      - name: Vet
+        run: make ${{ matrix.service }}:vet
+
+      - name: Test
+        run: make ${{ matrix.service }}:test
+
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/worker/uv.lock
+
+      - name: Run tests (builds deps and regenerates proto stubs first)
+        run: make worker:test

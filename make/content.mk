@@ -1,12 +1,15 @@
 # content service: transcript, generated content, summary-audio metadata.
 # See services/content/ and docs/services/content.md.
 
-.PHONY: content\:build content\:test content\:test-integration content\:run \
+.PHONY: content\:build content\:vet content\:test content\:test-integration content\:run \
 	content\:migrate content\:grpcui content\:docker-build content\:docker-up \
 	content\:docker-down content\:docker-logs
 
 content\:build: ## Build content
 	cd services/content && go build ./...
+
+content\:vet: ## Vet content
+	cd services/content && go vet ./...
 
 content\:test: ## Run content's unit tests
 	cd services/content && go test ./...

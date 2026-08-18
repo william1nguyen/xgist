@@ -1,12 +1,15 @@
 # identity service: users, accounts, sessions, account deletion.
 # See services/identity/ and docs/services/identity.md.
 
-.PHONY: identity\:build identity\:test identity\:test-integration identity\:run \
+.PHONY: identity\:build identity\:vet identity\:test identity\:test-integration identity\:run \
 	identity\:migrate identity\:grpcui identity\:docker-build identity\:docker-up \
 	identity\:docker-down identity\:docker-logs
 
 identity\:build: ## Build identity
 	cd services/identity && go build ./...
+
+identity\:vet: ## Vet identity
+	cd services/identity && go vet ./...
 
 identity\:test: ## Run identity's unit tests
 	cd services/identity && go test ./...

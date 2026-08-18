@@ -17,8 +17,8 @@ install: ## Install web dependencies from the lockfile
 build: ## Build the web app and every v2 service
 	$(MAKE) build\:v2 web\:build
 
-lint: ## Lint the web app
-	$(MAKE) web\:lint
+lint: ## Vet every v2 service and lint the web app
+	$(MAKE) vet\:v2 web\:lint
 
 typecheck: ## Type-check the web app
 	$(MAKE) web\:typecheck

@@ -1,12 +1,15 @@
 # media service: uploads, source-media metadata, derivatives, processing
 # requests, media deletion. See services/media/ and docs/services/media.md.
 
-.PHONY: media\:build media\:test media\:test-integration media\:run \
+.PHONY: media\:build media\:vet media\:test media\:test-integration media\:run \
 	media\:migrate media\:grpcui media\:docker-build media\:docker-up \
 	media\:docker-down media\:docker-logs
 
 media\:build: ## Build media
 	cd services/media && go build ./...
+
+media\:vet: ## Vet media
+	cd services/media && go vet ./...
 
 media\:test: ## Run media's unit tests
 	cd services/media && go test ./...
