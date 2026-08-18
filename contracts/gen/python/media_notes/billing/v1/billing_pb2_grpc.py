@@ -51,6 +51,11 @@ class BillingServiceStub:
                 request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.SerializeToString,
                 response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.FromString,
                 _registered_method=True)
+        self.GetPriceCatalog = channel.unary_unary(
+                '/media_notes.billing.v1.BillingService/GetPriceCatalog',
+                request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogRequest.SerializeToString,
+                response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogResponse.FromString,
+                _registered_method=True)
 
 
 class BillingServiceServicer:
@@ -83,6 +88,16 @@ class BillingServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetPriceCatalog(self, request, context):
+        """GetPriceCatalog returns every priced item in the active catalog
+        version. Callers must never hardcode a price locally — this is the
+        single source of truth a client renders a price list from before the
+        caller has made a selection to price with GetQuote.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BillingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -100,6 +115,11 @@ def add_BillingServiceServicer_to_server(servicer, server):
                     servicer.ListCreditLedger,
                     request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.FromString,
                     response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.SerializeToString,
+            ),
+            'GetPriceCatalog': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPriceCatalog,
+                    request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogRequest.FromString,
+                    response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -185,6 +205,33 @@ class BillingService:
             '/media_notes.billing.v1.BillingService/ListCreditLedger',
             media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.SerializeToString,
             media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPriceCatalog(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.billing.v1.BillingService/GetPriceCatalog',
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogRequest.SerializeToString,
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogResponse.FromString,
             options,
             channel_credentials,
             insecure,

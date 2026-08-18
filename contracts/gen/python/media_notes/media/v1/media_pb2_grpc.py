@@ -72,6 +72,11 @@ class MediaServiceStub:
                 request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RegisterDerivativeRequest.SerializeToString,
                 response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RegisterDerivativeResponse.FromString,
                 _registered_method=True)
+        self.RequestDerivativeUpload = channel.unary_unary(
+                '/media_notes.media.v1.MediaService/RequestDerivativeUpload',
+                request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestDerivativeUploadRequest.SerializeToString,
+                response_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestDerivativeUploadResponse.FromString,
+                _registered_method=True)
         self.RequestDeletion = channel.unary_unary(
                 '/media_notes.media.v1.MediaService/RequestDeletion',
                 request_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestDeletionRequest.SerializeToString,
@@ -173,6 +178,18 @@ class MediaServiceServicer:
         """RegisterDerivative records a durable derivative object (thumbnail,
         cover, or waveform) after conductor-worker has written it to object
         storage. Idempotent per (media_id, derivative_type, version).
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RequestDerivativeUpload(self, request, context):
+        """RequestDerivativeUpload returns a short-lived presigned PUT URL for a
+        caller-supplied derivative image (currently thumbnail only), mirroring
+        CreateUploadSession's pattern for the source object. The caller PUTs
+        the file directly to object storage, then calls RegisterDerivative
+        with the returned object_key to finalize it — this RPC does not
+        itself register anything.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -281,6 +298,11 @@ def add_MediaServiceServicer_to_server(servicer, server):
                     servicer.RegisterDerivative,
                     request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RegisterDerivativeRequest.FromString,
                     response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RegisterDerivativeResponse.SerializeToString,
+            ),
+            'RequestDerivativeUpload': grpc.unary_unary_rpc_method_handler(
+                    servicer.RequestDerivativeUpload,
+                    request_deserializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestDerivativeUploadRequest.FromString,
+                    response_serializer=media__notes_dot_media_dot_v1_dot_media__pb2.RequestDerivativeUploadResponse.SerializeToString,
             ),
             'RequestDeletion': grpc.unary_unary_rpc_method_handler(
                     servicer.RequestDeletion,
@@ -510,6 +532,33 @@ class MediaService:
             '/media_notes.media.v1.MediaService/RegisterDerivative',
             media__notes_dot_media_dot_v1_dot_media__pb2.RegisterDerivativeRequest.SerializeToString,
             media__notes_dot_media_dot_v1_dot_media__pb2.RegisterDerivativeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RequestDerivativeUpload(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.media.v1.MediaService/RequestDerivativeUpload',
+            media__notes_dot_media_dot_v1_dot_media__pb2.RequestDerivativeUploadRequest.SerializeToString,
+            media__notes_dot_media_dot_v1_dot_media__pb2.RequestDerivativeUploadResponse.FromString,
             options,
             channel_credentials,
             insecure,

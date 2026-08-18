@@ -25,15 +25,15 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$media_notes/billing/v1/billing.proto\x12\x16media_notes.billing.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\tQuoteItem\x12\x0f\n\x07item_id\x18\x01 \x01(\t\x12\x0f\n\x07\x63redits\x18\x02 \x01(\x03\"\xe6\x01\n\x05Quote\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\x12\x17\n\x0f\x63\x61talog_version\x18\x03 \x01(\t\x12\x30\n\x05items\x18\x04 \x03(\x0b\x32!.media_notes.billing.v1.QuoteItem\x12\x15\n\rtotal_credits\x18\x05 \x01(\x03\x12.\n\nexpires_at\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\ncreated_at\x18\x07 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"L\n\x0fGetQuoteRequest\x12\x17\n\x0fidempotency_key\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\x12\x0f\n\x07options\x18\x03 \x03(\t\"@\n\x10GetQuoteResponse\x12,\n\x05quote\x18\x01 \x01(\x0b\x32\x1d.media_notes.billing.v1.Quote\"\xc6\x01\n\x0cSubscription\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04plan\x18\x02 \x01(\t\x12:\n\x06status\x18\x03 \x01(\x0e\x32*.media_notes.billing.v1.SubscriptionStatus\x12\x30\n\x0cperiod_start\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\nperiod_end\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x92\x01\n\x0e\x42illingSummary\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x19\n\x11\x61vailable_credits\x18\x02 \x01(\x03\x12\x18\n\x10reserved_credits\x18\x03 \x01(\x03\x12:\n\x0csubscription\x18\x04 \x01(\x0b\x32$.media_notes.billing.v1.Subscription\"+\n\x18GetBillingSummaryRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\"T\n\x19GetBillingSummaryResponse\x12\x37\n\x07summary\x18\x01 \x01(\x0b\x32&.media_notes.billing.v1.BillingSummary\"}\n\x0bLedgerEntry\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05\x64\x65lta\x18\x02 \x01(\x03\x12\x12\n\nentry_type\x18\x03 \x01(\t\x12\x0f\n\x07item_id\x18\x04 \x01(\t\x12.\n\ncreated_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"M\n\x17ListCreditLedgerRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x0e\n\x06\x63ursor\x18\x02 \x01(\t\x12\x11\n\tpage_size\x18\x03 \x01(\x05\"e\n\x18ListCreditLedgerResponse\x12\x34\n\x07\x65ntries\x18\x01 \x03(\x0b\x32#.media_notes.billing.v1.LedgerEntry\x12\x13\n\x0bnext_cursor\x18\x02 \x01(\t*\xbb\x01\n\x12SubscriptionStatus\x12#\n\x1fSUBSCRIPTION_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n\x18SUBSCRIPTION_STATUS_NONE\x10\x01\x12\x1e\n\x1aSUBSCRIPTION_STATUS_ACTIVE\x10\x02\x12 \n\x1cSUBSCRIPTION_STATUS_CANCELED\x10\x03\x12 \n\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x04\x32\xe0\x02\n\x0e\x42illingService\x12]\n\x08GetQuote\x12\'.media_notes.billing.v1.GetQuoteRequest\x1a(.media_notes.billing.v1.GetQuoteResponse\x12x\n\x11GetBillingSummary\x12\x30.media_notes.billing.v1.GetBillingSummaryRequest\x1a\x31.media_notes.billing.v1.GetBillingSummaryResponse\x12u\n\x10ListCreditLedger\x12/.media_notes.billing.v1.ListCreditLedgerRequest\x1a\x30.media_notes.billing.v1.ListCreditLedgerResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$media_notes/billing/v1/billing.proto\x12\x16media_notes.billing.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\tQuoteItem\x12\x0f\n\x07item_id\x18\x01 \x01(\t\x12\x0f\n\x07\x63redits\x18\x02 \x01(\x03\"\xe6\x01\n\x05Quote\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\x12\x17\n\x0f\x63\x61talog_version\x18\x03 \x01(\t\x12\x30\n\x05items\x18\x04 \x03(\x0b\x32!.media_notes.billing.v1.QuoteItem\x12\x15\n\rtotal_credits\x18\x05 \x01(\x03\x12.\n\nexpires_at\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\ncreated_at\x18\x07 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"L\n\x0fGetQuoteRequest\x12\x17\n\x0fidempotency_key\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\t\x12\x0f\n\x07options\x18\x03 \x03(\t\"@\n\x10GetQuoteResponse\x12,\n\x05quote\x18\x01 \x01(\x0b\x32\x1d.media_notes.billing.v1.Quote\"\x18\n\x16GetPriceCatalogRequest\"d\n\x17GetPriceCatalogResponse\x12\x17\n\x0f\x63\x61talog_version\x18\x01 \x01(\t\x12\x30\n\x05items\x18\x02 \x03(\x0b\x32!.media_notes.billing.v1.QuoteItem\"\xc6\x01\n\x0cSubscription\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04plan\x18\x02 \x01(\t\x12:\n\x06status\x18\x03 \x01(\x0e\x32*.media_notes.billing.v1.SubscriptionStatus\x12\x30\n\x0cperiod_start\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\nperiod_end\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x92\x01\n\x0e\x42illingSummary\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x19\n\x11\x61vailable_credits\x18\x02 \x01(\x03\x12\x18\n\x10reserved_credits\x18\x03 \x01(\x03\x12:\n\x0csubscription\x18\x04 \x01(\x0b\x32$.media_notes.billing.v1.Subscription\"+\n\x18GetBillingSummaryRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\"T\n\x19GetBillingSummaryResponse\x12\x37\n\x07summary\x18\x01 \x01(\x0b\x32&.media_notes.billing.v1.BillingSummary\"}\n\x0bLedgerEntry\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05\x64\x65lta\x18\x02 \x01(\x03\x12\x12\n\nentry_type\x18\x03 \x01(\t\x12\x0f\n\x07item_id\x18\x04 \x01(\t\x12.\n\ncreated_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"M\n\x17ListCreditLedgerRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x0e\n\x06\x63ursor\x18\x02 \x01(\t\x12\x11\n\tpage_size\x18\x03 \x01(\x05\"e\n\x18ListCreditLedgerResponse\x12\x34\n\x07\x65ntries\x18\x01 \x03(\x0b\x32#.media_notes.billing.v1.LedgerEntry\x12\x13\n\x0bnext_cursor\x18\x02 \x01(\t*\xbb\x01\n\x12SubscriptionStatus\x12#\n\x1fSUBSCRIPTION_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n\x18SUBSCRIPTION_STATUS_NONE\x10\x01\x12\x1e\n\x1aSUBSCRIPTION_STATUS_ACTIVE\x10\x02\x12 \n\x1cSUBSCRIPTION_STATUS_CANCELED\x10\x03\x12 \n\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x04\x32\xd4\x03\n\x0e\x42illingService\x12]\n\x08GetQuote\x12\'.media_notes.billing.v1.GetQuoteRequest\x1a(.media_notes.billing.v1.GetQuoteResponse\x12x\n\x11GetBillingSummary\x12\x30.media_notes.billing.v1.GetBillingSummaryRequest\x1a\x31.media_notes.billing.v1.GetBillingSummaryResponse\x12u\n\x10ListCreditLedger\x12/.media_notes.billing.v1.ListCreditLedgerRequest\x1a\x30.media_notes.billing.v1.ListCreditLedgerResponse\x12r\n\x0fGetPriceCatalog\x12..media_notes.billing.v1.GetPriceCatalogRequest\x1a/.media_notes.billing.v1.GetPriceCatalogResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'media_notes.billing.v1.billing_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_SUBSCRIPTIONSTATUS']._serialized_start=1312
-  _globals['_SUBSCRIPTIONSTATUS']._serialized_end=1499
+  _globals['_SUBSCRIPTIONSTATUS']._serialized_start=1440
+  _globals['_SUBSCRIPTIONSTATUS']._serialized_end=1627
   _globals['_QUOTEITEM']._serialized_start=97
   _globals['_QUOTEITEM']._serialized_end=142
   _globals['_QUOTE']._serialized_start=145
@@ -42,20 +42,24 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETQUOTEREQUEST']._serialized_end=453
   _globals['_GETQUOTERESPONSE']._serialized_start=455
   _globals['_GETQUOTERESPONSE']._serialized_end=519
-  _globals['_SUBSCRIPTION']._serialized_start=522
-  _globals['_SUBSCRIPTION']._serialized_end=720
-  _globals['_BILLINGSUMMARY']._serialized_start=723
-  _globals['_BILLINGSUMMARY']._serialized_end=869
-  _globals['_GETBILLINGSUMMARYREQUEST']._serialized_start=871
-  _globals['_GETBILLINGSUMMARYREQUEST']._serialized_end=914
-  _globals['_GETBILLINGSUMMARYRESPONSE']._serialized_start=916
-  _globals['_GETBILLINGSUMMARYRESPONSE']._serialized_end=1000
-  _globals['_LEDGERENTRY']._serialized_start=1002
-  _globals['_LEDGERENTRY']._serialized_end=1127
-  _globals['_LISTCREDITLEDGERREQUEST']._serialized_start=1129
-  _globals['_LISTCREDITLEDGERREQUEST']._serialized_end=1206
-  _globals['_LISTCREDITLEDGERRESPONSE']._serialized_start=1208
-  _globals['_LISTCREDITLEDGERRESPONSE']._serialized_end=1309
-  _globals['_BILLINGSERVICE']._serialized_start=1502
-  _globals['_BILLINGSERVICE']._serialized_end=1854
+  _globals['_GETPRICECATALOGREQUEST']._serialized_start=521
+  _globals['_GETPRICECATALOGREQUEST']._serialized_end=545
+  _globals['_GETPRICECATALOGRESPONSE']._serialized_start=547
+  _globals['_GETPRICECATALOGRESPONSE']._serialized_end=647
+  _globals['_SUBSCRIPTION']._serialized_start=650
+  _globals['_SUBSCRIPTION']._serialized_end=848
+  _globals['_BILLINGSUMMARY']._serialized_start=851
+  _globals['_BILLINGSUMMARY']._serialized_end=997
+  _globals['_GETBILLINGSUMMARYREQUEST']._serialized_start=999
+  _globals['_GETBILLINGSUMMARYREQUEST']._serialized_end=1042
+  _globals['_GETBILLINGSUMMARYRESPONSE']._serialized_start=1044
+  _globals['_GETBILLINGSUMMARYRESPONSE']._serialized_end=1128
+  _globals['_LEDGERENTRY']._serialized_start=1130
+  _globals['_LEDGERENTRY']._serialized_end=1255
+  _globals['_LISTCREDITLEDGERREQUEST']._serialized_start=1257
+  _globals['_LISTCREDITLEDGERREQUEST']._serialized_end=1334
+  _globals['_LISTCREDITLEDGERRESPONSE']._serialized_start=1336
+  _globals['_LISTCREDITLEDGERRESPONSE']._serialized_end=1437
+  _globals['_BILLINGSERVICE']._serialized_start=1630
+  _globals['_BILLINGSERVICE']._serialized_end=2098
 # @@protoc_insertion_point(module_scope)

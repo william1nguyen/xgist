@@ -65,6 +65,18 @@ class GetQuoteResponse(_message.Message):
     quote: Quote
     def __init__(self, quote: _Optional[_Union[Quote, _Mapping]] = ...) -> None: ...
 
+class GetPriceCatalogRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class GetPriceCatalogResponse(_message.Message):
+    __slots__ = ("catalog_version", "items")
+    CATALOG_VERSION_FIELD_NUMBER: _ClassVar[int]
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    catalog_version: str
+    items: _containers.RepeatedCompositeFieldContainer[QuoteItem]
+    def __init__(self, catalog_version: _Optional[str] = ..., items: _Optional[_Iterable[_Union[QuoteItem, _Mapping]]] = ...) -> None: ...
+
 class Subscription(_message.Message):
     __slots__ = ("id", "plan", "status", "period_start", "period_end")
     ID_FIELD_NUMBER: _ClassVar[int]
