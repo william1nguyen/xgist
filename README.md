@@ -1,19 +1,33 @@
 # Media Notes
 
-Media Notes turns an uploaded video or audio file into a timestamped
-transcript, a cited summary, keywords, keypoints, notes, and a summary
-audio, each linked back to the exact moment in the recording it came from.
-The interesting part isn't the transcription itself — Whisper and Gemini do
-that — it's that every upload triggers several independent, minutes-long AI
-calls that must survive a crash, retry without duplicating work, and bill a
-credit correctly even when a step fails halfway through.
+Media Notes turns a video or audio file into a timestamped transcript, a
+cited summary, keywords, keypoints, notes, and a summary audio, each linked
+to the moment in the recording it came from. Every upload triggers several
+independent AI calls that can each fail on their own and must bill credit
+correctly even on a partial failure. Seven independently deployable
+services split that problem in two: requests that need an immediate
+answer, served over gRPC behind one GraphQL gateway, and long background
+jobs, carried over Kafka and coordinated by a workflow engine.
 
-Seven independently deployable services split that problem along the two
-things a client request actually needs: an immediate answer, served over
-gRPC behind a single GraphQL gateway, or a durable background job, carried
-over Kafka and coordinated by a workflow engine. No service reads another
-service's database directly; every cross-service write goes through a
-versioned gRPC or Kafka contract.
+## Features
+
+- **Selective processing**: six independently priced steps, `transcribe`,
+  `summarize`, `extract_keywords`, `extract_keypoints`, `generate_notes`,
+  and `generate_audio_summary`. Only the steps you select run and get
+  billed.
+- **Prompt overrides**: every Gemini-backed step accepts a custom
+  instruction appended to its prompt, per request.
+- **Voice selection**: `generate_audio_summary` accepts an optional TTS
+  voice, per request.
+- **Automatic thumbnails**: generated for every upload regardless of which
+  steps you select, and not billed.
+- **Broad format support**: MP4, MOV, MKV, WebM, MP3, or WAV, up to 4 hours
+  of measured duration, probed server side rather than trusted from the
+  client.
+- **Credit-based billing**: each step reserves credit up front, settles on
+  success, and releases or refunds it on permanent failure.
+- **Subscriptions and top-ups**: credits are purchased through Polar-backed
+  checkout exposed by `hermes`.
 
 ## Architecture
 
@@ -41,29 +55,25 @@ flowchart LR
 ```
 
 Repeated `content`, `conductor`, `media`, and `billing` nodes are the same
-service shown at a later point in the pipeline, kept as separate nodes so
-every edge points left-to-right instead of looping back across another
-connection. The two `object storage` nodes are the same MinIO/S3 deployment
-for the same reason.
+service shown later in the pipeline, kept as separate nodes so every edge
+points left to right instead of looping back across another connection.
+The two `object storage` nodes are the same MinIO/S3 deployment.
 
 ### Request Path
 
 `hermes` is the only service the web app calls. It exposes GraphQL,
 authenticates every request, and calls `identity`, `billing`, `media`, and
-`content` over gRPC — one aggregation point instead of the client fanning
-out to four services itself. Every downstream call carries a deadline
-(`HERMES_DOWNSTREAM_TIMEOUT`, 5s by default) and propagates tracing context,
-so a slow domain service degrades that one field instead of hanging the
-whole request.
+`content` over gRPC. Every downstream call carries a deadline
+(`HERMES_DOWNSTREAM_TIMEOUT`, 5s by default) and propagates tracing
+context.
 
 ### Processing Pipeline and Fault Handling
 
-Everything past the upload step runs off that request path entirely.
-`media` writes a processing request and an outbox event in the same
-transaction; a relay publishes it to Kafka, and `conductor` takes it from
-there. Kafka delivery is at-least-once and every command carries an
-idempotency key, so a crashed worker resumes from the last completed step
-instead of restarting the job or double-processing one.
+Everything past the upload step runs off that request path. `media` writes
+a processing request and an outbox event in the same transaction, a relay
+publishes it to Kafka, and `conductor` takes it from there. Kafka delivery
+is at-least-once and every command carries an idempotency key, so a
+crashed worker resumes from the last completed step.
 
 Each workflow step moves through the same lifecycle:
 
@@ -79,17 +89,11 @@ stateDiagram-v2
 ```
 
 A retriable failure is redispatched with an incremented attempt, up to
-`CONDUCTOR_MAX_STEP_ATTEMPTS` (3 by default); once exhausted, the event goes
-to the dead-letter queue, the workflow is marked failed, and `billing`
-releases or refunds the reserved credit. Each `conductor-worker` command
-carries its own timeout (`WORKER_STEP_TIMEOUT_SECONDS`, 600s by default) so
-one stuck Whisper or Gemini call can't hold a Kafka partition open
-indefinitely.
-
-Cross-replica provider quota reservation (ADR 0007) is not implemented yet —
-each `conductor-worker` replica currently applies only local concurrency
-limits (`WORKER_MAX_CONCURRENT_WHISPER`, `_GEMINI`, `_TTS`), not an
-aggregate reservation shared across the pool.
+`CONDUCTOR_MAX_STEP_ATTEMPTS` (3 by default). Once exhausted, the event
+goes to the dead-letter queue, the workflow is marked failed, and
+`billing` releases or refunds the reserved credit. Each `conductor-worker`
+command carries its own timeout (`WORKER_STEP_TIMEOUT_SECONDS`, 600s by
+default).
 
 ### Database Ownership
 
@@ -100,22 +104,21 @@ aggregate reservation shared across the pool.
 | `media` | media, upload sessions, processing requests, derivatives |
 | `content` | transcripts, summaries, keywords, keypoints, notes, audio |
 | `conductor` | workflows, steps, dependencies, attempts |
-| `hermes`, `conductor-worker` | none — stateless |
+| `hermes`, `conductor-worker` | none, stateless |
 
-Every stateful service also owns its own outbox/inbox tables for
-transactional publication: a database write and the event announcing it
-either both commit or neither does.
+Every stateful service also owns its own outbox/inbox tables: a database
+write and the event announcing it either both commit or neither does.
 
 ### Services
 
 | Service | Responsibility |
 | --- | --- |
-| **hermes** | Public GraphQL API — auth context, request limits, aggregates responses from the domain services |
+| **hermes** | Public GraphQL API. Auth context, request limits, aggregates responses from the domain services |
 | **identity** | Users, accounts, sessions |
 | **billing** | Subscriptions, credit reservation/settlement, ledger |
 | **media** | Uploads, source-media metadata, processing requests |
 | **content** | Transcripts, summaries, keywords, keypoints, notes, summary audio |
-| **conductor** | Workflow orchestration — dependencies, joins, retries, timeouts |
+| **conductor** | Workflow orchestration. Dependencies, joins, retries, timeouts |
 | **conductor-worker** | Runs Whisper transcription, Gemini enrichment, and TTS as a Kafka consumer-group pool |
 
 ## Data Flow
@@ -139,9 +142,9 @@ sequenceDiagram
     Note over M: create processing request +<br/>outbox event, same transaction
 ```
 
-The file itself never passes through `hermes` or `media` — the browser
-uploads directly to object storage with a presigned URL, and the only thing
-that touches Kafka afterward is the outbox event.
+The file itself never passes through `hermes` or `media`. The browser
+uploads directly to object storage with a presigned URL, and the only
+thing that touches Kafka afterward is the outbox event.
 
 ### Processing Flow
 
@@ -169,46 +172,21 @@ sequenceDiagram
 
 This diagram shows one step (transcribe) for readability. After
 transcription, `conductor` publishes only the enrichment steps the user
-selected — summary, keywords, keypoints, notes — and Kafka may hand them to
-different `conductor-worker` replicas in parallel. `conductor` joins only
-the outputs the user asked for before publishing `processing.completed`.
-
-## Features
-
-- **Selective processing** — six independently priced steps: `transcribe`,
-  `summarize`, `extract_keywords`, `extract_keypoints`, `generate_notes`, and
-  `generate_audio_summary`. Only the steps you select run, and only their
-  credit gets reserved.
-- **Prompt overrides** — every Gemini-backed step (`summarize`,
-  `extract_keywords`, `extract_keypoints`, `generate_notes`) accepts a custom
-  instruction appended to its prompt, per request.
-- **Voice selection** — `generate_audio_summary` accepts an optional TTS
-  voice override, per request.
-- **Automatic thumbnails** — a thumbnail or cover image is generated for
-  every upload regardless of which steps you select, and isn't billed.
-- **Broad format support** — MP4, MOV, MKV, WebM, MP3, or WAV, up to 4 hours
-  of measured duration. Declared size and duration from the client are never
-  trusted; `media` probes the uploaded object itself before accepting it.
-- **Credit-based billing** — each selected step reserves credit up front,
-  settles it on success, and releases or refunds it on permanent failure.
-- **Subscriptions and top-ups** — credits come from a subscription plan or a
-  one-off top-up, both purchased through Polar-backed checkout that `hermes`
-  exposes to the web app.
+selected, and Kafka may hand them to different `conductor-worker`
+replicas in parallel.
 
 ## Deployment
 
-This is target infrastructure, not yet wired up in this repo — GitHub
+This is target infrastructure, not yet wired up in this repo. GitHub
 Actions currently only builds, lints, and tests
-(`.github/workflows/ci.yml`); the publish and GitOps steps below are the
-design it's built toward. A single k3s cluster on a VPS runs production, and
-the goal is the same one that shapes the rest of the system: no step should
-depend on someone remembering to run it by hand. GitHub Actions builds and
-tests every push, then publishes a versioned image to GHCR. Kargo watches
-GHCR for new images, runs verification against them, and — once a freight
-passes — promotes it by committing the new image tag into `deploy/` in this
-repo. ArgoCD continuously watches that same path and reconciles the cluster
-to match it, so a deploy is always "a commit lands, ArgoCD syncs it," never a
-manual `kubectl apply`.
+(`.github/workflows/ci.yml`); the steps below are the design it's built
+toward. A single k3s cluster on a VPS runs production. GitHub Actions
+builds and tests every push, then publishes a versioned image to GHCR.
+Kargo watches GHCR for new images, verifies them, and promotes a passing
+one by committing the new image tag into `deploy/` in this repo. ArgoCD
+watches that same path and reconciles the cluster to match it, so a
+deploy is always a commit landing and ArgoCD syncing it, never a manual
+`kubectl apply`.
 
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "52px"}, "flowchart": {"curve": "linear", "padding": 36, "nodeSpacing": 90, "rankSpacing": 110, "diagramPadding": 30, "subGraphTitleMargin": {"top": 20, "bottom": 20}}}}%%
@@ -246,18 +224,17 @@ flowchart LR
     ARGOCD -- "sync" --> K3S
 ```
 
-Three boundaries, three concerns: **GitHub** builds and publishes an image;
-the **control plane** (Kargo + ArgoCD) decides what's allowed to run and
-reconciles it; **k3s** just runs whatever the control plane last synced. The
-flow only moves left to right — nothing loops back into an earlier
-boundary — so no connector has to cross another.
+Three boundaries, three concerns. **GitHub** builds and publishes an
+image. The **control plane** (Kargo + ArgoCD) decides what's allowed to
+run and reconciles it. **k3s** just runs whatever the control plane last
+synced. The flow only moves left to right, so no connector has to cross
+another.
 
-Because there's only one environment today, Kargo's job is narrower than a
-typical multi-stage setup: it's a verified, policy-gated image promoter
-rather than something moving freight through dev → staging → prod. That
-still keeps a human-reviewable Git commit between "image passed CI" and
-"image is running in production" instead of ArgoCD auto-syncing on every
-push to GHCR.
+With one environment today, Kargo acts as a verified, policy-gated image
+promoter rather than a multi-stage dev, staging, and prod pipeline. It
+still keeps a reviewable Git commit between a passing image and one
+running in production, instead of ArgoCD auto-syncing on every push to
+GHCR.
 
 ## Getting Started
 
@@ -291,7 +268,7 @@ make hermes:run
 make web:dev
 ```
 
-Web: `http://localhost:5173` · hermes GraphQL: `http://localhost:8086/graphql`
+Web: `http://localhost:5173`. hermes GraphQL: `http://localhost:8086/graphql`.
 
 Or bring everything up in containers: `docker compose --profile app up --build`.
 
@@ -310,7 +287,7 @@ makefiles.
 
 ## Learn more
 
-Full request/event flow, failure and retry behavior, and storage boundaries
-live in [docs/architecture.md](docs/architecture.md). Accepted design
-decisions are in [docs/adr/](docs/adr/), and each service's detailed scope
-and schema is in [docs/services/](docs/services/).
+Full request/event flow, failure and retry behavior, and storage
+boundaries live in [docs/architecture.md](docs/architecture.md). Design
+decisions are in [docs/adr/](docs/adr/). Service scope and schema are in
+[docs/services/](docs/services/).
