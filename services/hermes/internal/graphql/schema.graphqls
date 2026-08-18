@@ -1,9 +1,6 @@
 # hermes's public schema, per docs/services/hermes.md and
 # docs/adr/0005-progress-update-delivery.md. Every timestamp is an RFC
-# 3339 string. subscriptionCheckout is intentionally not exposed here:
-# billing has no checkout/subscription-ingestion implementation yet
-# (docs/services/billing.md's "Deferred" section) — add it once that
-# lands rather than half-wiring a mutation with nothing behind it.
+# 3339 string.
 
 enum AccountState {
   ACTIVE
@@ -259,6 +256,43 @@ type BillingSummary {
   subscription: BillingSubscription
 }
 
+# Plan is one subscribable plan, read live from billing's Polar product
+# catalog on every query — never a hardcoded list. Adding, archiving, or
+# editing a Polar product changes what this returns immediately, with no
+# deployment. There is no "free" Plan entry: the free tier is simply the
+# absence of an active subscription (BillingSummary.subscription unset).
+type Plan {
+  id: ID!
+  name: String!
+  description: String
+  # priceAmount is in the currency's smallest unit (e.g. cents); 0 with
+  # an empty priceCurrency means the plan has no fixed price configured.
+  priceAmount: Int!
+  priceCurrency: String
+  recurringInterval: String!
+  benefits: [String!]!
+}
+
+# CreditPack is one one-time credit top-up, read live from Polar — never
+# hardcoded locally. id is passed to createCheckoutSession the same way a
+# Plan.id is; checkout works identically for a subscription and a
+# one-time purchase.
+type CreditPack {
+  id: ID!
+  name: String!
+  description: String
+  credits: Int!
+  priceAmount: Int!
+  priceCurrency: String
+}
+
+# CheckoutSession carries the Polar-hosted checkout URL to redirect the
+# caller to. The resulting subscription's state reaches billingSummary
+# asynchronously, once Polar's webhook lands — not through this mutation.
+type CheckoutSession {
+  checkoutUrl: String!
+}
+
 # CreditLedgerEntry is one immutable row of the caller's credit history —
 # a reserve, settle, release, or purchase. itemId is only set on a settle
 # entry (the processing option id the reservation paid for).
@@ -341,6 +375,12 @@ type Query {
   # billingSummary returns the caller's credit balance and subscription
   # state.
   billingSummary: BillingSummary!
+  # plans returns every subscribable plan, read live from Polar — never
+  # hardcoded locally.
+  plans: [Plan!]!
+  # creditPacks returns every one-time credit top-up, read live from
+  # Polar — never hardcoded locally.
+  creditPacks: [CreditPack!]!
   # creditLedgerHistory returns a cursor-paginated page of the caller's
   # credit ledger, newest first — backs the usage screen's charts.
   creditLedgerHistory(cursor: String, pageSize: Int): CreditLedgerPage!
@@ -424,4 +464,15 @@ type Mutation {
   # feature, or the confirmation step after draftAudioScript). Poll
   # audioJob(id) or audioJobs for the result.
   generateStandaloneAudio(text: String!, voice: String, idempotencyKey: String): AudioJob!
+  # createCheckoutSession starts a Polar-hosted checkout for planId — a
+  # Plan.id from the plans query for a subscription, or a CreditPack.id
+  # from the creditPacks query for a one-time top-up; checkout works
+  # identically for both. Redirect the browser to the returned
+  # checkoutUrl; the subscription or credit grant itself lands
+  # asynchronously through Polar's webhook once payment completes.
+  createCheckoutSession(planId: String!): CheckoutSession!
+  # cancelSubscription schedules the caller's active subscription to end
+  # at the current billing period's close, rather than revoking access
+  # immediately. Fails if the caller has no active subscription.
+  cancelSubscription: BillingSubscription!
 }

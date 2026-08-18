@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+	<title>Media Notes</title>
+	<rect width="32" height="32" rx="7" fill="#e3784d" />
+	<g transform="translate(4,4)" fill="none" stroke="#fdfcf9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M2 10v3" />
+		<path d="M6 6v11" />
+		<path d="M10 3v18" />
+		<path d="M14 8v7" />
+		<path d="M18 5v13" />
+		<path d="M22 10v3" />
+	</g>
+</svg>

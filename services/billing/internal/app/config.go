@@ -20,6 +20,13 @@ type Config struct {
 	QuoteTTL        time.Duration
 	ReservationTTL  time.Duration
 	PolarWebhookKey string
+	// PolarAccessToken, PolarServer, and PolarSuccessURL configure the
+	// outbound half of the Polar integration (checkout creation, plan
+	// listing, cancellation) — see internal/provider/polar_client.go.
+	// PolarWebhookKey above is the inbound half.
+	PolarAccessToken string
+	PolarServer      string
+	PolarSuccessURL  string
 
 	ShutdownTimeout time.Duration
 	LogLevel        string
@@ -29,16 +36,19 @@ type Config struct {
 // every field except DatabaseURL, which is required.
 func LoadConfig() (Config, error) {
 	cfg := Config{
-		HTTPAddr:        getEnv("BILLING_HTTP_ADDR", ":8082"),
-		GRPCAddr:        getEnv("BILLING_GRPC_ADDR", ":9093"),
-		DatabaseURL:     os.Getenv("DATABASE_URL"),
-		KafkaBrokers:    splitCSV(os.Getenv("KAFKA_BROKERS")),
-		CatalogVersion:  getEnv("BILLING_CATALOG_VERSION", "launch-v1"),
-		QuoteTTL:        15 * time.Minute,
-		ReservationTTL:  24 * time.Hour,
-		PolarWebhookKey: os.Getenv("BILLING_POLAR_WEBHOOK_SECRET"),
-		ShutdownTimeout: 10 * time.Second,
-		LogLevel:        getEnv("LOG_LEVEL", "info"),
+		HTTPAddr:         getEnv("BILLING_HTTP_ADDR", ":8082"),
+		GRPCAddr:         getEnv("BILLING_GRPC_ADDR", ":9093"),
+		DatabaseURL:      os.Getenv("DATABASE_URL"),
+		KafkaBrokers:     splitCSV(os.Getenv("KAFKA_BROKERS")),
+		CatalogVersion:   getEnv("BILLING_CATALOG_VERSION", "launch-v1"),
+		QuoteTTL:         15 * time.Minute,
+		ReservationTTL:   24 * time.Hour,
+		PolarWebhookKey:  os.Getenv("BILLING_POLAR_WEBHOOK_SECRET"),
+		PolarAccessToken: os.Getenv("BILLING_POLAR_ACCESS_TOKEN"),
+		PolarServer:      getEnv("BILLING_POLAR_SERVER", "sandbox"),
+		PolarSuccessURL:  getEnv("BILLING_POLAR_SUCCESS_URL", "http://localhost:3000/billing?checkout=success"),
+		ShutdownTimeout:  10 * time.Second,
+		LogLevel:         getEnv("LOG_LEVEL", "info"),
 	}
 
 	if cfg.DatabaseURL == "" {

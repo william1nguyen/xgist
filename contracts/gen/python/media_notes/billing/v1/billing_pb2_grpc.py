@@ -51,6 +51,31 @@ class BillingServiceStub:
                 request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.SerializeToString,
                 response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.FromString,
                 _registered_method=True)
+        self.GetPriceCatalog = channel.unary_unary(
+                '/media_notes.billing.v1.BillingService/GetPriceCatalog',
+                request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogRequest.SerializeToString,
+                response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogResponse.FromString,
+                _registered_method=True)
+        self.ListPlans = channel.unary_unary(
+                '/media_notes.billing.v1.BillingService/ListPlans',
+                request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListPlansRequest.SerializeToString,
+                response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListPlansResponse.FromString,
+                _registered_method=True)
+        self.ListCreditPacks = channel.unary_unary(
+                '/media_notes.billing.v1.BillingService/ListCreditPacks',
+                request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditPacksRequest.SerializeToString,
+                response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditPacksResponse.FromString,
+                _registered_method=True)
+        self.CreateCheckoutSession = channel.unary_unary(
+                '/media_notes.billing.v1.BillingService/CreateCheckoutSession',
+                request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CreateCheckoutSessionRequest.SerializeToString,
+                response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CreateCheckoutSessionResponse.FromString,
+                _registered_method=True)
+        self.CancelSubscription = channel.unary_unary(
+                '/media_notes.billing.v1.BillingService/CancelSubscription',
+                request_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CancelSubscriptionRequest.SerializeToString,
+                response_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CancelSubscriptionResponse.FromString,
+                _registered_method=True)
 
 
 class BillingServiceServicer:
@@ -83,6 +108,55 @@ class BillingServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetPriceCatalog(self, request, context):
+        """GetPriceCatalog returns every priced item in the active catalog
+        version. Callers must never hardcode a price locally — this is the
+        single source of truth a client renders a price list from before the
+        caller has made a selection to price with GetQuote.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListPlans(self, request, context):
+        """ListPlans returns every subscribable plan, read live from Polar's
+        product catalog — never a locally configured list. Adding, archiving,
+        or editing a Polar product changes what this returns with no
+        deployment: Polar's dashboard is the plan catalog's source of truth.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListCreditPacks(self, request, context):
+        """ListCreditPacks returns every one-time credit top-up, read live from
+        Polar the same way ListPlans reads subscription plans.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateCheckoutSession(self, request, context):
+        """CreateCheckoutSession starts a Polar-hosted checkout for one plan or
+        credit pack (product_id is either a Plan.id or a CreditPack.id — the
+        checkout itself doesn't care which) and returns the URL to redirect
+        the user to. The resulting subscription or credit grant reaches
+        billing asynchronously through the Polar webhook, not through this
+        RPC's response.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CancelSubscription(self, request, context):
+        """CancelSubscription schedules the user's active subscription to end at
+        the current billing period's close (Polar's cancel-at-period-end
+        behavior) rather than revoking access immediately.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BillingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -100,6 +174,31 @@ def add_BillingServiceServicer_to_server(servicer, server):
                     servicer.ListCreditLedger,
                     request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.FromString,
                     response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.SerializeToString,
+            ),
+            'GetPriceCatalog': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPriceCatalog,
+                    request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogRequest.FromString,
+                    response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogResponse.SerializeToString,
+            ),
+            'ListPlans': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListPlans,
+                    request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListPlansRequest.FromString,
+                    response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListPlansResponse.SerializeToString,
+            ),
+            'ListCreditPacks': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListCreditPacks,
+                    request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditPacksRequest.FromString,
+                    response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditPacksResponse.SerializeToString,
+            ),
+            'CreateCheckoutSession': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateCheckoutSession,
+                    request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CreateCheckoutSessionRequest.FromString,
+                    response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CreateCheckoutSessionResponse.SerializeToString,
+            ),
+            'CancelSubscription': grpc.unary_unary_rpc_method_handler(
+                    servicer.CancelSubscription,
+                    request_deserializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CancelSubscriptionRequest.FromString,
+                    response_serializer=media__notes_dot_billing_dot_v1_dot_billing__pb2.CancelSubscriptionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -185,6 +284,141 @@ class BillingService:
             '/media_notes.billing.v1.BillingService/ListCreditLedger',
             media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerRequest.SerializeToString,
             media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditLedgerResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPriceCatalog(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.billing.v1.BillingService/GetPriceCatalog',
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogRequest.SerializeToString,
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.GetPriceCatalogResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListPlans(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.billing.v1.BillingService/ListPlans',
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.ListPlansRequest.SerializeToString,
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.ListPlansResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListCreditPacks(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.billing.v1.BillingService/ListCreditPacks',
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditPacksRequest.SerializeToString,
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.ListCreditPacksResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateCheckoutSession(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.billing.v1.BillingService/CreateCheckoutSession',
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.CreateCheckoutSessionRequest.SerializeToString,
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.CreateCheckoutSessionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CancelSubscription(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/media_notes.billing.v1.BillingService/CancelSubscription',
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.CancelSubscriptionRequest.SerializeToString,
+            media__notes_dot_billing_dot_v1_dot_billing__pb2.CancelSubscriptionResponse.FromString,
             options,
             channel_credentials,
             insecure,

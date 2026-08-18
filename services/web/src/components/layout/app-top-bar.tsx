@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
 import { CreditChip } from "@/components/layout/credit-chip";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -112,8 +110,6 @@ export function AppTopBar({ onOpenNav }: { onOpenNav: () => void }) {
 
 			<div className="flex shrink-0 items-center gap-2">
 				<CreditChip />
-				<ThemeToggle />
-				<UserMenu collapsed />
 			</div>
 		</header>
 	);

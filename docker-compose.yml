@@ -174,9 +174,13 @@ services:
       KAFKA_BROKERS: localhost:9092
       BILLING_HTTP_ADDR: :8082
       BILLING_GRPC_ADDR: :9093
-      # Polar isn't needed to run the service — this only verifies inbound
-      # webhook signatures, checked lazily per-request, not at startup.
+      # Polar isn't needed to run the service — these are only used lazily,
+      # per-request (webhook signature verification, checkout/plan-catalog
+      # calls), never checked at startup.
       BILLING_POLAR_WEBHOOK_SECRET: ${BILLING_POLAR_WEBHOOK_SECRET:-}
+      BILLING_POLAR_ACCESS_TOKEN: ${BILLING_POLAR_ACCESS_TOKEN:-}
+      BILLING_POLAR_SERVER: ${BILLING_POLAR_SERVER:-sandbox}
+      BILLING_POLAR_SUCCESS_URL: ${BILLING_POLAR_SUCCESS_URL:-http://localhost:3000/billing?checkout=success}
       LOG_LEVEL: info
     depends_on:
       billing-migrate:

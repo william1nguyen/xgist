@@ -61,6 +61,18 @@ func (f *fakeBilling) GetBillingSummary(ctx context.Context, userID uuid.UUID) (
 func (f *fakeBilling) ListCreditLedger(ctx context.Context, userID uuid.UUID, cursor string, pageSize int32) (clients.LedgerPage, error) {
 	return clients.LedgerPage{}, nil
 }
+func (f *fakeBilling) ListPlans(ctx context.Context) ([]clients.Plan, error) {
+	return nil, nil
+}
+func (f *fakeBilling) ListCreditPacks(ctx context.Context) ([]clients.CreditPack, error) {
+	return nil, nil
+}
+func (f *fakeBilling) CreateCheckoutSession(ctx context.Context, userID uuid.UUID, userEmail, planID string) (string, error) {
+	return "https://example.test/checkout", nil
+}
+func (f *fakeBilling) CancelSubscription(ctx context.Context, userID uuid.UUID) (clients.Subscription, error) {
+	return clients.Subscription{}, nil
+}
 
 type fakeMedia struct {
 	byID map[uuid.UUID]clients.Media

@@ -14,8 +14,8 @@ cmd/api/main.go
 internal/app/              # startup, shutdown, health
 internal/quote/            # catalog-backed pricing and quote issuance
 internal/credit/           # reservation, settlement, release, ledger
-internal/subscription/     # subscription read path for GetBillingSummary
-internal/provider/         # Polar webhook verification and purchase credit
+internal/subscription/     # subscription read/write path for GetBillingSummary and webhooks
+internal/provider/         # Polar webhook verification, purchase credit, and outbound checkout/plan/cancel calls
 internal/grpc/             # generated-server adapter and error mapping
 internal/events/           # outbox relay, credit-command consumer
 internal/store/            # PostgreSQL repositories
@@ -37,7 +37,7 @@ not the reverse.
 | quotes | id, user_id, catalog_version, amount, options (priced items), expires_at, accepted_at |
 | credit_reservations | id, user_id, workflow_id, quote_id, amount, remaining, status, expires_at |
 | credit_ledger | id, user_id, reservation_id, delta, entry_type, idempotency_key (unique), metadata |
-| subscriptions | id, billing_account_id, provider_id, plan, status, period |
+| subscriptions | id, billing_account_id, provider_id, plan, status, period, updated_at |
 | webhook_events | provider_event_id, event_type, payload, processed_at |
 | outbox, inbox | event/consumer deduplication state |
 
@@ -123,26 +123,102 @@ deletion-completion topics.
 
 ## Provider webhooks
 
-`POST /webhooks/polar` verifies an HMAC-SHA256 signature (header
-`Polar-Signature`, hex-encoded, over the raw body) using
-`BILLING_POLAR_WEBHOOK_SECRET`, matching the v1 server's
-`apps/server/src/routes/polar-webhook.ts` so existing Polar product
-configuration keeps working unchanged. An `order.created` event credits
-`product.metadata.credits` to `metadata.userId`. Every correctly signed event
-is recorded to `webhook_events` for audit regardless of type; recording is
-best-effort bookkeeping, not the idempotency gate — `ApplyPurchase`'s ledger
-entry, keyed by a SHA-256 hash of the raw payload, is. Polar's documented
-webhook envelope does not guarantee a stable event ID this service can rely
-on without a live contract to verify against, so identical redeliveries are
-deduplicated by content hash instead of a provider-supplied ID.
+`POST /webhooks/polar` verifies a signature shaped like the
+[Standard Webhooks](https://www.standardwebhooks.com/) specification —
+Polar's actual scheme, not the simpler bespoke one the removed v1 server
+used to approximate it — but with one confirmed departure from that spec.
+Three headers carry the signature material: `webhook-id`,
+`webhook-timestamp`, and `webhook-signature` (space-delimited
+`"v1,<base64 sig>"` entries, supporting key rotation — any entry matching
+counts as valid). The signed content is `"{id}.{timestamp}.{body}"`,
+HMAC-SHA256. Where this departs from the spec: the key is
+`BILLING_POLAR_WEBHOOK_SECRET`'s literal bytes, `whsec_` prefix included —
+**not** base64-decoded after stripping that prefix, despite the secret's
+base64-shaped appearance and the spec's documented behavior. This was
+verified empirically against a live Polar account's real webhook
+deliveries (every delivery matched the literal-string key, none matched
+the spec's decoded-key interpretation) after the decoded-key
+implementation rejected 100% of real traffic with a valid, confirmed-
+correct secret. A timestamp more than 5 minutes from the server's clock in
+either direction is rejected outright, per the spec's replay-attack
+guidance, before the signature is even checked. An `order.created` event
+credits
+`product.metadata.credits` to `metadata.userId`. Every `subscription.*` event
+(created, active, updated, canceled, revoked, uncanceled) upserts
+`billing_accounts` (keyed by `user_id`, storing `polar_customer_id`) and
+`subscriptions` (keyed by Polar's subscription id as `provider_id`) from
+`data.status`, `data.product.name`, and `data.current_period_start/end` —
+Polar's status string maps onto `subscription.Status` via
+`mapSubscriptionStatus`; an unrecognized value (e.g. `incomplete`, before the
+first payment settles) is stored as `none` rather than guessed. Both event
+families resolve the owning user from `metadata.userId`, set when the
+checkout session was created and carried by Polar onto everything that
+checkout produces. Every correctly signed event is recorded to
+`webhook_events` for audit regardless of type; recording is best-effort
+bookkeeping, not the idempotency gate — `ApplyPurchase`'s ledger entry, keyed
+by a SHA-256 hash of the raw payload, and the subscription upsert, keyed by
+`provider_id`, are. Polar's documented webhook envelope does not guarantee a
+stable event ID this service can rely on without a live contract to verify
+against, so identical redeliveries are deduplicated by content hash (orders)
+or by the natural provider_id key (subscriptions) instead of a
+provider-supplied event ID.
+
+Every `metadata` object in a Polar payload decodes into `map[string]any`
+(`metadata.String(key)`), not `map[string]string`: `metadata.userId` is
+always a string (this service sets it when creating the checkout), but a
+product's `metadata.credits` is configured directly by the merchant through
+Polar's dashboard and comes back as whatever JSON type was typed in — a
+live product fetched from Polar had `"credits": 2000` as a JSON number.
+Decoding straight into `map[string]string` fails the *entire* payload the
+instant any one metadata value is non-string, silently dropping every
+credit grant for that product; `metadata.String` coerces a JSON string or
+number to a string and leaves anything else as `""`.
+
+## Checkout and plan catalog
+
+`internal/provider/polar_client.go`'s `PolarClient` is the outbound half of
+the Polar integration (no official Polar Go SDK exists, so this is a small
+hand-rolled `net/http` client, matching `PolarHandler`'s own no-SDK
+approach): `ListPlans` lists every active, non-archived, recurring Polar
+product live — there is no locally configured plan table, so adding,
+archiving, or repricing a plan in the Polar dashboard changes what
+`ListPlans` returns immediately, with no deployment. `ListCreditPacks`
+mirrors this for one-time top-ups: every active, non-archived,
+**non-recurring** Polar product that has a positive `metadata.credits` is a
+purchasable credit pack; a non-recurring product without that metadata is
+silently excluded rather than surfaced as malformed. Crediting a top-up
+purchase needs no dedicated code path — Polar reports every successful
+charge, whether a one-time purchase or a subscription's initial/renewal
+payment, as `order.created` (see "Provider webhooks" above), distinguished
+only by `billing_reason` (`purchase` / `subscription_create` /
+`subscription_cycle`), which `handleOrderCreated` doesn't branch on: it
+grants `product.metadata.credits` to `metadata.userId` the same way
+regardless of why the order was created, so a subscription renewal grants
+credit automatically through the exact same path a manual top-up does.
+`CreateCheckout` starts a Polar-hosted checkout for one product id (a plan's
+or a credit pack's — the checkout itself doesn't distinguish) and stamps
+`metadata.userId`, which the subscription and order webhooks above rely on.
+`CancelAtPeriodEnd` schedules
+a Polar subscription to end at its current period's close; it does not write
+`subscriptions` directly — the resulting `subscription.updated` webhook does,
+the same path every other subscription state change reaches billing through.
+`BILLING_POLAR_ACCESS_TOKEN` authorizes these calls; `BILLING_POLAR_SERVER`
+(`sandbox` or `production`) selects Polar's API host, defaulting to sandbox
+so a misconfigured value fails safely toward the environment that can't move
+real money.
 
 ## Tests
 
 `internal/quote`, `internal/provider`, and `internal/events` are covered by
 unit tests against fakes: pricing every catalog combination, the
 `generate_audio_summary` → `summarize` dependency, quote expiry versus
-accepted-quote validity, webhook signature rejection, purchase idempotency on
-redelivery, and command-consumer dedup plus rejection-vs-retry classification.
+accepted-quote validity, webhook signature rejection (including a stale
+`webhook-timestamp` outside the replay-attack tolerance window), purchase
+idempotency on redelivery (including a numeric `metadata.credits`, the real
+shape Polar returns for dashboard-configured product metadata), subscription
+status mapping across every Polar status string, subscription upsert
+idempotency on redelivery, and command-consumer dedup plus
+rejection-vs-retry classification.
 `internal/store` has a Testcontainers-backed integration test
 (`V2_INTEGRATION_TESTS=1`) exercising the seeded catalog, reserve/duplicate-
 reserve, insufficient-credit rejection, and settle-then-release against real
@@ -167,10 +243,6 @@ rather than half-building it:
   but there is no operator-facing command to issue one.
 - **Cross-service billing/conductor reconciler.** ADR 0008's reconciliation
   contract needs a live conductor to compare against.
-- **Subscription ingestion.** `billing.subscriptions` and the
-  `GetBillingSummary` read path exist, but the wired Polar webhook handling
-  covers `order.created` (credit purchase) only; no producer of subscription
-  lifecycle state exists yet.
 - **Shadow-mode rollout.** ADR 0008 calls for computing quote/reservation
   decisions without enforcement before going live; this implementation
   enforces from the start, matching how identity shipped its deletion flow

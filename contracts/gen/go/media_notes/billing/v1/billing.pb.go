@@ -865,6 +865,555 @@ func (x *ListCreditLedgerResponse) GetNextCursor() string {
 	return ""
 }
 
+// Plan is one subscribable Polar product, read live from Polar — never
+// stored locally. id is the Polar product id, passed back verbatim to
+// CreateCheckoutSession.
+type Plan struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// price_amount is 0 and price_currency is empty for a product with no
+	// fixed price configured in Polar (e.g. a pay-what-you-want tier).
+	PriceAmount   int64  `protobuf:"varint,4,opt,name=price_amount,json=priceAmount,proto3" json:"price_amount,omitempty"`
+	PriceCurrency string `protobuf:"bytes,5,opt,name=price_currency,json=priceCurrency,proto3" json:"price_currency,omitempty"`
+	// recurring_interval is "month" or "year".
+	RecurringInterval string   `protobuf:"bytes,6,opt,name=recurring_interval,json=recurringInterval,proto3" json:"recurring_interval,omitempty"`
+	Benefits          []string `protobuf:"bytes,7,rep,name=benefits,proto3" json:"benefits,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *Plan) Reset() {
+	*x = Plan{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Plan) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Plan) ProtoMessage() {}
+
+func (x *Plan) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Plan.ProtoReflect.Descriptor instead.
+func (*Plan) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *Plan) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Plan) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Plan) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Plan) GetPriceAmount() int64 {
+	if x != nil {
+		return x.PriceAmount
+	}
+	return 0
+}
+
+func (x *Plan) GetPriceCurrency() string {
+	if x != nil {
+		return x.PriceCurrency
+	}
+	return ""
+}
+
+func (x *Plan) GetRecurringInterval() string {
+	if x != nil {
+		return x.RecurringInterval
+	}
+	return ""
+}
+
+func (x *Plan) GetBenefits() []string {
+	if x != nil {
+		return x.Benefits
+	}
+	return nil
+}
+
+type ListPlansRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPlansRequest) Reset() {
+	*x = ListPlansRequest{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPlansRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPlansRequest) ProtoMessage() {}
+
+func (x *ListPlansRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPlansRequest.ProtoReflect.Descriptor instead.
+func (*ListPlansRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{14}
+}
+
+// ListPlansResponse returns every active, non-archived, recurring Polar
+// product. There is no "free" entry: the free tier is simply the absence
+// of an active subscription (BillingSummary.subscription unset).
+type ListPlansResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Plans         []*Plan                `protobuf:"bytes,1,rep,name=plans,proto3" json:"plans,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPlansResponse) Reset() {
+	*x = ListPlansResponse{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPlansResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPlansResponse) ProtoMessage() {}
+
+func (x *ListPlansResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPlansResponse.ProtoReflect.Descriptor instead.
+func (*ListPlansResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListPlansResponse) GetPlans() []*Plan {
+	if x != nil {
+		return x.Plans
+	}
+	return nil
+}
+
+// CreateCheckoutSessionRequest identifies the checking-out user and which
+// Polar product they selected — plan_id is a Plan.id (from ListPlans) for
+// a subscription, or a CreditPack.id (from ListCreditPacks) for a
+// one-time top-up; Polar checkout works identically for both.
+type CreateCheckoutSessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserEmail     string                 `protobuf:"bytes,2,opt,name=user_email,json=userEmail,proto3" json:"user_email,omitempty"`
+	PlanId        string                 `protobuf:"bytes,3,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateCheckoutSessionRequest) Reset() {
+	*x = CreateCheckoutSessionRequest{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateCheckoutSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCheckoutSessionRequest) ProtoMessage() {}
+
+func (x *CreateCheckoutSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCheckoutSessionRequest.ProtoReflect.Descriptor instead.
+func (*CreateCheckoutSessionRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CreateCheckoutSessionRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *CreateCheckoutSessionRequest) GetUserEmail() string {
+	if x != nil {
+		return x.UserEmail
+	}
+	return ""
+}
+
+func (x *CreateCheckoutSessionRequest) GetPlanId() string {
+	if x != nil {
+		return x.PlanId
+	}
+	return ""
+}
+
+// CreateCheckoutSessionResponse carries the Polar-hosted checkout URL to
+// redirect the user to.
+type CreateCheckoutSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CheckoutUrl   string                 `protobuf:"bytes,1,opt,name=checkout_url,json=checkoutUrl,proto3" json:"checkout_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateCheckoutSessionResponse) Reset() {
+	*x = CreateCheckoutSessionResponse{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateCheckoutSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCheckoutSessionResponse) ProtoMessage() {}
+
+func (x *CreateCheckoutSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCheckoutSessionResponse.ProtoReflect.Descriptor instead.
+func (*CreateCheckoutSessionResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CreateCheckoutSessionResponse) GetCheckoutUrl() string {
+	if x != nil {
+		return x.CheckoutUrl
+	}
+	return ""
+}
+
+// CancelSubscriptionRequest identifies the user whose active subscription
+// should be canceled.
+type CancelSubscriptionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelSubscriptionRequest) Reset() {
+	*x = CancelSubscriptionRequest{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelSubscriptionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelSubscriptionRequest) ProtoMessage() {}
+
+func (x *CancelSubscriptionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelSubscriptionRequest.ProtoReflect.Descriptor instead.
+func (*CancelSubscriptionRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *CancelSubscriptionRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type CancelSubscriptionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Subscription  *Subscription          `protobuf:"bytes,1,opt,name=subscription,proto3" json:"subscription,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelSubscriptionResponse) Reset() {
+	*x = CancelSubscriptionResponse{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelSubscriptionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelSubscriptionResponse) ProtoMessage() {}
+
+func (x *CancelSubscriptionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelSubscriptionResponse.ProtoReflect.Descriptor instead.
+func (*CancelSubscriptionResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *CancelSubscriptionResponse) GetSubscription() *Subscription {
+	if x != nil {
+		return x.Subscription
+	}
+	return nil
+}
+
+// CreditPack is one one-time, non-recurring Polar product configured to
+// grant a fixed number of credits on purchase, read live from Polar —
+// never stored locally. id is the Polar product id, passed back verbatim
+// to CreateCheckoutSession.
+type CreditPack struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Credits       int64                  `protobuf:"varint,4,opt,name=credits,proto3" json:"credits,omitempty"`
+	PriceAmount   int64                  `protobuf:"varint,5,opt,name=price_amount,json=priceAmount,proto3" json:"price_amount,omitempty"`
+	PriceCurrency string                 `protobuf:"bytes,6,opt,name=price_currency,json=priceCurrency,proto3" json:"price_currency,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreditPack) Reset() {
+	*x = CreditPack{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreditPack) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreditPack) ProtoMessage() {}
+
+func (x *CreditPack) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreditPack.ProtoReflect.Descriptor instead.
+func (*CreditPack) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *CreditPack) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CreditPack) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreditPack) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *CreditPack) GetCredits() int64 {
+	if x != nil {
+		return x.Credits
+	}
+	return 0
+}
+
+func (x *CreditPack) GetPriceAmount() int64 {
+	if x != nil {
+		return x.PriceAmount
+	}
+	return 0
+}
+
+func (x *CreditPack) GetPriceCurrency() string {
+	if x != nil {
+		return x.PriceCurrency
+	}
+	return ""
+}
+
+type ListCreditPacksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCreditPacksRequest) Reset() {
+	*x = ListCreditPacksRequest{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCreditPacksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCreditPacksRequest) ProtoMessage() {}
+
+func (x *ListCreditPacksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCreditPacksRequest.ProtoReflect.Descriptor instead.
+func (*ListCreditPacksRequest) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{21}
+}
+
+type ListCreditPacksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Packs         []*CreditPack          `protobuf:"bytes,1,rep,name=packs,proto3" json:"packs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCreditPacksResponse) Reset() {
+	*x = ListCreditPacksResponse{}
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCreditPacksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCreditPacksResponse) ProtoMessage() {}
+
+func (x *ListCreditPacksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_media_notes_billing_v1_billing_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCreditPacksResponse.ProtoReflect.Descriptor instead.
+func (*ListCreditPacksResponse) Descriptor() ([]byte, []int) {
+	return file_media_notes_billing_v1_billing_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListCreditPacksResponse) GetPacks() []*CreditPack {
+	if x != nil {
+		return x.Packs
+	}
+	return nil
+}
+
 var File_media_notes_billing_v1_billing_proto protoreflect.FileDescriptor
 
 const file_media_notes_billing_v1_billing_proto_rawDesc = "" +
@@ -924,18 +1473,55 @@ const file_media_notes_billing_v1_billing_proto_rawDesc = "" +
 	"\x18ListCreditLedgerResponse\x12=\n" +
 	"\aentries\x18\x01 \x03(\v2#.media_notes.billing.v1.LedgerEntryR\aentries\x12\x1f\n" +
 	"\vnext_cursor\x18\x02 \x01(\tR\n" +
-	"nextCursor*\xbb\x01\n" +
+	"nextCursor\"\xe1\x01\n" +
+	"\x04Plan\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12!\n" +
+	"\fprice_amount\x18\x04 \x01(\x03R\vpriceAmount\x12%\n" +
+	"\x0eprice_currency\x18\x05 \x01(\tR\rpriceCurrency\x12-\n" +
+	"\x12recurring_interval\x18\x06 \x01(\tR\x11recurringInterval\x12\x1a\n" +
+	"\bbenefits\x18\a \x03(\tR\bbenefits\"\x12\n" +
+	"\x10ListPlansRequest\"G\n" +
+	"\x11ListPlansResponse\x122\n" +
+	"\x05plans\x18\x01 \x03(\v2\x1c.media_notes.billing.v1.PlanR\x05plans\"o\n" +
+	"\x1cCreateCheckoutSessionRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"\n" +
+	"user_email\x18\x02 \x01(\tR\tuserEmail\x12\x17\n" +
+	"\aplan_id\x18\x03 \x01(\tR\x06planId\"B\n" +
+	"\x1dCreateCheckoutSessionResponse\x12!\n" +
+	"\fcheckout_url\x18\x01 \x01(\tR\vcheckoutUrl\"4\n" +
+	"\x19CancelSubscriptionRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"f\n" +
+	"\x1aCancelSubscriptionResponse\x12H\n" +
+	"\fsubscription\x18\x01 \x01(\v2$.media_notes.billing.v1.SubscriptionR\fsubscription\"\xb6\x01\n" +
+	"\n" +
+	"CreditPack\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x18\n" +
+	"\acredits\x18\x04 \x01(\x03R\acredits\x12!\n" +
+	"\fprice_amount\x18\x05 \x01(\x03R\vpriceAmount\x12%\n" +
+	"\x0eprice_currency\x18\x06 \x01(\tR\rpriceCurrency\"\x18\n" +
+	"\x16ListCreditPacksRequest\"S\n" +
+	"\x17ListCreditPacksResponse\x128\n" +
+	"\x05packs\x18\x01 \x03(\v2\".media_notes.billing.v1.CreditPackR\x05packs*\xbb\x01\n" +
 	"\x12SubscriptionStatus\x12#\n" +
 	"\x1fSUBSCRIPTION_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18SUBSCRIPTION_STATUS_NONE\x10\x01\x12\x1e\n" +
 	"\x1aSUBSCRIPTION_STATUS_ACTIVE\x10\x02\x12 \n" +
 	"\x1cSUBSCRIPTION_STATUS_CANCELED\x10\x03\x12 \n" +
-	"\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x042\xd4\x03\n" +
+	"\x1cSUBSCRIPTION_STATUS_PAST_DUE\x10\x042\xae\a\n" +
 	"\x0eBillingService\x12]\n" +
 	"\bGetQuote\x12'.media_notes.billing.v1.GetQuoteRequest\x1a(.media_notes.billing.v1.GetQuoteResponse\x12x\n" +
 	"\x11GetBillingSummary\x120.media_notes.billing.v1.GetBillingSummaryRequest\x1a1.media_notes.billing.v1.GetBillingSummaryResponse\x12u\n" +
 	"\x10ListCreditLedger\x12/.media_notes.billing.v1.ListCreditLedgerRequest\x1a0.media_notes.billing.v1.ListCreditLedgerResponse\x12r\n" +
-	"\x0fGetPriceCatalog\x12..media_notes.billing.v1.GetPriceCatalogRequest\x1a/.media_notes.billing.v1.GetPriceCatalogResponseB\xfa\x01\n" +
+	"\x0fGetPriceCatalog\x12..media_notes.billing.v1.GetPriceCatalogRequest\x1a/.media_notes.billing.v1.GetPriceCatalogResponse\x12`\n" +
+	"\tListPlans\x12(.media_notes.billing.v1.ListPlansRequest\x1a).media_notes.billing.v1.ListPlansResponse\x12r\n" +
+	"\x0fListCreditPacks\x12..media_notes.billing.v1.ListCreditPacksRequest\x1a/.media_notes.billing.v1.ListCreditPacksResponse\x12\x84\x01\n" +
+	"\x15CreateCheckoutSession\x124.media_notes.billing.v1.CreateCheckoutSessionRequest\x1a5.media_notes.billing.v1.CreateCheckoutSessionResponse\x12{\n" +
+	"\x12CancelSubscription\x121.media_notes.billing.v1.CancelSubscriptionRequest\x1a2.media_notes.billing.v1.CancelSubscriptionResponseB\xfa\x01\n" +
 	"\x1acom.media_notes.billing.v1B\fBillingProtoP\x01ZXgithub.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/billing/v1;billingv1\xa2\x02\x03MBX\xaa\x02\x15MediaNotes.Billing.V1\xca\x02\x15MediaNotes\\Billing\\V1\xe2\x02!MediaNotes\\Billing\\V1\\GPBMetadata\xea\x02\x17MediaNotes::Billing::V1b\x06proto3"
 
 var (
@@ -951,50 +1537,71 @@ func file_media_notes_billing_v1_billing_proto_rawDescGZIP() []byte {
 }
 
 var file_media_notes_billing_v1_billing_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_media_notes_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_media_notes_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_media_notes_billing_v1_billing_proto_goTypes = []any{
-	(SubscriptionStatus)(0),           // 0: media_notes.billing.v1.SubscriptionStatus
-	(*QuoteItem)(nil),                 // 1: media_notes.billing.v1.QuoteItem
-	(*Quote)(nil),                     // 2: media_notes.billing.v1.Quote
-	(*GetQuoteRequest)(nil),           // 3: media_notes.billing.v1.GetQuoteRequest
-	(*GetQuoteResponse)(nil),          // 4: media_notes.billing.v1.GetQuoteResponse
-	(*GetPriceCatalogRequest)(nil),    // 5: media_notes.billing.v1.GetPriceCatalogRequest
-	(*GetPriceCatalogResponse)(nil),   // 6: media_notes.billing.v1.GetPriceCatalogResponse
-	(*Subscription)(nil),              // 7: media_notes.billing.v1.Subscription
-	(*BillingSummary)(nil),            // 8: media_notes.billing.v1.BillingSummary
-	(*GetBillingSummaryRequest)(nil),  // 9: media_notes.billing.v1.GetBillingSummaryRequest
-	(*GetBillingSummaryResponse)(nil), // 10: media_notes.billing.v1.GetBillingSummaryResponse
-	(*LedgerEntry)(nil),               // 11: media_notes.billing.v1.LedgerEntry
-	(*ListCreditLedgerRequest)(nil),   // 12: media_notes.billing.v1.ListCreditLedgerRequest
-	(*ListCreditLedgerResponse)(nil),  // 13: media_notes.billing.v1.ListCreditLedgerResponse
-	(*timestamppb.Timestamp)(nil),     // 14: google.protobuf.Timestamp
+	(SubscriptionStatus)(0),               // 0: media_notes.billing.v1.SubscriptionStatus
+	(*QuoteItem)(nil),                     // 1: media_notes.billing.v1.QuoteItem
+	(*Quote)(nil),                         // 2: media_notes.billing.v1.Quote
+	(*GetQuoteRequest)(nil),               // 3: media_notes.billing.v1.GetQuoteRequest
+	(*GetQuoteResponse)(nil),              // 4: media_notes.billing.v1.GetQuoteResponse
+	(*GetPriceCatalogRequest)(nil),        // 5: media_notes.billing.v1.GetPriceCatalogRequest
+	(*GetPriceCatalogResponse)(nil),       // 6: media_notes.billing.v1.GetPriceCatalogResponse
+	(*Subscription)(nil),                  // 7: media_notes.billing.v1.Subscription
+	(*BillingSummary)(nil),                // 8: media_notes.billing.v1.BillingSummary
+	(*GetBillingSummaryRequest)(nil),      // 9: media_notes.billing.v1.GetBillingSummaryRequest
+	(*GetBillingSummaryResponse)(nil),     // 10: media_notes.billing.v1.GetBillingSummaryResponse
+	(*LedgerEntry)(nil),                   // 11: media_notes.billing.v1.LedgerEntry
+	(*ListCreditLedgerRequest)(nil),       // 12: media_notes.billing.v1.ListCreditLedgerRequest
+	(*ListCreditLedgerResponse)(nil),      // 13: media_notes.billing.v1.ListCreditLedgerResponse
+	(*Plan)(nil),                          // 14: media_notes.billing.v1.Plan
+	(*ListPlansRequest)(nil),              // 15: media_notes.billing.v1.ListPlansRequest
+	(*ListPlansResponse)(nil),             // 16: media_notes.billing.v1.ListPlansResponse
+	(*CreateCheckoutSessionRequest)(nil),  // 17: media_notes.billing.v1.CreateCheckoutSessionRequest
+	(*CreateCheckoutSessionResponse)(nil), // 18: media_notes.billing.v1.CreateCheckoutSessionResponse
+	(*CancelSubscriptionRequest)(nil),     // 19: media_notes.billing.v1.CancelSubscriptionRequest
+	(*CancelSubscriptionResponse)(nil),    // 20: media_notes.billing.v1.CancelSubscriptionResponse
+	(*CreditPack)(nil),                    // 21: media_notes.billing.v1.CreditPack
+	(*ListCreditPacksRequest)(nil),        // 22: media_notes.billing.v1.ListCreditPacksRequest
+	(*ListCreditPacksResponse)(nil),       // 23: media_notes.billing.v1.ListCreditPacksResponse
+	(*timestamppb.Timestamp)(nil),         // 24: google.protobuf.Timestamp
 }
 var file_media_notes_billing_v1_billing_proto_depIdxs = []int32{
 	1,  // 0: media_notes.billing.v1.Quote.items:type_name -> media_notes.billing.v1.QuoteItem
-	14, // 1: media_notes.billing.v1.Quote.expires_at:type_name -> google.protobuf.Timestamp
-	14, // 2: media_notes.billing.v1.Quote.created_at:type_name -> google.protobuf.Timestamp
+	24, // 1: media_notes.billing.v1.Quote.expires_at:type_name -> google.protobuf.Timestamp
+	24, // 2: media_notes.billing.v1.Quote.created_at:type_name -> google.protobuf.Timestamp
 	2,  // 3: media_notes.billing.v1.GetQuoteResponse.quote:type_name -> media_notes.billing.v1.Quote
 	1,  // 4: media_notes.billing.v1.GetPriceCatalogResponse.items:type_name -> media_notes.billing.v1.QuoteItem
 	0,  // 5: media_notes.billing.v1.Subscription.status:type_name -> media_notes.billing.v1.SubscriptionStatus
-	14, // 6: media_notes.billing.v1.Subscription.period_start:type_name -> google.protobuf.Timestamp
-	14, // 7: media_notes.billing.v1.Subscription.period_end:type_name -> google.protobuf.Timestamp
+	24, // 6: media_notes.billing.v1.Subscription.period_start:type_name -> google.protobuf.Timestamp
+	24, // 7: media_notes.billing.v1.Subscription.period_end:type_name -> google.protobuf.Timestamp
 	7,  // 8: media_notes.billing.v1.BillingSummary.subscription:type_name -> media_notes.billing.v1.Subscription
 	8,  // 9: media_notes.billing.v1.GetBillingSummaryResponse.summary:type_name -> media_notes.billing.v1.BillingSummary
-	14, // 10: media_notes.billing.v1.LedgerEntry.created_at:type_name -> google.protobuf.Timestamp
+	24, // 10: media_notes.billing.v1.LedgerEntry.created_at:type_name -> google.protobuf.Timestamp
 	11, // 11: media_notes.billing.v1.ListCreditLedgerResponse.entries:type_name -> media_notes.billing.v1.LedgerEntry
-	3,  // 12: media_notes.billing.v1.BillingService.GetQuote:input_type -> media_notes.billing.v1.GetQuoteRequest
-	9,  // 13: media_notes.billing.v1.BillingService.GetBillingSummary:input_type -> media_notes.billing.v1.GetBillingSummaryRequest
-	12, // 14: media_notes.billing.v1.BillingService.ListCreditLedger:input_type -> media_notes.billing.v1.ListCreditLedgerRequest
-	5,  // 15: media_notes.billing.v1.BillingService.GetPriceCatalog:input_type -> media_notes.billing.v1.GetPriceCatalogRequest
-	4,  // 16: media_notes.billing.v1.BillingService.GetQuote:output_type -> media_notes.billing.v1.GetQuoteResponse
-	10, // 17: media_notes.billing.v1.BillingService.GetBillingSummary:output_type -> media_notes.billing.v1.GetBillingSummaryResponse
-	13, // 18: media_notes.billing.v1.BillingService.ListCreditLedger:output_type -> media_notes.billing.v1.ListCreditLedgerResponse
-	6,  // 19: media_notes.billing.v1.BillingService.GetPriceCatalog:output_type -> media_notes.billing.v1.GetPriceCatalogResponse
-	16, // [16:20] is the sub-list for method output_type
-	12, // [12:16] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	14, // 12: media_notes.billing.v1.ListPlansResponse.plans:type_name -> media_notes.billing.v1.Plan
+	7,  // 13: media_notes.billing.v1.CancelSubscriptionResponse.subscription:type_name -> media_notes.billing.v1.Subscription
+	21, // 14: media_notes.billing.v1.ListCreditPacksResponse.packs:type_name -> media_notes.billing.v1.CreditPack
+	3,  // 15: media_notes.billing.v1.BillingService.GetQuote:input_type -> media_notes.billing.v1.GetQuoteRequest
+	9,  // 16: media_notes.billing.v1.BillingService.GetBillingSummary:input_type -> media_notes.billing.v1.GetBillingSummaryRequest
+	12, // 17: media_notes.billing.v1.BillingService.ListCreditLedger:input_type -> media_notes.billing.v1.ListCreditLedgerRequest
+	5,  // 18: media_notes.billing.v1.BillingService.GetPriceCatalog:input_type -> media_notes.billing.v1.GetPriceCatalogRequest
+	15, // 19: media_notes.billing.v1.BillingService.ListPlans:input_type -> media_notes.billing.v1.ListPlansRequest
+	22, // 20: media_notes.billing.v1.BillingService.ListCreditPacks:input_type -> media_notes.billing.v1.ListCreditPacksRequest
+	17, // 21: media_notes.billing.v1.BillingService.CreateCheckoutSession:input_type -> media_notes.billing.v1.CreateCheckoutSessionRequest
+	19, // 22: media_notes.billing.v1.BillingService.CancelSubscription:input_type -> media_notes.billing.v1.CancelSubscriptionRequest
+	4,  // 23: media_notes.billing.v1.BillingService.GetQuote:output_type -> media_notes.billing.v1.GetQuoteResponse
+	10, // 24: media_notes.billing.v1.BillingService.GetBillingSummary:output_type -> media_notes.billing.v1.GetBillingSummaryResponse
+	13, // 25: media_notes.billing.v1.BillingService.ListCreditLedger:output_type -> media_notes.billing.v1.ListCreditLedgerResponse
+	6,  // 26: media_notes.billing.v1.BillingService.GetPriceCatalog:output_type -> media_notes.billing.v1.GetPriceCatalogResponse
+	16, // 27: media_notes.billing.v1.BillingService.ListPlans:output_type -> media_notes.billing.v1.ListPlansResponse
+	23, // 28: media_notes.billing.v1.BillingService.ListCreditPacks:output_type -> media_notes.billing.v1.ListCreditPacksResponse
+	18, // 29: media_notes.billing.v1.BillingService.CreateCheckoutSession:output_type -> media_notes.billing.v1.CreateCheckoutSessionResponse
+	20, // 30: media_notes.billing.v1.BillingService.CancelSubscription:output_type -> media_notes.billing.v1.CancelSubscriptionResponse
+	23, // [23:31] is the sub-list for method output_type
+	15, // [15:23] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_media_notes_billing_v1_billing_proto_init() }
@@ -1008,7 +1615,7 @@ func file_media_notes_billing_v1_billing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_notes_billing_v1_billing_proto_rawDesc), len(file_media_notes_billing_v1_billing_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   13,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -84,7 +84,8 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 	quoteSvc := quote.NewService(quoteRepo, cfg.QuoteTTL)
 	creditSvc := credit.NewService(creditRepo)
 	subscriptionSvc := subscription.NewService(subscriptionRepo)
-	polarHandler := provider.NewPolarHandler(cfg.PolarWebhookKey, providerEventRepo, creditSvc, logger)
+	polarHandler := provider.NewPolarHandler(cfg.PolarWebhookKey, providerEventRepo, creditSvc, subscriptionSvc, logger)
+	polarClient := provider.NewPolarClient(cfg.PolarServer, cfg.PolarAccessToken)
 
 	health.SetReady(true)
 
@@ -94,7 +95,7 @@ func run(ctx context.Context, cfg app.Config, logger *slog.Logger) error {
 			grpcserver.UnaryLoggingInterceptor(logger),
 		),
 	)
-	billingv1.RegisterBillingServiceServer(grpcSrv, grpcserver.NewServer(quoteSvc, creditSvc, subscriptionSvc))
+	billingv1.RegisterBillingServiceServer(grpcSrv, grpcserver.NewServer(quoteSvc, creditSvc, subscriptionSvc, polarClient, cfg.PolarSuccessURL))
 	// Reflection lets grpcurl/grpcui introspect the API without a local
 	// copy of billing.proto. billing is only ever called by hermes and
 	// operators on the internal network, so exposing the schema this way
@@ -179,15 +180,19 @@ func polarWebhookHandler(handler *provider.PolarHandler, logger *slog.Logger) ht
 			return
 		}
 
-		signature := r.Header.Get(provider.PolarSignatureHeader)
-		err = handler.Handle(r.Context(), body, signature)
+		id := r.Header.Get(provider.WebhookIDHeader)
+		timestamp := r.Header.Get(provider.WebhookTimestampHeader)
+		signature := r.Header.Get(provider.WebhookSignatureHeader)
+		logger.InfoContext(r.Context(), "received polar webhook", "webhook_id", id, "body_bytes", len(body))
+		err = handler.Handle(r.Context(), body, id, timestamp, signature)
 		switch {
 		case err == nil:
 			w.WriteHeader(http.StatusOK)
 		case errors.Is(err, provider.ErrInvalidSignature):
+			logger.WarnContext(r.Context(), "rejected polar webhook: invalid signature", "webhook_id", id)
 			w.WriteHeader(http.StatusUnauthorized)
 		default:
-			logger.ErrorContext(r.Context(), "handle polar webhook", "error", err)
+			logger.ErrorContext(r.Context(), "handle polar webhook", "error", err, "webhook_id", id)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}

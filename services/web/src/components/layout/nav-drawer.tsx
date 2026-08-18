@@ -2,13 +2,18 @@ import {
 	AudioLines,
 	BarChart3,
 	CreditCard,
+	Languages,
 	LayoutGrid,
+	Moon,
 	Music,
+	Sun,
 	Trash2,
 	X,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router";
+import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +37,9 @@ export function NavDrawer({
 	open: boolean;
 	onClose: () => void;
 }) {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const { resolvedTheme, setTheme } = useTheme();
+	const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
 
 	if (!open) return null;
 
@@ -85,6 +92,34 @@ export function NavDrawer({
 						</NavLink>
 					))}
 				</nav>
+
+				<div className="mt-auto flex flex-col gap-1.5 border-border border-t pt-4">
+					<button
+						type="button"
+						onClick={() =>
+							setTheme(resolvedTheme === "dark" ? "light" : "dark")
+						}
+						className="flex items-center justify-between rounded-lg px-3 py-3 text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+					>
+						{t("nav.theme")}
+						<Sun className="hidden size-5 dark:block" />
+						<Moon className="size-5 dark:hidden" />
+					</button>
+					<button
+						type="button"
+						onClick={() =>
+							i18n.changeLanguage(currentLanguage === "en" ? "vi" : "en")
+						}
+						className="flex items-center justify-between rounded-lg px-3 py-3 text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+					>
+						{t("nav.language")}
+						<span className="flex items-center gap-1.5 text-sm">
+							<Languages className="size-5" />
+							{currentLanguage?.toUpperCase()}
+						</span>
+					</button>
+					<UserMenu />
+				</div>
 			</div>
 		</div>
 	);

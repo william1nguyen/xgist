@@ -20,7 +20,8 @@
 		"signOut": "Sign out",
 		"openMenu": "Open menu",
 		"closeMenu": "Close menu",
-		"toggleTheme": "Toggle theme"
+		"theme": "Theme",
+		"language": "Language"
 	},
 	"dashboard": {
 		"searchPlaceholder": "Search your media…",
@@ -147,15 +148,32 @@
 	},
 	"billingPage": {
 		"title": "Billing",
-		"description": "Credits, subscription, and pricing.",
+		"description": "Credits, plan, and pricing.",
 		"credits": "Credits",
 		"reservedFor": "{{count}} reserved for in-progress jobs",
-		"subscription": "Subscription",
-		"noSubscription": "No active subscription.",
+		"plan": "Plan",
+		"freePlan": "Free",
+		"renewsOn": "Renews {{date}}",
+		"upgrade": "Upgrade",
 		"pricing": "Pricing",
 		"creditsSuffix": "credits",
 		"quoteNote": "The exact cost of a selection is always confirmed by a live quote before you start processing.",
-		"checkoutNote": "Subscription checkout isn't available yet — purchasing credits and managing plans is still being built on the billing service."
+		"choosePlan": "Choose a plan",
+		"noPlans": "No plans are available right now.",
+		"select": "Select",
+		"buyCredits": "Buy credits",
+		"noCreditPacks": "No credit packs are available right now.",
+		"creditsAmount": "{{count}} credits",
+		"buy": "Buy",
+		"currentPlan": "Current plan",
+		"startingCheckout": "Starting checkout…",
+		"checkoutErrorToast": "Couldn't start checkout. Try again.",
+		"cancelPlan": "Cancel plan",
+		"canceling": "Canceling…",
+		"cancelConfirmTitle": "Cancel your plan?",
+		"cancelConfirmDescription": "Your plan stays active until the end of the current billing period, then moves to Free.",
+		"cancelSuccessToast": "Plan canceled — it stays active until the current period ends.",
+		"cancelErrorToast": "Couldn't cancel your plan. Try again."
 	},
 	"mediaDetail": {
 		"mediaNotFound": "Media not found.",

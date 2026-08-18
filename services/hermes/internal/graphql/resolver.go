@@ -437,6 +437,46 @@ func (r *mutationResolver) GenerateStandaloneAudio(ctx context.Context, text str
 	return toModelAudioJob(job), nil
 }
 
+// CreateCheckoutSession is the resolver for the createCheckoutSession field.
+func (r *mutationResolver) CreateCheckoutSession(ctx context.Context, planID string) (*model.CheckoutSession, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	checkoutURL, err := r.billing.CreateCheckoutSession(ctx, principal.User.ID, principal.User.Email, planID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.CheckoutSession{CheckoutURL: checkoutURL}, nil
+}
+
+// CancelSubscription is the resolver for the cancelSubscription field.
+func (r *mutationResolver) CancelSubscription(ctx context.Context) (*model.BillingSubscription, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	sub, err := r.billing.CancelSubscription(ctx, principal.User.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.BillingSubscription{
+		ID:          sub.ID,
+		Plan:        sub.Plan,
+		Status:      toModelSubscriptionStatus(sub.Status),
+		PeriodStart: formatTime(sub.PeriodStart),
+		PeriodEnd:   formatTime(sub.PeriodEnd),
+	}, nil
+}
+
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	principal, err := requirePrincipal(ctx)
@@ -643,6 +683,48 @@ func (r *queryResolver) BillingSummary(ctx context.Context) (*model.BillingSumma
 		return nil, err
 	}
 	return toModelBillingSummary(summary), nil
+}
+
+// Plans is the resolver for the plans field.
+func (r *queryResolver) Plans(ctx context.Context) ([]model.Plan, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	plans, err := r.billing.ListPlans(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]model.Plan, 0, len(plans))
+	for _, p := range plans {
+		out = append(out, toModelPlan(p))
+	}
+	return out, nil
+}
+
+// CreditPacks is the resolver for the creditPacks field.
+func (r *queryResolver) CreditPacks(ctx context.Context) ([]model.CreditPack, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.checkRateLimit(ctx, limits.ClassOther, "user:"+principal.User.ID.String()); err != nil {
+		return nil, err
+	}
+
+	packs, err := r.billing.ListCreditPacks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]model.CreditPack, 0, len(packs))
+	for _, p := range packs {
+		out = append(out, toModelCreditPack(p))
+	}
+	return out, nil
 }
 
 // CreditLedgerHistory is the resolver for the creditLedgerHistory field.

@@ -4,6 +4,7 @@ import { AppTopBar } from "@/components/layout/app-top-bar";
 import { NavDrawer } from "@/components/layout/nav-drawer";
 import { useAuth } from "@/hooks/useAuth";
 import { CreateDialogsProvider } from "@/hooks/useCreateDialogs";
+import { SettingsDialogProvider } from "@/hooks/useSettingsDialog";
 
 export default function ProtectedLayout() {
 	const { user, loading } = useAuth();
@@ -29,13 +30,15 @@ export default function ProtectedLayout() {
 
 	return (
 		<CreateDialogsProvider>
-			<div className="flex h-screen flex-col">
-				<AppTopBar onOpenNav={() => setNavOpen(true)} />
-				<main className="min-w-0 flex-1 overflow-y-auto">
-					<Outlet />
-				</main>
-				<NavDrawer open={navOpen} onClose={() => setNavOpen(false)} />
-			</div>
+			<SettingsDialogProvider>
+				<div className="flex h-screen flex-col">
+					<AppTopBar onOpenNav={() => setNavOpen(true)} />
+					<main className="min-w-0 flex-1 overflow-y-auto">
+						<Outlet />
+					</main>
+					<NavDrawer open={navOpen} onClose={() => setNavOpen(false)} />
+				</div>
+			</SettingsDialogProvider>
 		</CreateDialogsProvider>
 	);
 }

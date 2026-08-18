@@ -27,6 +27,25 @@ service BillingService {
   // single source of truth a client renders a price list from before the
   // caller has made a selection to price with GetQuote.
   rpc GetPriceCatalog(GetPriceCatalogRequest) returns (GetPriceCatalogResponse);
+  // ListPlans returns every subscribable plan, read live from Polar's
+  // product catalog — never a locally configured list. Adding, archiving,
+  // or editing a Polar product changes what this returns with no
+  // deployment: Polar's dashboard is the plan catalog's source of truth.
+  rpc ListPlans(ListPlansRequest) returns (ListPlansResponse);
+  // ListCreditPacks returns every one-time credit top-up, read live from
+  // Polar the same way ListPlans reads subscription plans.
+  rpc ListCreditPacks(ListCreditPacksRequest) returns (ListCreditPacksResponse);
+  // CreateCheckoutSession starts a Polar-hosted checkout for one plan or
+  // credit pack (product_id is either a Plan.id or a CreditPack.id — the
+  // checkout itself doesn't care which) and returns the URL to redirect
+  // the user to. The resulting subscription or credit grant reaches
+  // billing asynchronously through the Polar webhook, not through this
+  // RPC's response.
+  rpc CreateCheckoutSession(CreateCheckoutSessionRequest) returns (CreateCheckoutSessionResponse);
+  // CancelSubscription schedules the user's active subscription to end at
+  // the current billing period's close (Polar's cancel-at-period-end
+  // behavior) rather than revoking access immediately.
+  rpc CancelSubscription(CancelSubscriptionRequest) returns (CancelSubscriptionResponse);
 }
 
 // QuoteItem is one priced option within a quote.
@@ -136,4 +155,76 @@ message ListCreditLedgerRequest {
 message ListCreditLedgerResponse {
   repeated LedgerEntry entries = 1;
   string next_cursor = 2;
+}
+
+// Plan is one subscribable Polar product, read live from Polar — never
+// stored locally. id is the Polar product id, passed back verbatim to
+// CreateCheckoutSession.
+message Plan {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // price_amount is 0 and price_currency is empty for a product with no
+  // fixed price configured in Polar (e.g. a pay-what-you-want tier).
+  int64 price_amount = 4;
+  string price_currency = 5;
+  // recurring_interval is "month" or "year".
+  string recurring_interval = 6;
+  repeated string benefits = 7;
+}
+
+message ListPlansRequest {
+}
+
+// ListPlansResponse returns every active, non-archived, recurring Polar
+// product. There is no "free" entry: the free tier is simply the absence
+// of an active subscription (BillingSummary.subscription unset).
+message ListPlansResponse {
+  repeated Plan plans = 1;
+}
+
+// CreateCheckoutSessionRequest identifies the checking-out user and which
+// Polar product they selected — plan_id is a Plan.id (from ListPlans) for
+// a subscription, or a CreditPack.id (from ListCreditPacks) for a
+// one-time top-up; Polar checkout works identically for both.
+message CreateCheckoutSessionRequest {
+  string user_id = 1;
+  string user_email = 2;
+  string plan_id = 3;
+}
+
+// CreateCheckoutSessionResponse carries the Polar-hosted checkout URL to
+// redirect the user to.
+message CreateCheckoutSessionResponse {
+  string checkout_url = 1;
+}
+
+// CancelSubscriptionRequest identifies the user whose active subscription
+// should be canceled.
+message CancelSubscriptionRequest {
+  string user_id = 1;
+}
+
+message CancelSubscriptionResponse {
+  Subscription subscription = 1;
+}
+
+// CreditPack is one one-time, non-recurring Polar product configured to
+// grant a fixed number of credits on purchase, read live from Polar —
+// never stored locally. id is the Polar product id, passed back verbatim
+// to CreateCheckoutSession.
+message CreditPack {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int64 credits = 4;
+  int64 price_amount = 5;
+  string price_currency = 6;
+}
+
+message ListCreditPacksRequest {
+}
+
+message ListCreditPacksResponse {
+  repeated CreditPack packs = 1;
 }

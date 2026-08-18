@@ -360,6 +360,26 @@ class RegisterDerivativeResponse(_message.Message):
     derivative: Derivative
     def __init__(self, derivative: _Optional[_Union[Derivative, _Mapping]] = ...) -> None: ...
 
+class RequestDerivativeUploadRequest(_message.Message):
+    __slots__ = ("media_id", "derivative_type", "mime_type")
+    MEDIA_ID_FIELD_NUMBER: _ClassVar[int]
+    DERIVATIVE_TYPE_FIELD_NUMBER: _ClassVar[int]
+    MIME_TYPE_FIELD_NUMBER: _ClassVar[int]
+    media_id: str
+    derivative_type: DerivativeType
+    mime_type: str
+    def __init__(self, media_id: _Optional[str] = ..., derivative_type: _Optional[_Union[DerivativeType, str]] = ..., mime_type: _Optional[str] = ...) -> None: ...
+
+class RequestDerivativeUploadResponse(_message.Message):
+    __slots__ = ("object_key", "upload_url", "expires_at")
+    OBJECT_KEY_FIELD_NUMBER: _ClassVar[int]
+    UPLOAD_URL_FIELD_NUMBER: _ClassVar[int]
+    EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    object_key: str
+    upload_url: str
+    expires_at: _timestamp_pb2.Timestamp
+    def __init__(self, object_key: _Optional[str] = ..., upload_url: _Optional[str] = ..., expires_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
 class DeletionOperation(_message.Message):
     __slots__ = ("deletion_id", "media_id", "state", "created_at", "completed_at")
     DELETION_ID_FIELD_NUMBER: _ClassVar[int]
