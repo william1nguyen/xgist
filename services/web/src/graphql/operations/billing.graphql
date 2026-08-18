@@ -47,3 +47,42 @@ query BillingSummary {
 		}
 	}
 }
+
+query Plans {
+	plans {
+		id
+		name
+		description
+		priceAmount
+		priceCurrency
+		recurringInterval
+		benefits
+	}
+}
+
+query CreditPacks {
+	creditPacks {
+		id
+		name
+		description
+		credits
+		priceAmount
+		priceCurrency
+	}
+}
+
+mutation CreateCheckoutSession($planId: String!) {
+	createCheckoutSession(planId: $planId) {
+		checkoutUrl
+	}
+}
+
+mutation CancelSubscription {
+	cancelSubscription {
+		id
+		plan
+		status
+		periodStart
+		periodEnd
+	}
+}
