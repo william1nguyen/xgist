@@ -20,7 +20,8 @@
 		"signOut": "Sign out",
 		"openMenu": "Open menu",
 		"closeMenu": "Close menu",
-		"toggleTheme": "Toggle theme"
+		"theme": "Theme",
+		"language": "Language"
 	},
 	"dashboard": {
 		"searchPlaceholder": "Search your media…",

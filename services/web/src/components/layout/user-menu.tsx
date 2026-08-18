@@ -1,6 +1,5 @@
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { cn } from "@/lib/utils";
+import { useSettingsDialog } from "@/hooks/useSettingsDialog";
 
 function initials(name: string): string {
 	const parts = name.trim().split(/\s+/);
@@ -19,9 +18,10 @@ function initials(name: string): string {
 	return (first + last).toUpperCase() || "?";
 }
 
-export function UserMenu({ collapsed }: { collapsed?: boolean }) {
+export function UserMenu() {
 	const { t } = useTranslation();
 	const { user, logout } = useAuth();
+	const { openSettings } = useSettingsDialog();
 
 	if (!user) return null;
 
@@ -42,29 +42,21 @@ export function UserMenu({ collapsed }: { collapsed?: boolean }) {
 			<DropdownMenuTrigger asChild>
 				<button
 					type="button"
-					title={collapsed ? user.name : undefined}
-					className={cn(
-						"flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-accent",
-						collapsed && "justify-center",
-					)}
+					className="flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-accent"
 				>
 					{avatar}
-					{!collapsed && (
-						<>
-							<div className="min-w-0 flex-1">
-								<p className="truncate font-medium text-sm leading-tight">
-									{user.name}
-								</p>
-								<p className="truncate text-muted-foreground text-xs leading-tight">
-									{user.email}
-								</p>
-							</div>
-							<ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
-						</>
-					)}
+					<div className="min-w-0 flex-1">
+						<p className="truncate font-medium text-sm leading-tight">
+							{user.name}
+						</p>
+						<p className="truncate text-muted-foreground text-xs leading-tight">
+							{user.email}
+						</p>
+					</div>
+					<ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
 				</button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" side="top" className="w-60">
+			<DropdownMenuContent align="end" side="right" className="w-72">
 				<DropdownMenuLabel>
 					<div className="flex flex-col gap-0.5">
 						<span className="truncate font-medium">{user.name}</span>
@@ -74,13 +66,11 @@ export function UserMenu({ collapsed }: { collapsed?: boolean }) {
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem asChild>
-					<Link to="/settings">
-						<Settings className="size-4" />
-						{t("nav.settings")}
-					</Link>
+				<DropdownMenuItem onSelect={openSettings}>
+					<Settings className="size-4" />
+					{t("nav.settings")}
 				</DropdownMenuItem>
-				<DropdownMenuItem onSelect={() => logout()}>
+				<DropdownMenuItem variant="destructive" onSelect={() => logout()}>
 					<LogOut className="size-4" />
 					{t("nav.signOut")}
 				</DropdownMenuItem>

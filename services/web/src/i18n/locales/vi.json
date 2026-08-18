@@ -20,7 +20,8 @@
 		"signOut": "Đăng xuất",
 		"openMenu": "Mở menu",
 		"closeMenu": "Đóng menu",
-		"toggleTheme": "Đổi giao diện sáng/tối"
+		"theme": "Giao diện",
+		"language": "Ngôn ngữ"
 	},
 	"dashboard": {
 		"searchPlaceholder": "Tìm kiếm media của bạn…",
