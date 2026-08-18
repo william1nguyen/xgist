@@ -15,6 +15,28 @@ over Kafka and coordinated by a workflow engine. No service reads another
 service's database directly; every cross-service write goes through a
 versioned gRPC or Kafka contract.
 
+## Features
+
+Processing runs against a fixed catalog of six independently selectable,
+individually priced steps: `transcribe`, `summarize`, `extract_keywords`,
+`extract_keypoints`, `generate_notes`, and `generate_audio_summary`. Only the
+selected steps run and only their credit gets reserved — asking for a
+transcript alone costs and takes less than asking for the full pass. Every
+Gemini-backed step (`summarize`, `extract_keywords`, `extract_keypoints`,
+`generate_notes`) accepts an optional prompt override, and
+`generate_audio_summary` accepts an optional voice override, both per
+request. A thumbnail or cover image is generated for every upload
+automatically, regardless of selection, and isn't billed.
+
+Accepted input is MP4, MOV, MKV, WebM, MP3, or WAV up to 4 hours of measured
+duration. Declared size and duration from the client are never trusted —
+`media` probes the uploaded object itself before accepting it.
+
+Billing is credit-based: each selected step reserves credit up front,
+settles it on success, and releases or refunds it on permanent failure.
+Credits come from a subscription plan or a one-off top-up, both purchased
+through Polar-backed checkout that `hermes` exposes to the web app.
+
 ## Architecture
 
 ```mermaid
