@@ -44,3 +44,35 @@ func (r *SubscriptionRepository) FindActiveByUserID(ctx context.Context, userID 
 	sub.Status = subscription.Status(status)
 	return sub, true, nil
 }
+
+// Upsert projects in into billing.billing_accounts and billing.subscriptions,
+// creating the account row on the user's first-ever subscription event.
+// Idempotent per in.ProviderID: a redelivered event overwrites the same
+// row with the same values instead of inserting a duplicate.
+func (r *SubscriptionRepository) Upsert(ctx context.Context, in subscription.Event) error {
+	return withTx(ctx, r.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var accountID uuid.UUID
+		err := tx.QueryRow(ctx, `
+			INSERT INTO billing.billing_accounts (id, user_id, polar_customer_id, status)
+			VALUES ($1, $2, $3, 'active')
+			ON CONFLICT (user_id) DO UPDATE SET polar_customer_id = EXCLUDED.polar_customer_id
+			RETURNING id
+		`, uuid.New(), in.UserID, in.PolarCustomerID).Scan(&accountID)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec(ctx, `
+			INSERT INTO billing.subscriptions
+				(id, billing_account_id, provider_id, plan, status, period_start, period_end, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, now())
+			ON CONFLICT (provider_id) DO UPDATE SET
+				plan = EXCLUDED.plan,
+				status = EXCLUDED.status,
+				period_start = EXCLUDED.period_start,
+				period_end = EXCLUDED.period_end,
+				updated_at = now()
+		`, uuid.New(), accountID, in.ProviderID, in.Plan, string(in.Status), in.PeriodStart, in.PeriodEnd)
+		return err
+	})
+}

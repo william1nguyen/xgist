@@ -18,6 +18,7 @@ import (
 
 	billingv1 "github.com/nolannguyen1212/media-notes/contracts/gen/go/media_notes/billing/v1"
 	"github.com/nolannguyen1212/media-notes/services/billing/internal/credit"
+	"github.com/nolannguyen1212/media-notes/services/billing/internal/provider"
 	"github.com/nolannguyen1212/media-notes/services/billing/internal/quote"
 	"github.com/nolannguyen1212/media-notes/services/billing/internal/subscription"
 )
@@ -42,17 +43,30 @@ type SubscriptionReader interface {
 	Active(ctx context.Context, userID uuid.UUID) (subscription.Subscription, bool, error)
 }
 
+// PlanCatalog is the outbound Polar API boundary the server depends on for
+// checkout, plan listing, and cancellation. *provider.PolarClient
+// implements it.
+type PlanCatalog interface {
+	ListPlans(ctx context.Context) ([]provider.Plan, error)
+	ListCreditPacks(ctx context.Context) ([]provider.CreditPack, error)
+	CreateCheckout(ctx context.Context, productID, successURL, customerEmail string, metadata map[string]string) (string, error)
+	CancelAtPeriodEnd(ctx context.Context, subscriptionID string) error
+}
+
 // Server implements billingv1.BillingServiceServer.
 type Server struct {
 	billingv1.UnimplementedBillingServiceServer
 	quotes        QuoteService
 	balances      BalanceReader
 	subscriptions SubscriptionReader
+	plans         PlanCatalog
+	successURL    string
 }
 
-// NewServer returns a Server.
-func NewServer(quotes QuoteService, balances BalanceReader, subscriptions SubscriptionReader) *Server {
-	return &Server{quotes: quotes, balances: balances, subscriptions: subscriptions}
+// NewServer returns a Server. successURL is where Polar redirects the
+// user after a successful checkout.
+func NewServer(quotes QuoteService, balances BalanceReader, subscriptions SubscriptionReader, plans PlanCatalog, successURL string) *Server {
+	return &Server{quotes: quotes, balances: balances, subscriptions: subscriptions, plans: plans, successURL: successURL}
 }
 
 func (s *Server) GetQuote(ctx context.Context, req *billingv1.GetQuoteRequest) (*billingv1.GetQuoteResponse, error) {
@@ -149,6 +163,90 @@ func (s *Server) ListCreditLedger(ctx context.Context, req *billingv1.ListCredit
 		})
 	}
 	return &billingv1.ListCreditLedgerResponse{Entries: entries, NextCursor: page.NextCursor}, nil
+}
+
+func (s *Server) ListPlans(ctx context.Context, req *billingv1.ListPlansRequest) (*billingv1.ListPlansResponse, error) {
+	plans, err := s.plans.ListPlans(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unavailable, "could not reach the plan catalog")
+	}
+
+	out := make([]*billingv1.Plan, 0, len(plans))
+	for _, p := range plans {
+		out = append(out, &billingv1.Plan{
+			Id:                p.ID,
+			Name:              p.Name,
+			Description:       p.Description,
+			PriceAmount:       p.PriceAmount,
+			PriceCurrency:     p.PriceCurrency,
+			RecurringInterval: p.RecurringInterval,
+			Benefits:          p.Benefits,
+		})
+	}
+	return &billingv1.ListPlansResponse{Plans: out}, nil
+}
+
+func (s *Server) ListCreditPacks(ctx context.Context, req *billingv1.ListCreditPacksRequest) (*billingv1.ListCreditPacksResponse, error) {
+	packs, err := s.plans.ListCreditPacks(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unavailable, "could not reach the credit pack catalog")
+	}
+
+	out := make([]*billingv1.CreditPack, 0, len(packs))
+	for _, p := range packs {
+		out = append(out, &billingv1.CreditPack{
+			Id:            p.ID,
+			Name:          p.Name,
+			Description:   p.Description,
+			Credits:       p.Credits,
+			PriceAmount:   p.PriceAmount,
+			PriceCurrency: p.PriceCurrency,
+		})
+	}
+	return &billingv1.ListCreditPacksResponse{Packs: out}, nil
+}
+
+func (s *Server) CreateCheckoutSession(ctx context.Context, req *billingv1.CreateCheckoutSessionRequest) (*billingv1.CreateCheckoutSessionResponse, error) {
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+	if req.GetPlanId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "plan_id is required")
+	}
+	if req.GetUserEmail() == "" {
+		return nil, status.Error(codes.InvalidArgument, "user_email is required")
+	}
+
+	checkoutURL, err := s.plans.CreateCheckout(ctx, req.GetPlanId(), s.successURL, req.GetUserEmail(), map[string]string{
+		"userId": userID.String(),
+	})
+	if err != nil {
+		return nil, status.Error(codes.Unavailable, "could not start checkout")
+	}
+	return &billingv1.CreateCheckoutSessionResponse{CheckoutUrl: checkoutURL}, nil
+}
+
+func (s *Server) CancelSubscription(ctx context.Context, req *billingv1.CancelSubscriptionRequest) (*billingv1.CancelSubscriptionResponse, error) {
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id must be a UUID")
+	}
+
+	sub, ok, err := s.subscriptions.Active(ctx, userID)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	if !ok || sub.Status != subscription.StatusActive {
+		return nil, status.Error(codes.FailedPrecondition, "no active subscription to cancel")
+	}
+
+	if err := s.plans.CancelAtPeriodEnd(ctx, sub.ProviderID); err != nil {
+		return nil, status.Error(codes.Unavailable, "could not cancel subscription")
+	}
+	// The local row still reads "active" until Polar's subsequent webhook
+	// reports the cancellation — see PolarClient.CancelAtPeriodEnd.
+	return &billingv1.CancelSubscriptionResponse{Subscription: toProtoSubscription(sub)}, nil
 }
 
 func mapError(err error) error {

@@ -25,10 +25,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BillingService_GetQuote_FullMethodName          = "/media_notes.billing.v1.BillingService/GetQuote"
-	BillingService_GetBillingSummary_FullMethodName = "/media_notes.billing.v1.BillingService/GetBillingSummary"
-	BillingService_ListCreditLedger_FullMethodName  = "/media_notes.billing.v1.BillingService/ListCreditLedger"
-	BillingService_GetPriceCatalog_FullMethodName   = "/media_notes.billing.v1.BillingService/GetPriceCatalog"
+	BillingService_GetQuote_FullMethodName              = "/media_notes.billing.v1.BillingService/GetQuote"
+	BillingService_GetBillingSummary_FullMethodName     = "/media_notes.billing.v1.BillingService/GetBillingSummary"
+	BillingService_ListCreditLedger_FullMethodName      = "/media_notes.billing.v1.BillingService/ListCreditLedger"
+	BillingService_GetPriceCatalog_FullMethodName       = "/media_notes.billing.v1.BillingService/GetPriceCatalog"
+	BillingService_ListPlans_FullMethodName             = "/media_notes.billing.v1.BillingService/ListPlans"
+	BillingService_ListCreditPacks_FullMethodName       = "/media_notes.billing.v1.BillingService/ListCreditPacks"
+	BillingService_CreateCheckoutSession_FullMethodName = "/media_notes.billing.v1.BillingService/CreateCheckoutSession"
+	BillingService_CancelSubscription_FullMethodName    = "/media_notes.billing.v1.BillingService/CancelSubscription"
 )
 
 // BillingServiceClient is the client API for BillingService service.
@@ -53,6 +57,25 @@ type BillingServiceClient interface {
 	// single source of truth a client renders a price list from before the
 	// caller has made a selection to price with GetQuote.
 	GetPriceCatalog(ctx context.Context, in *GetPriceCatalogRequest, opts ...grpc.CallOption) (*GetPriceCatalogResponse, error)
+	// ListPlans returns every subscribable plan, read live from Polar's
+	// product catalog — never a locally configured list. Adding, archiving,
+	// or editing a Polar product changes what this returns with no
+	// deployment: Polar's dashboard is the plan catalog's source of truth.
+	ListPlans(ctx context.Context, in *ListPlansRequest, opts ...grpc.CallOption) (*ListPlansResponse, error)
+	// ListCreditPacks returns every one-time credit top-up, read live from
+	// Polar the same way ListPlans reads subscription plans.
+	ListCreditPacks(ctx context.Context, in *ListCreditPacksRequest, opts ...grpc.CallOption) (*ListCreditPacksResponse, error)
+	// CreateCheckoutSession starts a Polar-hosted checkout for one plan or
+	// credit pack (product_id is either a Plan.id or a CreditPack.id — the
+	// checkout itself doesn't care which) and returns the URL to redirect
+	// the user to. The resulting subscription or credit grant reaches
+	// billing asynchronously through the Polar webhook, not through this
+	// RPC's response.
+	CreateCheckoutSession(ctx context.Context, in *CreateCheckoutSessionRequest, opts ...grpc.CallOption) (*CreateCheckoutSessionResponse, error)
+	// CancelSubscription schedules the user's active subscription to end at
+	// the current billing period's close (Polar's cancel-at-period-end
+	// behavior) rather than revoking access immediately.
+	CancelSubscription(ctx context.Context, in *CancelSubscriptionRequest, opts ...grpc.CallOption) (*CancelSubscriptionResponse, error)
 }
 
 type billingServiceClient struct {
@@ -103,6 +126,46 @@ func (c *billingServiceClient) GetPriceCatalog(ctx context.Context, in *GetPrice
 	return out, nil
 }
 
+func (c *billingServiceClient) ListPlans(ctx context.Context, in *ListPlansRequest, opts ...grpc.CallOption) (*ListPlansResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPlansResponse)
+	err := c.cc.Invoke(ctx, BillingService_ListPlans_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) ListCreditPacks(ctx context.Context, in *ListCreditPacksRequest, opts ...grpc.CallOption) (*ListCreditPacksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCreditPacksResponse)
+	err := c.cc.Invoke(ctx, BillingService_ListCreditPacks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) CreateCheckoutSession(ctx context.Context, in *CreateCheckoutSessionRequest, opts ...grpc.CallOption) (*CreateCheckoutSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateCheckoutSessionResponse)
+	err := c.cc.Invoke(ctx, BillingService_CreateCheckoutSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) CancelSubscription(ctx context.Context, in *CancelSubscriptionRequest, opts ...grpc.CallOption) (*CancelSubscriptionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelSubscriptionResponse)
+	err := c.cc.Invoke(ctx, BillingService_CancelSubscription_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BillingServiceServer is the server API for BillingService service.
 // All implementations must embed UnimplementedBillingServiceServer
 // for forward compatibility.
@@ -125,6 +188,25 @@ type BillingServiceServer interface {
 	// single source of truth a client renders a price list from before the
 	// caller has made a selection to price with GetQuote.
 	GetPriceCatalog(context.Context, *GetPriceCatalogRequest) (*GetPriceCatalogResponse, error)
+	// ListPlans returns every subscribable plan, read live from Polar's
+	// product catalog — never a locally configured list. Adding, archiving,
+	// or editing a Polar product changes what this returns with no
+	// deployment: Polar's dashboard is the plan catalog's source of truth.
+	ListPlans(context.Context, *ListPlansRequest) (*ListPlansResponse, error)
+	// ListCreditPacks returns every one-time credit top-up, read live from
+	// Polar the same way ListPlans reads subscription plans.
+	ListCreditPacks(context.Context, *ListCreditPacksRequest) (*ListCreditPacksResponse, error)
+	// CreateCheckoutSession starts a Polar-hosted checkout for one plan or
+	// credit pack (product_id is either a Plan.id or a CreditPack.id — the
+	// checkout itself doesn't care which) and returns the URL to redirect
+	// the user to. The resulting subscription or credit grant reaches
+	// billing asynchronously through the Polar webhook, not through this
+	// RPC's response.
+	CreateCheckoutSession(context.Context, *CreateCheckoutSessionRequest) (*CreateCheckoutSessionResponse, error)
+	// CancelSubscription schedules the user's active subscription to end at
+	// the current billing period's close (Polar's cancel-at-period-end
+	// behavior) rather than revoking access immediately.
+	CancelSubscription(context.Context, *CancelSubscriptionRequest) (*CancelSubscriptionResponse, error)
 	mustEmbedUnimplementedBillingServiceServer()
 }
 
@@ -146,6 +228,18 @@ func (UnimplementedBillingServiceServer) ListCreditLedger(context.Context, *List
 }
 func (UnimplementedBillingServiceServer) GetPriceCatalog(context.Context, *GetPriceCatalogRequest) (*GetPriceCatalogResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPriceCatalog not implemented")
+}
+func (UnimplementedBillingServiceServer) ListPlans(context.Context, *ListPlansRequest) (*ListPlansResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPlans not implemented")
+}
+func (UnimplementedBillingServiceServer) ListCreditPacks(context.Context, *ListCreditPacksRequest) (*ListCreditPacksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCreditPacks not implemented")
+}
+func (UnimplementedBillingServiceServer) CreateCheckoutSession(context.Context, *CreateCheckoutSessionRequest) (*CreateCheckoutSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCheckoutSession not implemented")
+}
+func (UnimplementedBillingServiceServer) CancelSubscription(context.Context, *CancelSubscriptionRequest) (*CancelSubscriptionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelSubscription not implemented")
 }
 func (UnimplementedBillingServiceServer) mustEmbedUnimplementedBillingServiceServer() {}
 func (UnimplementedBillingServiceServer) testEmbeddedByValue()                        {}
@@ -240,6 +334,78 @@ func _BillingService_GetPriceCatalog_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BillingService_ListPlans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPlansRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).ListPlans(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_ListPlans_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).ListPlans(ctx, req.(*ListPlansRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_ListCreditPacks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCreditPacksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).ListCreditPacks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_ListCreditPacks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).ListCreditPacks(ctx, req.(*ListCreditPacksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_CreateCheckoutSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCheckoutSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).CreateCheckoutSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_CreateCheckoutSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).CreateCheckoutSession(ctx, req.(*CreateCheckoutSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_CancelSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelSubscriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).CancelSubscription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_CancelSubscription_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).CancelSubscription(ctx, req.(*CancelSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BillingService_ServiceDesc is the grpc.ServiceDesc for BillingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -262,6 +428,22 @@ var BillingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPriceCatalog",
 			Handler:    _BillingService_GetPriceCatalog_Handler,
+		},
+		{
+			MethodName: "ListPlans",
+			Handler:    _BillingService_ListPlans_Handler,
+		},
+		{
+			MethodName: "ListCreditPacks",
+			Handler:    _BillingService_ListCreditPacks_Handler,
+		},
+		{
+			MethodName: "CreateCheckoutSession",
+			Handler:    _BillingService_CreateCheckoutSession_Handler,
+		},
+		{
+			MethodName: "CancelSubscription",
+			Handler:    _BillingService_CancelSubscription_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
